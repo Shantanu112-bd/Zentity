@@ -19,5 +19,11 @@ The format is based on Keep a Changelog.
 - **Circom & ZK Pipeline:**
   - Built `circom v2.1.8` from Rust source for Darwin x86_64.
   - Authored toy circuit `circuits/gate0/multiplier.circom`, executed dev-only Powers of Tau 8 ceremony, generated witness and proof, verified locally with snarkjs.
+- **Feasibility & Gate 0 Refinements:**
+  - Audited official docs for Coral testnet and shutdown notices (zero occurrences recorded; F-05, F-06 in `RESEARCH_AUDIT.md`).
+  - Relabeled precompile gas figures as `LOCAL (Hardhat node 31337)` and scheduled native on-chain measurement task via `PrecompileProbe.sol`.
+  - Recorded gas limit discrepancy between official docs (15M target / 30M max) and live testnet RPC (55M limit).
+  - Clarified Gate 0 verdict: `PASS (legacy-testnet diagnostic)`, with overall Gate 0 remaining `OPEN` pending Coral testnet verification.
+  - Implemented two-stage verifier deployment runner testing default `evmVersion` first, falling back to `paris` only if default fails.
 - **Test Suite:**
   - Automated Hardhat test suite in `tests/gate0-*.test.ts` (12/12 passing tests) covering valid proofs, tampered signals, flipped coordinates, swapped terms, and deterministic repeated execution.

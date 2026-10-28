@@ -5,17 +5,20 @@
 ---
 
 ## Milestone M0 — Repository, Research, & Gate 0 Feasibility
-- **Status:** `IN_PROGRESS`
+- **Status:** `IN_PROGRESS (Legacy-testnet diagnostic completed; overall Gate 0 OPEN pending Coral)`
 - **Objective:** Establish repository structure, execute Gate 0 preflight and precompile probes, determine BN254 Groth16 feasibility on MST, inspect SDKs in scratchpad, draft support questions and open questions.
 - **Tasks:**
   - [x] Bootstrap repository structure, configuration files, and doc skeletons
-  - [ ] Attempt retrieval of official MST documentation pages (§10.1)
-  - [ ] Run JSON-RPC preflight against Legacy Testnet and Mainnet (§9-A)
-  - [ ] Build and validate Gate 0 test harness on local Hardhat node (§9-B, C, D)
-  - [ ] Run Gate 0 on Legacy Testnet (if B-04 test wallet is funded) or report readiness
-  - [ ] Inspect `@mstblockchain/mst-sdk` and `@mstblockchain/mst-vibe-kit` in scratch directory (§10.2)
-  - [ ] Draft initial `THREAT_MODEL.md`, `PRIVACY_AND_COMPLIANCE.md`, `MST_SUPPORT_QUESTIONS.md`
-- **Exit Gate:** `docs/GATE0_TEST_REPORT.md` contains PASS/FAIL/INCONCLUSIVE verdict with raw evidence.
+  - [x] Retrieve official MST documentation pages (§10.1) and audit for Coral / migration notices
+  - [x] Run JSON-RPC preflight against Legacy Testnet and Mainnet (§9-A) & record gas limit discrepancy
+  - [x] Build and validate Gate 0 test harness on local Hardhat node (§9-B, C, D)
+  - [x] Direct precompile probes (`0x06`, `0x07`, `0x08`) via `eth_call` on Legacy Testnet and Mainnet (8/8 passed)
+  - [ ] Deploy `PrecompileProbe.sol` to MST Testnet to re-measure native precompile gas costs on-chain (Pending B-04)
+  - [ ] Deploy `Groth16Verifier.sol` to MST Legacy Testnet with default evmVersion first, then paris if needed (Pending B-04)
+  - [x] Inspect `@mstblockchain/mst-sdk` and `@mstblockchain/mst-vibe-kit` in scratch directory (§10.2)
+  - [x] Draft initial `THREAT_MODEL.md`, `PRIVACY_AND_COMPLIANCE.md`, `MST_SUPPORT_QUESTIONS.md`
+- **Exit Gate:** `docs/GATE0_TEST_REPORT.md` contains PASS/FAIL/INCONCLUSIVE verdict with raw evidence. Overall Gate 0 remains **OPEN** pending Coral testnet verification.
+- **Rule:** Do NOT start M1 or any real circuit work before Gate 0 is verified.
 
 ---
 
@@ -86,4 +89,3 @@
 - **Status:** `PLANNED`
 - **Objective:** Production trusted-setup ceremony, mainnet audit reviews, human operator deployment.
 - **Exit Gate:** Formal sign-off and production release.
-

@@ -84,3 +84,27 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
 - Docs updated: `ACTIVITY_LOG.md`, `CHANGELOG.md`, `SESSION_HANDOFF.md`.
 - Residual risk / blocker: B-01 (Coral config), B-04 (Funded testnet wallet).
 - Next action: Push commits to GitHub remote origin cleanly without force-pushing.
+
+### [2026-10-28 23:15 IST] M0-AUDIT-UPDATE — Coral Audit, Gas Clarifications, & Gate 0 Refinements
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria:
+  1. Grep `docs/reference/mst-docs/` for "Coral" and shutdown/migration notices; record in `docs/RESEARCH_AUDIT.md`.
+  2. Relabel precompile gas figures as `LOCAL (Hardhat node 31337)` and add task to re-measure on MST via deployed `PrecompileProbe.sol`.
+  3. Record gas-limit discrepancy (docs 15M/30M vs measured 55M testnet, 30M mainnet) in audit records without resolving it.
+  4. Change Gate 0 status wording to "legacy-testnet diagnostic" with overall verdict `OPEN` pending Coral testnet verification.
+  5. Enhance Gate 0 runner (`scripts/gate0/run-gate0.ts` and `03-verifier.ts`) to execute default compiler `evmVersion` first, falling back to `paris` only if default fails, recording outcomes.
+  6. Maintain strict gate blocking: Do NOT start Milestone M1 or any real circuit work.
+- Files created/modified/deleted:
+  - Modified: `PROJECT_CONTEXT.md`, `docs/GATE0_TEST_REPORT.md`, `docs/PERF_BENCHMARKS.md`, `docs/RESEARCH_AUDIT.md`, `docs/VERIFICATION_AUDIT.md`, `docs/CHANGELOG.md`, `implementation_plan.md`, `hardhat.config.cjs`, `scripts/gate0/03-verifier.ts`, `scripts/gate0/run-gate0.ts`, `scripts/gate0/vectors.json`, `docs/SESSION_HANDOFF.md`, `docs/ACTIVITY_LOG.md`.
+- Commands actually run (exact) and result summary:
+  - `grep -in "coral" docs/reference/mst-docs/*.md`: 0 matches found in official docs (Pass)
+  - `grep -iEn "shutdown|migrat|sunset|deprecat|january|2027" docs/reference/mst-docs/*.md`: No migration or shutdown notice present (Pass)
+  - `pnpm test`: 12/12 passing tests on local EVM node (Pass)
+  - Secret scan: `git grep -iE "DEPLOYER_PRIVATE_KEY|BEGIN PRIVATE KEY"`: 0 secrets found (Pass)
+- Evidence: Exact audit findings logged in `docs/RESEARCH_AUDIT.md` (F-05, F-06, F-14) and `docs/GATE0_TEST_REPORT.md`.
+- Errors -> diagnosis -> fix:
+  - Restored compiled verifier and test fixtures to match deterministic proof vector after snarkjs phase 2 re-run drift.
+- Security/privacy implications: Confirmed zero secrets or PII; `.env` remains untracked.
+- Docs updated: `ACTIVITY_LOG.md`, `CHANGELOG.md`, `SESSION_HANDOFF.md`, `GATE0_TEST_REPORT.md`, `RESEARCH_AUDIT.md`, `VERIFICATION_AUDIT.md`, `PROJECT_CONTEXT.md`, `implementation_plan.md`.
+- Residual risk / blocker: B-01 (Coral official config), B-04 (Funded testnet wallet).
+- Next action: Awaiting human operator to supply funded test-only key in `.env` (B-04) and Coral testnet info (B-01), then execute `pnpm run gate0:legacy`. Do NOT start M1.

@@ -10,7 +10,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import hre from "hardhat";
-import { NETWORKS, assertBroadcastAllowed } from "../../config/networks.js";
+import { defineChain } from "viem";
+import { NETWORKS, assertBroadcastAllowed } from "../../config/networks";
 
 export async function runOnChainVerifier(networkKey: string, allowUnverified = false) {
   const config = NETWORKS[networkKey];
@@ -18,9 +19,23 @@ export async function runOnChainVerifier(networkKey: string, allowUnverified = f
     throw new Error(`Unknown network slot: ${networkKey}`);
   }
 
-  // Preflight check chain ID
   const viem = (hre as any).viem;
-  const publicClient = await viem.getPublicClient();
+
+  // Custom chain definition for viem
+  const customChain = defineChain({
+    id: config.chainId,
+    name: config.name,
+    nativeCurrency: { name: config.symbol, symbol: config.symbol, decimals: 18 },
+    rpcUrls: {
+      default: { http: [config.rpcUrl] },
+    },
+    blockExplorers: config.explorerUrl ? {
+      default: { name: "Explorer", url: config.explorerUrl },
+    } : undefined,
+  });
+
+  // Preflight check chain ID
+  const publicClient = await viem.getPublicClient({ chain: customChain });
   const actualChainId = await publicClient.getChainId();
 
   await assertBroadcastAllowed(networkKey, actualChainId, allowUnverified);
@@ -46,7 +61,7 @@ export async function runOnChainVerifier(networkKey: string, allowUnverified = f
   // 1. Deploy Verifier Contract
   console.log(`--> Deploying Groth16Verifier...`);
   const deployStart = Date.now();
-  const verifier = await viem.deployContract("Groth16Verifier");
+  const verifier = await viem.deployContract("Groth16Verifier", [], { chain: customChain });
   const deployTimeMs = Date.now() - deployStart;
   console.log(`    Contract Address: ${verifier.address}`);
   console.log(`    Deploy latency: ${deployTimeMs}ms`);
@@ -102,7 +117,9 @@ export async function runOnChainVerifier(networkKey: string, allowUnverified = f
   return report;
 }
 
-const networkArg = process.argv.find((_, i, arr) => arr[i - 1] === "--network") || "local";
+const networkArg = (hre as any).network?.name && (hre as any).network.name !== "hardhat"
+  ? (hre as any).network.name
+  : (process.argv.find((_, i, arr) => arr[i - 1] === "--network") || "local");
 const allowUnverified = process.argv.includes("--allow-unverified-network");
 
 runOnChainVerifier(networkArg, allowUnverified).catch((err) => {

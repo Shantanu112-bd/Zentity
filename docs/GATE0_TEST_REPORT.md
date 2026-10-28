@@ -1,49 +1,58 @@
 # docs/GATE0_TEST_REPORT.md — Gate 0 Feasibility Report: BN254 Groth16 on MST
 
 **Target Networks:**
-- MST Legacy Testnet (`91562037` / 0x5752035)
-- MST Mainnet (`4646` / 0x1226)
-- Local Hardhat Node (`31337`)
-- MST Coral Testnet (`54635` — Pending B-01)
+- MST Legacy Testnet (`91562037` / `0x5752035`) — Status: `PASS (legacy-testnet diagnostic)`
+- MST Mainnet (`4646` / `0x1226`) — Status: `PASS (read-only diagnostic, M10 protected)`
+- Local Hardhat Node (`31337`) — Status: `PASS (harness validation)`
+- MST Coral Testnet (`54635`) — Status: `BLOCKED (pending B-01 official config)`
 
 **Report Date:** 2026-10-28 · **Author:** Antigravity (Gemini 3.8 Flash)
-**Status:** `MEASURED & VERIFIED (PRECOMPILES & LOCAL VERIFIER)` · `AWAITING B-04 (TESTNET DEPLOYMENT)`
+**Gate 0 Overall Verdict:** **`OPEN (pending Coral testnet verification)`**
 
 ---
 
 ## 1. Executive Summary & Verdict
 
-| Target | Preflight | Precompiles (0x06, 0x07, 0x08) | On-Chain Verifier Execution | Overall Verdict |
+| Target Network | Preflight | Precompiles (0x06, 0x07, 0x08) | On-Chain Verifier Execution | Verdict |
 |---|---|---|---|---|
-| **Local EVM (Hardhat Node)** | PASS | PASS (Measured Gas) | PASS (Valid + Tampered) | **PASS** |
-| **MST Legacy Testnet (91562037)** | PASS (Chain ID 91562037) | **PASS (8/8 Probes Passed)** | Pending B-04 Funded Key | **PASS (Precompile Feasibility)** |
-| **MST Mainnet (4646)** | PASS (Chain ID 4646) | **PASS (8/8 Probes Passed)** | Read-Only (M10 Protected) | **PASS (Precompile Feasibility)** |
+| **Local EVM (Hardhat Node 31337)** | PASS | PASS (`LOCAL` Measured Gas) | PASS (Valid + Tampered) | **PASS (Harness Verified)** |
+| **MST Legacy Testnet (91562037)** | PASS (Chain ID 91562037) | **PASS (8/8 Probes Passed via eth_call)** | Pending B-04 Funded Key | **PASS (legacy-testnet diagnostic)** |
+| **MST Mainnet (4646)** | PASS (Chain ID 4646) | **PASS (8/8 Probes Passed via eth_call)** | Read-Only (M10 Protected) | **PASS (mainnet diagnostic)** |
 | **MST Coral Testnet (54635)** | Blocked on B-01 | Blocked on B-01 | Blocked on B-01 | **BLOCKED (B-01)** |
 
-**Key Finding:** MST Blockchain natively and correctly implements the BN254 elliptic curve precompiles (`0x06` ecAdd, `0x07` ecMul, `0x08` ecPairing) according to EIP-196 and EIP-197. All 8 mathematical and rejection probes passed on both MST Legacy Testnet and MST Mainnet via `eth_call`.
+**Key Verdict:** MST Blockchain natively implements the BN254 elliptic curve precompiles (`0x06` ecAdd, `0x07` ecMul, `0x08` ecPairing) according to EIP-196 and EIP-197. All 8 mathematical and rejection probes passed on both MST Legacy Testnet and MST Mainnet via `eth_call`. However, because MST Coral Testnet configuration remains unverified in official documentation, the **overall Gate 0 verdict remains `OPEN` pending Coral testnet verification**.
 
 ---
 
-## 2. Phase A: Network Preflight Measurements
+## 2. Phase A: Network Preflight Measurements & Gas Limit Discrepancy
 
 ### MST Legacy Testnet (`mstLegacyTestnet`)
 - **RPC URL:** `https://testnetrpc.mstblockchain.com`
 - **Chain ID:** `91562037` (`0x5752035`) — Exact match with configuration.
 - **Client Version:** `Geth/v1.7.3-5c7d31a4-20260519/linux-amd64/go1.25.0`
 - **Gas Price:** `1000000000 wei` (1 Gwei)
-- **Block Gas Limit:** `55,000,000` gas
+- **Measured Block Gas Limit:** `55,000,000` gas (`0x3473bc0`)
 - **Block Progression:** Advanced 8 blocks in 21.9 seconds (Observed Block Time: ~`2.73s`)
 - **Evidence Path:** `docs/evidence/preflight-mstLegacyTestnet.json`
 
-### MST Mainnet (`mstMainnet`)
+### MST Mainnet (`mstMainnet`, Read-Only)
 - **RPC URL:** `https://mariorpc.mstblockchain.com`
 - **Chain ID:** `4646` (`0x1226`) — Exact match with configuration.
 - **Client Version:** `Geth/v1.7.8-cdb7548b-20260811/linux-amd64/go1.25.0`
 - **Gas Price:** `1000000000 wei` (1 Gwei)
-- **Block Gas Limit:** `30,000,000` gas
+- **Measured Block Gas Limit:** `30,000,000` gas (`0x1c9c380`)
 - **Block Progression:** Advanced 7 blocks in 20.1 seconds (Observed Block Time: ~`2.88s`)
 - **RPC Latency:** 14ms - 19ms
 - **Evidence Path:** `docs/evidence/preflight-mstMainnet.json`
+
+### Gas Limit Discrepancy (Recorded Without Resolution)
+> [!NOTE]
+> **Discrepancy:** Official documentation ([`docs/reference/mst-docs/gas.md`](file:///Users/macbook/Mst%20Project/docs/reference/mst-docs/gas.md)) explicitly states:
+> *"Target Block Size: 15 million gas. Maximum Block Size: 30 million gas."*
+> However, empirical measurements via `eth_getBlockByNumber("latest")` show:
+> - **Legacy Testnet:** `55,000,000` gas (significantly higher than the 30M documented maximum).
+> - **Mainnet:** `30,000,000` gas (matches documented maximum).
+> This discrepancy is recorded as an empirical fact without resolution until confirmed by the MST team.
 
 ---
 
@@ -71,11 +80,12 @@ Test vectors were generated independently using `@noble/curves/bn254` v2.4.0 (pr
 ## 4. Phase B.2: On-Chain Gas Measurements (`PrecompileProbe.sol`)
 
 Deployed `contracts/PrecompileProbe.sol` on local Hardhat node and measured `gasleft()` delta around `staticcall`:
-- **`ecAdd` (`0x06`):** `552 gas` (EIP-1108 base 150 gas + wrapper overhead)
-- **`ecMul` (`0x07`):** `6,396 gas` (EIP-1108 base 6,000 gas + wrapper overhead)
-- **`ecPairing` (`0x08`, 2 pairs):** `113,447 gas` (EIP-1108 formula: $45,000 + 2 \times 34,000 = 113,000$ gas + wrapper overhead)
+- **`ecAdd` (`0x06`):** `552 gas` — **`LOCAL (Hardhat node 31337)`**
+- **`ecMul` (`0x07`):** `6,396 gas` — **`LOCAL (Hardhat node 31337)`**
+- **`ecPairing` (`0x08`, 2 pairs):** `113,447 gas` — **`LOCAL (Hardhat node 31337)`**
 
-**Conclusion:** Precompile pricing strictly aligns with standard Ethereum EIP-1108 gas repricing.
+> [!IMPORTANT]
+> **Pending Re-Measurement Task:** The above figures are measured in the **LOCAL** Hardhat environment. A task is scheduled to deploy `PrecompileProbe.sol` directly to MST Testnet (once funded wallet B-04 is available) to measure native MST gas consumption for each precompile on-chain.
 
 ---
 
@@ -90,9 +100,9 @@ Deployed `contracts/PrecompileProbe.sol` on local Hardhat node and measured `gas
 
 ---
 
-## 6. Phase D: Verifier Contract Execution & Tamper Tests
+## 6. Phase D: Verifier Contract Execution & Tamper Tests (Local EVM)
 
-Tested against `Groth16Verifier.sol`:
+Tested against `Groth16Verifier.sol` locally:
 - Valid proof: **PASS** (`verifyProof` returned `true`)
 - Tampered public signal ($c=34$): **PASS** (rejected, returned `false`)
 - Tampered coordinate (flipped $pA[0]$): **PASS** (rejected / reverted safely)
@@ -103,7 +113,7 @@ Tested against `Groth16Verifier.sol`:
 
 ---
 
-## 7. Next Step for Milestone M0 Gate 0 Completion
-To complete the final on-chain transaction deployment on MST Legacy Testnet:
-- **Action Required from Human Operator:** Provide a test-only private key funded with testnet `tMSTC` in untracked `.env` as `DEPLOYER_PRIVATE_KEY=0x...` (Blocker B-04).
-- As soon as `.env` is populated, running `pnpm run gate0:legacy` will broadcast and log the deployment transaction hash and confirmation receipt.
+## 7. Status and Next Steps
+1. **MST Legacy Testnet Status:** `PASS (legacy-testnet diagnostic)` for precompiles.
+2. **On-Chain MST Deployment:** Awaiting funded test-only wallet (`DEPLOYER_PRIVATE_KEY` in untracked `.env`) to deploy `Groth16Verifier.sol` and `PrecompileProbe.sol` to MST testnet.
+3. **Overall Gate 0 Verdict:** **`OPEN (pending Coral testnet verification)`**.

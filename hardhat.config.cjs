@@ -12,6 +12,7 @@ module.exports = {
         enabled: true,
         runs: 200,
       },
+      ...(process.env.EVM_VERSION ? { evmVersion: process.env.EVM_VERSION } : {}),
     },
   },
   paths: {
