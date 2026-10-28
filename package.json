@@ -9,6 +9,8 @@
     "gate0:local": "tsx scripts/gate0/run-gate0.ts --network local",
     "gate0:legacy": "tsx scripts/gate0/run-gate0.ts --network mstLegacyTestnet --allow-unverified-network",
     "build:circuit": "tsx scripts/pramaan/build-circuit.ts",
+    "deploy:local": "hardhat run scripts/pramaan/deploy-registry.ts --network localhost",
+    "deploy:legacy": "hardhat run scripts/pramaan/deploy-registry.ts --network mstLegacyTestnet",
     "test": "hardhat test tests/*.test.ts"
   },
   "devDependencies": {

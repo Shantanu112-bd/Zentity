@@ -148,3 +148,16 @@ export async function createCircuitInput(params: {
     sigS: params.credential.sigS,
   };
 }
+
+export function formatSolidityCalldata(proof: any, publicSignals: any[]) {
+  return {
+    a: [BigInt(proof.pi_a[0]), BigInt(proof.pi_a[1])] as const,
+    b: [
+      [BigInt(proof.pi_b[0][1]), BigInt(proof.pi_b[0][0])],
+      [BigInt(proof.pi_b[1][1]), BigInt(proof.pi_b[1][0])],
+    ] as const,
+    c: [BigInt(proof.pi_c[0]), BigInt(proof.pi_c[1])] as const,
+    input: publicSignals.map((s) => BigInt(s)) as readonly bigint[],
+  };
+}
+
