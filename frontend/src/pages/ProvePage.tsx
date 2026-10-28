@@ -1,12 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Sparkles, CheckCircle, XCircle, Loader2, ArrowRight, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  Shield,
+  Sparkles,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  ArrowRight,
+  AlertCircle,
+  RefreshCw,
+  Send,
+  ExternalLink,
+} from "lucide-react";
 import { StatusChip } from "../components/StatusChip";
+import { useWallet, TxResult } from "../context/WalletContext";
 import { issueSyntheticCredential, SyntheticCredential } from "../../../scripts/pramaan/crypto-utils.ts";
 import { generateProofClientSide, ProofResult } from "../../../packages/client/src/prover.ts";
 
 export const ProvePage: React.FC = () => {
   const navigate = useNavigate();
+  const {
+    address,
+    isConnected,
+    isCorrectNetwork,
+    targetNetwork,
+    connect,
+    switchNetwork,
+    submitProofToMST,
+  } = useWallet();
 
   // Preset Credentials
   const [selectedPreset, setSelectedPreset] = useState<"adult" | "minor" | "custom">("adult");
@@ -25,12 +46,26 @@ export const ProvePage: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [verificationOutcome, setVerificationOutcome] = useState<any | null>(null);
 
+  // On-Chain Submission State
+  const [isSubmittingOnChain, setIsSubmittingOnChain] = useState<boolean>(false);
+  const [onChainTxResult, setOnChainTxResult] = useState<TxResult | null>(null);
+  const [onChainError, setOnChainError] = useState<string | null>(null);
+
+  // Sync recipient to connected wallet address
+  useEffect(() => {
+    if (address) {
+      setRecipient(address);
+    }
+  }, [address]);
+
   // Initialize or fetch credential
   const handleSelectPreset = async (preset: "adult" | "minor") => {
     setSelectedPreset(preset);
     setProofResult(null);
     setProvingError(null);
     setVerificationOutcome(null);
+    setOnChainTxResult(null);
+    setOnChainError(null);
 
     const currentDateDays = 20000;
     // Adult: 25 years (25 * 365.25 ≈ 9131 days) -> dobDays = 20000 - 9131 = 10869
@@ -48,6 +83,8 @@ export const ProvePage: React.FC = () => {
     setProofResult(null);
     setProvingError(null);
     setVerificationOutcome(null);
+    setOnChainTxResult(null);
+    setOnChainError(null);
 
     try {
       const res = await fetch("/api/demo/issue", {
@@ -65,7 +102,7 @@ export const ProvePage: React.FC = () => {
   };
 
   // Run initial preset
-  React.useEffect(() => {
+  useEffect(() => {
     handleSelectPreset("adult");
   }, []);
 
@@ -77,6 +114,8 @@ export const ProvePage: React.FC = () => {
     setProvingError(null);
     setProofResult(null);
     setVerificationOutcome(null);
+    setOnChainTxResult(null);
+    setOnChainError(null);
     setProgressPercent(10);
     setProgressStage("INITIALIZING_CIRCUIT");
 
@@ -86,7 +125,7 @@ export const ProvePage: React.FC = () => {
         {
           scopeId,
           recipient,
-          chainId: 91562037, // MST Legacy Testnet
+          chainId: targetNetwork.chainId, // Bind to active target network
         },
         {
           wasmUrl: "/circuits/age_credential.wasm",
@@ -140,12 +179,58 @@ export const ProvePage: React.FC = () => {
     }
   };
 
+  // Execute On-Chain Verification ("Submit to MST")
+  const handleSubmitOnChain = async () => {
+    if (!proofResult) return;
+    if (!isConnected) {
+      await connect();
+      return;
+    }
+    if (!isCorrectNetwork) {
+      await switchNetwork();
+      return;
+    }
+
+    setIsSubmittingOnChain(true);
+    setOnChainError(null);
+
+    try {
+      const txRes = await submitProofToMST(
+        proofResult.solidityCalldata.a,
+        proofResult.solidityCalldata.b,
+        proofResult.solidityCalldata.c,
+        proofResult.solidityCalldata.pubSignals
+      );
+
+      setOnChainTxResult(txRes);
+
+      // Persist last tx for VerifyPage re-reading
+      const stored = {
+        txHash: txRes.txHash,
+        blockNumber: txRes.blockNumber.toString(),
+        gasUsed: txRes.gasUsed.toString(),
+        status: txRes.status,
+        explorerUrl: txRes.explorerUrl,
+        nullifier: proofResult.nullifier,
+        scopeId,
+        network: targetNetwork,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem("pramaan_last_tx", JSON.stringify(stored));
+    } catch (err: any) {
+      console.error("On-chain submission failed:", err);
+      setOnChainError(err.message || String(err));
+    } finally {
+      setIsSubmittingOnChain(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Title */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
-          <StatusChip type="SYNTHETIC" />
+          <StatusChip type="DEMO / SYNTHETIC" />
           <StatusChip type="OFF-CHAIN VERIFIED" />
         </div>
         <h1 className="font-heading text-3xl font-bold text-white">
@@ -178,9 +263,8 @@ export const ProvePage: React.FC = () => {
             <div className="font-heading font-semibold text-sm mb-1 text-emerald-400">
               Adult Credential (Age 25)
             </div>
-            <div className="text-xs text-slate-400">
-              DOB ~1999 &bull; <strong className="text-emerald-400">Valid proof</strong> passes age &ge; 18 constraint.
-            </div>
+            <div className="text-xs text-slate-400">DOB: ~1999 &bull; State: 27 (MH)</div>
+            <div className="text-[11px] font-mono text-cyan-400 mt-2">&ge; 18 constraint PASSES</div>
           </button>
 
           <button
@@ -188,16 +272,15 @@ export const ProvePage: React.FC = () => {
             onClick={() => handleSelectPreset("minor")}
             className={`p-4 rounded-xl border text-left transition-all ${
               selectedPreset === "minor"
-                ? "border-amber-500 bg-amber-500/10 text-white"
+                ? "border-red-500 bg-red-500/10 text-white"
                 : "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-slate-700"
             }`}
           >
             <div className="font-heading font-semibold text-sm mb-1 text-red-400">
               Minor Credential (Age 16)
             </div>
-            <div className="text-xs text-slate-400">
-              DOB ~2008 &bull; <strong className="text-red-400">Negative Test</strong> triggers constraint failure.
-            </div>
+            <div className="text-xs text-slate-400">DOB: ~2008 &bull; State: 27 (MH)</div>
+            <div className="text-[11px] font-mono text-red-400 mt-2">&lt; 18 constraint REVERTS</div>
           </button>
 
           <button
@@ -205,96 +288,93 @@ export const ProvePage: React.FC = () => {
             onClick={handleIssueCustom}
             className={`p-4 rounded-xl border text-left transition-all ${
               selectedPreset === "custom"
-                ? "border-purple-500 bg-purple-500/10 text-white"
+                ? "border-amber-500 bg-amber-500/10 text-white"
                 : "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-slate-700"
             }`}
           >
-            <div className="font-heading font-semibold text-sm mb-1 text-purple-400 flex items-center justify-between">
-              <span>Issue Fresh</span>
-              <RefreshCw className="w-3.5 h-3.5" />
+            <div className="font-heading font-semibold text-sm mb-1 text-amber-400">
+              Issue via Backend API
             </div>
-            <div className="text-xs text-slate-400">
-              Calls API endpoint <code>/api/demo/issue</code> for a random synthetic scalar.
-            </div>
+            <div className="text-xs text-slate-400">POST /api/demo/issue</div>
+            <div className="text-[11px] font-mono text-amber-400 mt-2">Zero-PII Filter Verified</div>
           </button>
         </div>
 
+        {/* Credential Data Preview */}
         {credential && (
-          <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800/80 font-mono text-[11px] text-slate-400 space-y-1">
-            <div className="text-slate-300 font-semibold mb-1 flex items-center justify-between">
-              <span>Signed Credential Payload (Client Memory):</span>
-              <span className="text-emerald-400">CONFIDENTIAL (ZERO-EGRESS)</span>
+          <div className="mt-4 p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 font-mono text-xs text-slate-300">
+            <div className="flex items-center justify-between text-slate-400 mb-2 border-b border-slate-800/80 pb-1">
+              <span>Synthetic Credential Signed Fields</span>
+              <span className="text-[10px] text-amber-400">Stored in browser memory only</span>
             </div>
-            <div>Credential Secret: <span className="text-slate-200">{credential.credentialSecret.slice(0, 18)}...</span></div>
-            <div>Issuer Key Hash: <span className="text-cyan-400">{credential.issuerPubKeyHash.slice(0, 18)}...</span></div>
-            <div>State Code: <span className="text-slate-300">{credential.stateCode}</span> &bull; DOB Days: <span className="text-slate-300">{credential.dobDays}</span></div>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div>dobDays: <span className="text-cyan-400">{credential.dobDays}</span></div>
+              <div>stateCode: <span className="text-cyan-400">{credential.stateCode}</span></div>
+              <div className="col-span-2 truncate">credentialSecret: <span className="text-slate-500">{credential.credentialSecret}</span></div>
+              <div className="col-span-2 truncate">EdDSA R8x: <span className="text-slate-500">{credential.signature.R8x}</span></div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Step 2: Context Binding Signals */}
+      {/* Step 2: Context Binding Configuration */}
       <div className="glass-panel p-6 rounded-2xl border border-slate-800 mb-6">
         <h2 className="font-heading font-semibold text-white text-base mb-4">
-          2. Context &amp; Anti-Frontrunning Signals
+          2. Bind Target Context (Scope, Recipient, Chain)
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">
-              Scope ID (Application Context)
-            </label>
+            <label className="text-slate-400 block mb-1.5">Scope ID (Application Domain)</label>
             <input
               type="text"
               value={scopeId}
               onChange={(e) => setScopeId(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-cyan-500"
-              placeholder="e.g. 42"
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-cyan-500"
             />
-            <span className="text-[11px] text-slate-500 mt-1 block">
-              Derives pairwise nullifier: <code>Poseidon(secret, scopeId)</code>
-            </span>
+            <span className="text-[10px] text-slate-500 mt-1 block">Scope prevents cross-site linkage</span>
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">
-              Recipient Address (EVM Front-Running Guard)
-            </label>
+            <label className="text-slate-400 block mb-1.5">Recipient Address (Caller / Wallet)</label>
             <input
               type="text"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-cyan-500"
-              placeholder="0x..."
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-cyan-500 truncate"
             />
-            <span className="text-[11px] text-slate-500 mt-1 block">
-              Guarantees only this recipient address can consume proof
+            <span className="text-[10px] text-slate-500 mt-1 block">
+              {address && recipient.toLowerCase() === address.toLowerCase() ? "Bound to connected wallet" : "Custom address"}
             </span>
           </div>
-        </div>
-      </div>
 
-      {/* Step 3: Prover Action */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 mb-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h2 className="font-heading font-semibold text-white text-base">
-              3. Generate Groth16 Zero-Knowledge Proof
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Target circuit: <code>AgeCredential.circom</code> (5,014 constraints, BN254 curve)
-            </p>
+            <label className="text-slate-400 block mb-1.5">Target Chain ID</label>
+            <input
+              type="text"
+              readOnly
+              value={`${targetNetwork.chainId} (${targetNetwork.name})`}
+              className="w-full px-3 py-2 bg-slate-900/60 border border-slate-800 rounded-lg text-slate-400 focus:outline-none"
+            />
+            <span className="text-[10px] text-slate-500 mt-1 block">Prevents cross-chain replay</span>
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-800/80">
+          <div className="text-xs text-slate-400">
+            Current public date epoch: <strong className="text-slate-200">20,000 days</strong> (~2024)
           </div>
 
           <button
             type="button"
             disabled={isProving || !credential}
             onClick={handleGenerateProof}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-semibold text-sm hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-500/20"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-2 hover:opacity-95 transition-all disabled:opacity-50"
           >
             {isProving ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Computing zk-SNARK...</span>
+                <span>Proving in Worker ({progressPercent}%)...</span>
               </>
             ) : (
               <>
@@ -333,7 +413,7 @@ export const ProvePage: React.FC = () => {
         )}
       </div>
 
-      {/* Proof Result Display */}
+      {/* Step 3: Proof Result & Submission */}
       {proofResult && (
         <div className="glass-panel p-6 rounded-2xl border border-cyan-500/40 glow-cyan mb-8 animate-in fade-in duration-300">
           <div className="flex items-center justify-between mb-4">
@@ -366,38 +446,123 @@ export const ProvePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 flex flex-wrap items-center gap-4">
+          {/* Action Row */}
+          <div className="mt-6 pt-4 border-t border-slate-800 flex flex-wrap items-center gap-3">
             <button
               type="button"
               disabled={isVerifying}
               onClick={handleVerifyOffChain}
-              className="px-5 py-2.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 text-xs font-semibold flex items-center gap-2 transition-all"
+              className="px-4 py-2.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 text-xs font-semibold flex items-center gap-2 transition-all"
             >
               {isVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
-              <span>Verify Off-Chain with Fastify API</span>
+              <span>Verify Off-Chain (API)</span>
+            </button>
+
+            {/* Step 5: Explicit "Submit to MST" Button */}
+            <button
+              type="button"
+              disabled={isSubmittingOnChain}
+              onClick={handleSubmitOnChain}
+              className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-xs font-bold flex items-center gap-2 hover:opacity-95 shadow-md shadow-emerald-500/20 transition-all"
+            >
+              {isSubmittingOnChain ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Submitting & Minding on MST...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Submit to MST ({targetNetwork.label || targetNetwork.name})</span>
+                </>
+              )}
             </button>
 
             <button
               type="button"
-              onClick={() => navigate(`/verify/${proofResult.nullifier}`)}
-              className="px-5 py-2.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 text-xs font-semibold flex items-center gap-2 transition-all ml-auto"
+              onClick={() => navigate(`/verify/${onChainTxResult?.txHash || proofResult.nullifier}`)}
+              className="px-4 py-2.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 text-xs font-semibold flex items-center gap-2 transition-all ml-auto"
             >
-              <span>View On-Chain Result</span>
+              <span>View Verify Page</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Verification Outcome */}
+          {/* Off-Chain Verification Outcome */}
           {verificationOutcome && (
             <div className="mt-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
                 <span>
-                  <strong>API Verified:</strong> Groth16 mathematical check passed. Active chain mode:{" "}
+                  <strong>Fastify API Verified:</strong> Groth16 mathematical check passed. Mode:{" "}
                   <strong>{verificationOutcome.chainMode}</strong>.
                 </span>
               </div>
               <StatusChip type="OFF-CHAIN VERIFIED" />
+            </div>
+          )}
+
+          {/* On-Chain Transaction Result Display */}
+          {onChainTxResult && (
+            <div className="mt-4 p-5 rounded-xl bg-emerald-950/40 border border-emerald-500/50 text-xs space-y-2 animate-in fade-in duration-300">
+              <div className="flex items-center justify-between border-b border-emerald-500/30 pb-2">
+                <div className="flex items-center gap-2 text-emerald-400 font-semibold">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Mined Successfully on {targetNetwork.name}</span>
+                </div>
+                <StatusChip
+                  type="ZK VERIFIED ON-CHAIN"
+                  txHash={onChainTxResult.txHash}
+                  explorerUrl={targetNetwork.explorerUrl}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300 font-mono text-[11px] pt-1">
+                <div>
+                  <span className="text-slate-400">Tx Hash: </span>
+                  <a
+                    href={onChainTxResult.explorerUrl || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-cyan-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>{onChainTxResult.txHash.slice(0, 10)}...{onChainTxResult.txHash.slice(-8)}</span>
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                </div>
+                <div>
+                  <span className="text-slate-400">Block: </span>
+                  <span>{onChainTxResult.blockNumber.toString()}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400">Gas Used: </span>
+                  <span>{onChainTxResult.gasUsed.toString()}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400">Status: </span>
+                  <span className="text-emerald-400 font-bold uppercase">{onChainTxResult.status}</span>
+                </div>
+              </div>
+
+              {onChainTxResult.eventDecoded && (
+                <div className="p-2.5 bg-black/40 rounded border border-emerald-500/20 text-[10px] font-mono text-emerald-300">
+                  <span className="font-semibold block mb-0.5">Event ProofVerifiedAndRecorded Decoded:</span>
+                  <div>scopeId: {onChainTxResult.eventDecoded.scopeId.toString()}</div>
+                  <div className="truncate">nullifier: {onChainTxResult.eventDecoded.nullifier.toString()}</div>
+                  <div>recipient: {onChainTxResult.eventDecoded.recipient}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* On-Chain Revert / Submission Error Alert */}
+          {onChainError && (
+            <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold block mb-0.5">On-Chain Submission / Revert</span>
+                {onChainError}
+              </div>
             </div>
           )}
         </div>

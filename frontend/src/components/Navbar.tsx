@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Shield, Sparkles, ExternalLink } from "lucide-react";
 import { StatusChip } from "./StatusChip";
+import { WalletConnect } from "./WalletConnect";
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
@@ -72,12 +73,9 @@ export const Navbar: React.FC = () => {
           })}
         </nav>
 
-        {/* Status Indicators */}
-        <div className="flex items-center gap-2.5">
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-800 bg-slate-900/80 text-[11px] font-mono text-slate-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Mode: <strong>{chainMode === "mst-legacy-testnet" ? "MST Testnet (91562037)" : "Local EVM (31337)"}</strong></span>
-          </div>
+        {/* Status Indicators & Wallet Connect */}
+        <div className="flex items-center gap-3">
+          <WalletConnect />
           <StatusChip type="SYNTHETIC" />
         </div>
       </div>

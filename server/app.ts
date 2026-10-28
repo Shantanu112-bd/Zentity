@@ -179,8 +179,33 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
   });
 
   // --------------------------------------------------------------------------
-  // 3. Registry State Read
+  // 3. Registry State Read & Contract Info
   // --------------------------------------------------------------------------
+  app.get("/api/registry/info", async () => {
+    const chainMode = getActiveChainMode();
+    const networkSlot = chainMode === "mst-coral-testnet" ? "mstCoralTestnet" : chainMode === "mst-legacy-testnet" ? "mstLegacyTestnet" : "local";
+    const netConfig = NETWORKS[networkSlot];
+
+    let deployed: any = null;
+    const deployPath = path.resolve(process.cwd(), "contracts/deployed-addresses.json");
+    if (fs.existsSync(deployPath)) {
+      try {
+        deployed = JSON.parse(fs.readFileSync(deployPath, "utf-8"));
+      } catch {}
+    }
+
+    return {
+      chainMode,
+      networkSlot,
+      network: netConfig,
+      contracts: deployed?.contracts || {
+        PramaanVerifier: { address: "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512" },
+        PramaanRegistry: { address: "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0" },
+      },
+      demoIssuerPubKeyHash: deployed?.demoIssuerRegistration?.pubKeyHash || "1611009605506049313254918906125506668212891036786937998993893237370979579959",
+    };
+  });
+
   app.get("/api/registry/:scopeId/:nullifier", async (req: FastifyRequest, reply: FastifyReply) => {
     const params = req.params as { scopeId: string; nullifier: string };
     const chainMode = getActiveChainMode();
