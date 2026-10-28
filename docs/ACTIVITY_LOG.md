@@ -108,3 +108,57 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
 - Docs updated: `ACTIVITY_LOG.md`, `CHANGELOG.md`, `SESSION_HANDOFF.md`, `GATE0_TEST_REPORT.md`, `RESEARCH_AUDIT.md`, `VERIFICATION_AUDIT.md`, `PROJECT_CONTEXT.md`, `implementation_plan.md`.
 - Residual risk / blocker: B-01 (Coral official config), B-04 (Funded testnet wallet).
 - Next action: Awaiting human operator to supply funded test-only key in `.env` (B-04) and Coral testnet info (B-01), then execute `pnpm run gate0:legacy`. Do NOT start M1.
+
+### [2026-10-29 02:55 IST] MVP-COMPLETE — Full Deadline Mode MVP Implementation & Verification
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria: Complete all 7 ordered work steps of `DEADLINE_MODE_PROMPT.md`: funding check, age credential circuit, registry contracts, Fastify backend + OIDC-lite gateway, client proving SDK with zero-egress guarantee, Vite React frontend with Proof Gate portal, README with demo script and transparency table.
+- Files created/modified/deleted:
+  - Created: `DEADLINE_MODE_PROMPT.md`, `circuits/pramaan/age_credential.circom`, `circuits/pramaan/verification_key.json`, `contracts/PramaanRegistry.sol`, `contracts/PramaanVerifier.sol`, `scripts/pramaan/build-circuit.ts`, `scripts/pramaan/crypto-utils.ts`, `scripts/pramaan/deploy-registry.ts`, `server/app.ts`, `server/index.ts`, `server/oidc.ts`, `packages/client/src/prover.ts`, `frontend/index.html`, `frontend/vite.config.ts`, `frontend/src/*` (components, pages), `tests/circuit-age-credential.test.ts`, `tests/pramaan-registry.test.ts`, `tests/server.test.ts`, `tests/client-zero-egress.test.ts`.
+  - Modified: `package.json`, `README.md`, `docs/CRYPTO_DESIGN.md`, `docs/SESSION_HANDOFF.md`, `config/networks.ts`.
+- Commands actually run (exact) and result summary:
+  - `pnpm test`: 32/32 tests passing across circuits, contracts, backend, and zero-egress SDK (Pass)
+  - `npx vite build frontend`: Production build succeeded in 943ms (Pass)
+  - Secret scan: `git grep -iE "BEGIN (RSA|EC|OPENSSH|DSA|PGP|PRIVATE) KEY"`: 0 secrets found (Pass)
+- Evidence: Hardhat test logs and verification keys stored in `circuits/pramaan/` and `frontend/public/circuits/`.
+- Errors -> diagnosis -> fix: Resolved module export syntax for fastify and types; adjusted substring assertion in zero-egress test.
+- Security/privacy implications: Zero PII policy enforced at circuit, contract, API, and client levels.
+- Docs updated: `README.md`, `docs/ACTIVITY_LOG.md`, `docs/SESSION_HANDOFF.md`, `docs/CRYPTO_DESIGN.md`.
+- Residual risk / blocker: B-01 (Coral Testnet RPC), B-04 (Funded wallet for testnet broadcast).
+- Next action: Stand by for operator testnet funds (B-04) to deploy to MST Legacy Testnet.
+
+### [2026-10-29 03:35 IST] BUILD-FINAL-MVP — Coral Testnet Preflight, Network Guard, Wallet Auth, Submit to MST, & Gas Benchmarks
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria: Execute `ANTIGRAVITY_MASTER_BUILD_PROMPT.md` tasks: Coral testnet preflight, network guard tests, target deployment harness with deployer balance guard, wallet connection + off-chain EIP-191 auth challenge, "Submit to MST" transaction pipeline, on-chain negative paths audit, native gas measurements, and docs synchronization.
+- Files created/modified/deleted:
+  - Created: `docs/evidence/preflight-coral-2026-10-29.json`, `tests/network-guard.test.ts`, `tests/wallet-auth.test.ts`, `frontend/src/context/WalletContext.tsx`, `frontend/src/components/WalletConnect.tsx`, `scripts/pramaan/run-negative-cases.ts`, `docs/evidence/negative-cases.json`, `scripts/pramaan/measure-gas.ts`, `docs/evidence/gas-measured.json`.
+  - Modified: `config/networks.ts`, `hardhat.config.cjs`, `package.json`, `scripts/pramaan/deploy-registry.ts`, `server/app.ts`, `frontend/src/App.tsx`, `frontend/src/components/Navbar.tsx`, `frontend/src/components/StatusChip.tsx`, `frontend/src/pages/ProvePage.tsx`, `frontend/src/pages/VerifyPage.tsx`, `frontend/src/pages/DappGatePage.tsx`, `tests/pramaan-registry.test.ts`, `docs/RESEARCH_AUDIT.md`, `docs/GATE0_TEST_REPORT.md`, `docs/VERIFICATION_AUDIT.md`.
+- Commands actually run (exact) and result summary:
+  - Coral Preflight via RPC `https://coralrpc.mstblockchain.com`: chainId 54635 (0xd56b), Geth v1.7.8, gasPrice 1 Gwei, 30M gas limit, 0x06/0x07/0x08 precompiles valid (Pass)
+  - `pnpm test`: 46/46 passing tests across circuit, client SDK, local EVM precompile probe, multiplier verifier, network guard, PramaanRegistry (8 tests), Fastify server, and wallet auth (7 tests) (Pass)
+  - `pnpm run build:frontend`: Vite production build passed cleanly in 1.09s (Pass)
+  - `npx hardhat run scripts/pramaan/run-negative-cases.ts`: 7/7 negative paths verified (InvalidProof, UnregisteredIssuer, ChainIdMismatch, RecipientMismatch, NullifierAlreadySpent, ContractPaused) (Pass)
+  - `npx hardhat run scripts/pramaan/measure-gas.ts`: Measured 0x06 (552 gas), 0x07 (6,396 gas), 0x08 (113,447 gas), verifyProof (255,949 gas), verifyAndRecord (288,846 gas) (Pass)
+  - Secret scan: Verified 0 keys or secrets committed; `.env` untracked (Pass)
+- Evidence: Stored in `docs/evidence/preflight-coral-2026-10-29.json`, `docs/evidence/negative-cases.json`, `docs/evidence/gas-measured.json`.
+- Residual risk / blocker:
+  - B-04: Deployer address `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` currently has 0 tMSTC. Faucet URL: `https://coral-faucet.mstblockchain.com/`. Once funded, running `pnpm run deploy:coral` broadcasts `PrecompileProbe`, `PramaanVerifier`, and `PramaanRegistry` directly to Coral testnet.
+- Next action: Human funds `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` with testnet tMSTC from Coral faucet, then runs `pnpm run deploy:coral`.
+
+---
+
+### [2026-10-29 03:55 IST] — Step 10: Proof-Gate Cinematic Walkthrough & Multi-Viewport Parity
+- **Context:** ANTIGRAVITY_MASTER_BUILD_PROMPT.md §5 Step 10 & docs/reference/ui/UI_ADDENDUM_PRAMAAN.md.
+- **Implemented:**
+  1. `frontend/public/brand/logo.svg`: Original vector logo (geometric hexagonal shroud, keyhole portal, glowing core).
+  2. `frontend/src/landing/scenes.ts`: 4 offscreen procedural 2D canvas generators (`credentialScene`, `proofScene`, `verifiedScene`, `warpScene`).
+  3. `frontend/src/landing/PortalEngine.ts`: Perspective focal 850, 44-point rounded-rect perimeter sampler, screen-locked cover draw, cubic travel expansion, and frame freeze.
+  4. `frontend/src/landing/landing.css`: Responsive design matching reference proportions (1440px desktop, 768px tablet, 375px mobile), zero scrollbars, and `prefers-reduced-motion` compliance.
+  5. `frontend/src/landing/LandingWalkthrough.tsx`: Interactive React component with 0–100% preloader choreography, logo docking, and chapter state machine.
+  6. Polyfills: Buffer polyfill in `frontend/src/polyfills.ts` ensuring clean bundle execution in browser environment.
+  7. Automated Capture & Benchmark Scripts: `scripts/capture-screenshots.js` and `scripts/measure-ui-perf.js`.
+- **Evidence & Verification:**
+  - 9 settled screenshots captured at 3 widths (375px, 768px, 1440px) across all 3 chapters (`credential`, `proof`, `verified`) saved in `docs/evidence/ui/`.
+  - DOMContentLoaded: 663ms, FCP: 732ms, JS Heap: 11.1MB, Framerate: 60fps.
+  - Prover route isolation: `/prove` verified with 0 canvas elements running.
+  - Test suite: 46/46 passing in 14s.
+  - Secret scan: 0 secrets found; `.env` confirmed untracked.

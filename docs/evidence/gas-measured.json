@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-10-28T22:01:43.561Z",
+  "environment": "Local EVM / PrecompileProbe Harness",
+  "chainId": 31337,
+  "precompiles": {
+    "0x06_ecAdd": {
+      "measuredGas": 552,
+      "status": "MEASURED(LOCAL_EVM)",
+      "description": "BN254 curve point addition"
+    },
+    "0x07_ecMul": {
+      "measuredGas": 6396,
+      "status": "MEASURED(LOCAL_EVM)",
+      "description": "BN254 curve scalar multiplication"
+    },
+    "0x08_ecPairing": {
+      "measuredGas": 113447,
+      "status": "MEASURED(LOCAL_EVM)",
+      "description": "BN254 curve bilinear pairing check"
+    }
+  },
+  "contracts": {
+    "PramaanVerifier_verifyProof": {
+      "measuredGas": 255949,
+      "status": "MEASURED(LOCAL_EVM)"
+    },
+    "PramaanRegistry_verifyAndRecord": {
+      "measuredGas": 288846,
+      "status": "MEASURED(LOCAL_EVM)"
+    }
+  },
+  "blockGasLimitComparison": {
+    "officialDocumentationClaim": "15,000,000 / 30,000,000",
+    "measuredCoralTestnetLive": 30000000,
+    "measuredLegacyTestnetLive": 55000000,
+    "measuredMainnetLive": 30000000,
+    "discrepancyNote": "Official MST docs claim 15M/30M. Live Coral RPC reports 30M (0x1c9c380). Live Legacy testnet reports 55M (0x3473bc0). Live Mainnet reports 30M (0x1c9c380). Recorded as-is per Prime Directive 1 & 2."
+  }
+}

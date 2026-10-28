@@ -1,0 +1,32 @@
+{
+  "network": "mstCoralTestnet",
+  "date": "2026-10-29",
+  "rpcUrl": "https://coralrpc.mstblockchain.com",
+  "chainIdHex": "0xd56b",
+  "chainIdDec": 54635,
+  "clientVersion": "Geth/v1.7.8-cdb7548b-20260811/linux-amd64/go1.25.0",
+  "blockNumbers": [
+    350789,
+    350790,
+    350790
+  ],
+  "gasPriceHex": "0x3b9aca00",
+  "gasPriceGwei": 1,
+  "latestBlock": {
+    "number": 350790,
+    "gasLimit": 30000000,
+    "gasUsed": 0,
+    "timestamp": 1793224061
+  },
+  "deployer": {
+    "address": "0xDED55a728B4ef6E91643eA947699C36e49CFfEFA",
+    "balanceHex": "0x0",
+    "balanceEther": 0
+  },
+  "precompiles": {
+    "ecAdd": "0x030644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd315ed738c0e0a7c92e7845f96b2ae9c0a68a6a449e3538fc7ff3ebf7a5a18a2c4",
+    "ecMul": "0x030644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd315ed738c0e0a7c92e7845f96b2ae9c0a68a6a449e3538fc7ff3ebf7a5a18a2c4",
+    "ecPairing": "0x0000000000000000000000000000000000000000000000000000000000000001"
+  },
+  "verdict": "VERIFIED"
+}

@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-10-28T22:00:08.248Z",
+  "chainId": 31337,
+  "registryAddress": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+  "verifierAddress": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+  "cases": {
+    "tampered_proof": {
+      "expected": "InvalidProof",
+      "observed": "VM Exception while processing transaction: reverted with custom error 'InvalidProof()'",
+      "passed": true
+    },
+    "tampered_public_input": {
+      "expected": "InvalidProof",
+      "observed": "VM Exception while processing transaction: reverted with custom error 'InvalidProof()'",
+      "passed": true
+    },
+    "unregistered_issuer": {
+      "expected": "UnregisteredIssuer",
+      "observed": "VM Exception while processing transaction: reverted with custom error 'UnregisteredIssuer()'",
+      "passed": true
+    },
+    "wrong_chain_id": {
+      "expected": "ChainIdMismatch",
+      "observed": "VM Exception while processing transaction: reverted with custom error 'ChainIdMismatch()'",
+      "passed": true
+    },
+    "wrong_recipient": {
+      "expected": "RecipientMismatch",
+      "observed": "VM Exception while processing transaction: reverted with custom error 'RecipientMismatch()'",
+      "passed": true
+    },
+    "replayed_nullifier": {
+      "expected": "NullifierAlreadySpent",
+      "observed": "VM Exception while processing transaction: reverted with custom error 'NullifierAlreadySpent()'",
+      "passed": true
+    },
+    "paused_registry": {
+      "expected": "ContractPaused",
+      "observed": "VM Exception while processing transaction: reverted with custom error 'ContractPaused()'",
+      "passed": true
+    }
+  }
+}

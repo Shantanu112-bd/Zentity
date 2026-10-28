@@ -26,6 +26,11 @@ module.exports = {
       url: "http://127.0.0.1:8545",
       chainId: 31337,
     },
+    mstCoralTestnet: {
+      url: process.env.MST_CORAL_TESTNET_RPC || "https://coralrpc.mstblockchain.com",
+      chainId: 54635,
+      accounts,
+    },
     mstLegacyTestnet: {
       url: process.env.MST_LEGACY_TESTNET_RPC || "https://testnetrpc.mstblockchain.com",
       chainId: 91562037,
