@@ -1,0 +1,86 @@
+# docs/ACTIVITY_LOG.md — Pramaan-ZK Append-Only Activity Log
+
+All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMPT.md`. Never rewrite history. Never log secrets or credentials.
+
+### [2026-10-28 22:15 IST] M0-BOOTSTRAP — Repository Initialization & Toolchain Audit
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria: Complete Bootstrap (§6) steps 1-6: initialize git repo, setup directory tree, author AGENTS.md, RESEARCH_AUDIT.md, ARCHITECTURE_DECISIONS.md, PROJECT_CONTEXT.md, implementation_plan.md, OPEN_QUESTIONS.md, MST_SUPPORT_QUESTIONS.md, config/networks.ts.
+- Files created/modified/deleted:
+  - Created: `ANTIGRAVITY_MASTER_LOOP_PROMPT.md`, `AGENTS.md`, `PROJECT_CONTEXT.md`, `implementation_plan.md`, `config/networks.ts`, `.gitignore`, `.env.example`
+  - Created: `docs/RESEARCH_AUDIT.md`, `docs/ARCHITECTURE_DECISIONS.md`, `docs/OPEN_QUESTIONS.md`, `docs/MST_SUPPORT_QUESTIONS.md`, `docs/ACTIVITY_LOG.md`
+- Commands actually run (exact) and result summary (pass/fail counts):
+  - `git init`, `git branch -M main`: (Pass, initialized clean git repository)
+  - `node -v` -> v22.23.1; `pnpm -v` -> 11.13.0; `git --version` -> 2.51.0; `docker --version` -> 29.5.3 (Pass)
+  - `circom --version` -> not initially found; initiated binary download v2.2.3 from GitHub release to `~/.local/bin/circom` (In Progress)
+  - `pnpm dlx snarkjs --help` -> snarkjs 0.7.6 verified working (Pass)
+- Evidence: Toolchain versions recorded; directory layout verified.
+- Errors -> diagnosis -> fix: circom was missing from local system; identified Darwin x86_64 release asset from iden3/circom; downloaded into `~/.local/bin/` which is in PATH.
+- Security/privacy implications: `.gitignore` and `.env.example` configured immediately to reject any private keys, seeds, or credentials.
+- Docs updated: `ACTIVITY_LOG.md`, `PROJECT_CONTEXT.md`, `RESEARCH_AUDIT.md`, `ARCHITECTURE_DECISIONS.md`.
+- Residual risk / blocker: B-01 (Coral configuration), B-02 (BN254 precompiles on MST), B-04 (Funded testnet wallet).
+- Next action: Complete doc skeletons, attempt official docs retrieval (§10.1), run JSON-RPC preflight (§9-A), setup Hardhat environment for Gate 0 harness validation.
+
+### [2026-10-28 22:38 IST] M0-GATE0 — Official Docs Retrieval, Preflight, Precompile Probes, & Gate 0 Harness Validation
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria:
+  1. Retrieve official MST documentation pages via direct HTTP (.md endpoint) per §10.1.
+  2. Inspect npm SDK packages per §10.2.
+  3. Execute JSON-RPC preflight against Legacy Testnet and Mainnet per §9-A.
+  4. Generate BN254 mathematical test vectors with `@noble/curves/bn254` per §9-B.
+  5. Probe precompiles `0x06`, `0x07`, `0x08` via `eth_call` on MST Legacy Testnet and Mainnet per §9-B.
+  6. Measure precompile gas consumption on-chain with `PrecompileProbe.sol`.
+  7. Build Circom 2.1.8 from source, compile toy circuit `multiplier.circom`, run dev-only setup, generate Groth16 proof, and verify locally with snarkjs.
+  8. Deploy `Groth16Verifier.sol` on local EVM, test valid proof and tamper rejections (signal tamper, coordinate flip, term swap).
+- Files created/modified/deleted:
+  - Created: `docs/reference/mst-docs/*.md` (9 pages: readme, evm/opcodes, gas, testnet, mainnet, mcp, sdks, vibe-kit)
+  - Created: `scripts/gate0/01-preflight.ts`, `scripts/gate0/generate-vectors.ts`, `scripts/gate0/vectors.json`, `scripts/gate0/02-precompiles.ts`, `scripts/gate0/build-toy-circuit.ts`, `scripts/gate0/03-verifier.ts`, `scripts/gate0/run-gate0.ts`
+  - Created: `contracts/PrecompileProbe.sol`, `contracts/MultiplierVerifier.sol`, `circuits/gate0/multiplier.circom`
+  - Created: `tests/gate0-precompile-probe.test.ts`, `tests/gate0-verifier.test.ts`, `hardhat.config.cjs`, `package.json`, `tsconfig.json`
+  - Created evidence: `docs/evidence/preflight-mstLegacyTestnet.json`, `docs/evidence/preflight-mstMainnet.json`, `docs/evidence/precompile-probes-mstLegacyTestnet.json`, `docs/evidence/precompile-probes-mstMainnet.json`, `docs/evidence/gate0-verifier-local.json`
+  - Updated: `docs/GATE0_TEST_REPORT.md`, `docs/RESEARCH_AUDIT.md`, `docs/VERIFICATION_AUDIT.md`, `docs/OPEN_QUESTIONS.md`, `docs/MST_SUPPORT_QUESTIONS.md`, `config/networks.ts`
+- Commands actually run (exact) and result summary:
+  - Official docs crawl: 9 pages downloaded from `https://docs.mstblockchain.com/developer-docs/...` (100% Pass)
+  - SDK audit: `@mstblockchain/mst-sdk` v1.0.0 (wraps ethers v6); `blockchain-sdk` belongs to buckyos/chainsdk (Pass, D-13 confirmed)
+  - `npx tsx scripts/gate0/01-preflight.ts --network mstLegacyTestnet`: Chain ID 91562037 verified; Geth 1.7.3; block limit 55M; block time 2.73s (Pass)
+  - `npx tsx scripts/gate0/01-preflight.ts --network mstMainnet`: Chain ID 4646 verified; Geth 1.7.8; block limit 30M; block time 2.88s; 14ms latency (Pass)
+  - `npx tsx scripts/gate0/generate-vectors.ts`: Generated EIP-196/197 BN254 vectors via `@noble/curves/bn254` v2.4.0 (Pass)
+  - `npx tsx scripts/gate0/02-precompiles.ts --network mstLegacyTestnet`: 8/8 probes passed (`0x06`, `0x07`, `0x08` active, verified, and rejecting bad inputs) (Pass)
+  - `npx tsx scripts/gate0/02-precompiles.ts --network mstMainnet`: 8/8 probes passed (`0x06`, `0x07`, `0x08` active and verified) (Pass)
+  - `cargo install --git https://github.com/iden3/circom.git --tag v2.1.8`: Built Circom 2.1.8 for Darwin x86_64 in 2m 35s (Pass)
+  - `npx tsx scripts/gate0/build-toy-circuit.ts`: Circom compile + snarkjs pot8 + phase 2 + witness + local proof verify = true (Pass)
+  - `pnpm test`: 12/12 passing unit & tamper tests in Hardhat (PrecompileProbe + Groth16Verifier) (Pass)
+- Evidence: Exact outputs logged in `docs/evidence/` and synthesized in `docs/GATE0_TEST_REPORT.md`.
+- Errors -> diagnosis -> fix:
+  - Precompiled GitHub release `circom-macos-amd64` was compiled for arm64; ran into `bad CPU type in executable`; built Circom 2.1.8 from Rust source using Cargo on Darwin x86_64 cleanly.
+  - Path with space `/Users/macbook/Mst Project/` caused snarkjs CLI argument parsing split; wrapped all paths in double quotes in execSync runners.
+- Security/privacy implications:
+  - Zero private keys, witnesses, or PII exposed or logged.
+  - Secret scan confirmed no sensitive keys in repository.
+- Docs updated: `GATE0_TEST_REPORT.md`, `RESEARCH_AUDIT.md`, `VERIFICATION_AUDIT.md`, `ACTIVITY_LOG.md`.
+- Residual risk / blocker:
+  - B-01: Coral Testnet official config (RPC/faucet).
+  - B-04: Funded test-only wallet for MST testnet deployment.
+- Next action: Awaiting human operator to supply funded test-only key in `.env` (B-04) and Coral testnet info (B-01), then execute `pnpm run gate0:legacy`.
+
+### [2026-10-28 22:52 IST] M0-COMMITS — Git History Structuring & GitHub Remote Synchronization
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria: Rebase cleanly on origin/main (`2983ed5`), execute full test suite (12/12 passing), run secret scan (clean), and construct sequential atomic commits for GitHub repository `https://github.com/Shantanu112-bd/Zentity.git`.
+- Files created/modified/deleted:
+  - Updated: `README.md` (reconciled Zentity and Pramaan-ZK), `docs/ACTIVITY_LOG.md`, `docs/CHANGELOG.md`, `docs/SESSION_HANDOFF.md`.
+- Commands actually run (exact) and result summary:
+  - `git ls-remote https://github.com/Shantanu112-bd/Zentity.git`: Connected, verified origin/main head (Pass)
+  - `git remote add origin https://github.com/Shantanu112-bd/Zentity.git && git fetch origin`: Fetched origin/main (Pass)
+  - `pnpm test`: 12/12 passing tests on local EVM node (Pass)
+  - Secret scan: `git grep` returned 0 secrets; `.env` excluded and verified untracked (Pass)
+  - Sequential commits created on top of origin/main (2983ed5):
+    - `d5882c0`: chore(bootstrap): initialize repo layout, operational rules, and architecture specs
+    - `fd02ce9`: docs(mst): archive official MST blockchain developer documentation
+    - `314c52e`: feat(gate0): implement network preflight and BN254 direct precompile probes
+    - `1935545`: feat(gate0): implement toy circuit, groth16 setup, and on-chain verifier test suite
+    - `4d74b5d`: docs(gate0): record feasibility test report, research audit, and activity logs
+- Evidence: Git commit history on branch `m0/bootstrap-and-gate0`.
+- Errors -> diagnosis -> fix: Resolved README.md merge conflict during rebase by unifying project identifiers (`Zentity (Pramaan-ZK)`).
+- Security/privacy implications: Confirmed zero keys, secrets, or real credentials in commits.
+- Docs updated: `ACTIVITY_LOG.md`, `CHANGELOG.md`, `SESSION_HANDOFF.md`.
+- Residual risk / blocker: B-01 (Coral config), B-04 (Funded testnet wallet).
+- Next action: Push commits to GitHub remote origin cleanly without force-pushing.
