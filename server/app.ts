@@ -5,6 +5,7 @@ import fastify from "fastify";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
+import { verifyMessage } from "viem";
 import * as snarkjs from "snarkjs";
 import {
   issueSyntheticCredential,
@@ -23,6 +24,26 @@ import {
 
 export interface ServerOptions {
   enableRateLimit?: boolean;
+}
+
+export interface AuthNonceRecord {
+  nonce: string;
+  address: `0x${string}`;
+  origin?: string;
+  message: string;
+  expiresAt: number;
+}
+
+export const authNonces = new Map<string, AuthNonceRecord>();
+
+export function formatSignInMessage(address: string, nonce: string, origin?: string): string {
+  return [
+    "Pramaan-ZK Authentication",
+    `Address: ${address}`,
+    `Nonce: ${nonce}`,
+    origin ? `Origin: ${origin}` : undefined,
+    "Statement: Sign in to Pramaan-ZK. Signing in is free and is not a blockchain transaction.",
+  ].filter(Boolean).join("\n");
 }
 
 export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstance> {
@@ -331,6 +352,108 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       payload: simulationPayload,
       signature,
       notice: "Strictly a development simulation stub. No government integration exists or is claimed.",
+    };
+  });
+
+  // --------------------------------------------------------------------------
+  // 6. Off-Chain Wallet Authentication (EIP-191 / EIP-4361 Nonce Challenge)
+  // --------------------------------------------------------------------------
+  app.post("/api/auth/nonce", async (req: FastifyRequest, reply: FastifyReply) => {
+    const body = (req.body as any) || {};
+    const { address, origin } = body;
+
+    if (!address || typeof address !== "string" || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return reply.status(400).send({
+        error: "INVALID_ADDRESS",
+        message: "A valid 20-byte Ethereum hex address is required.",
+      });
+    }
+
+    const nonce = crypto.randomBytes(32).toString("hex");
+    const message = formatSignInMessage(address, nonce, origin);
+    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+    authNonces.set(nonce, {
+      nonce,
+      address: address.toLowerCase() as `0x${string}`,
+      origin,
+      message,
+      expiresAt,
+    });
+
+    return {
+      nonce,
+      message,
+      expiresAt: new Date(expiresAt).toISOString(),
+      notice: "Signing in is free and is not a blockchain transaction.",
+    };
+  });
+
+  app.post("/api/auth/verify", async (req: FastifyRequest, reply: FastifyReply) => {
+    const body = (req.body as any) || {};
+    const { address, nonce, signature } = body;
+
+    if (!address || !nonce || !signature) {
+      return reply.status(400).send({
+        error: "MISSING_FIELDS",
+        message: "address, nonce, and signature are required.",
+      });
+    }
+
+    const record = authNonces.get(nonce);
+    if (!record) {
+      return reply.status(400).send({
+        error: "INVALID_OR_CONSUMED_NONCE",
+        message: "Nonce not found, already consumed, or replayed.",
+      });
+    }
+
+    // Always consume nonce to prevent replay attacks
+    authNonces.delete(nonce);
+
+    // Check expiration
+    if (Date.now() > record.expiresAt) {
+      return reply.status(400).send({
+        error: "NONCE_EXPIRED",
+        message: "Authentication nonce has expired.",
+      });
+    }
+
+    // Check address binding
+    if (record.address !== address.toLowerCase()) {
+      return reply.status(400).send({
+        error: "ADDRESS_MISMATCH",
+        message: "Supplied address does not match nonce issuance address.",
+      });
+    }
+
+    // Verify cryptographic signature
+    let isValid = false;
+    try {
+      isValid = await verifyMessage({
+        address: address as `0x${string}`,
+        message: record.message,
+        signature: signature as `0x${string}`,
+      });
+    } catch (err: any) {
+      return reply.status(400).send({
+        error: "MALFORMED_SIGNATURE",
+        message: `Signature verification error: ${err.message}`,
+      });
+    }
+
+    if (!isValid) {
+      return reply.status(401).send({
+        error: "INVALID_SIGNATURE",
+        message: "Cryptographic signature verification failed.",
+      });
+    }
+
+    return {
+      status: "AUTHENTICATED",
+      address,
+      notice: "Signing in is free and is not a blockchain transaction.",
+      timestamp: new Date().toISOString(),
     };
   });
 
