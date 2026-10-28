@@ -8,6 +8,7 @@
     "preflight:mainnet": "tsx scripts/gate0/01-preflight.ts --network mstMainnet",
     "gate0:local": "tsx scripts/gate0/run-gate0.ts --network local",
     "gate0:legacy": "tsx scripts/gate0/run-gate0.ts --network mstLegacyTestnet --allow-unverified-network",
+    "build:circuit": "tsx scripts/pramaan/build-circuit.ts",
     "test": "hardhat test tests/*.test.ts"
   },
   "devDependencies": {
@@ -20,5 +21,9 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "viem": "^2.21.57"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7"
   }
 }

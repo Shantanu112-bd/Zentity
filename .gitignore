@@ -27,6 +27,7 @@ typechain-types/
 *.ptau
 ptau/
 circuits/gate0/multiplier_js/
+circuits/pramaan/age_credential_js/
 circuits/gate0/multiplier.r1cs
 circuits/gate0/multiplier.sym
 circuits/gate0/multiplier_*.zkey
