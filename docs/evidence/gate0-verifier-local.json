@@ -1,0 +1,11 @@
+{
+  "network": "local",
+  "chainId": 31337,
+  "timestamp": "2026-10-28T17:06:30.996Z",
+  "tests": {
+    "validProofEthCall": "PASS",
+    "tamperedSignalRejected": "PASS",
+    "deterministicCalls": "PASS (5/5)"
+  },
+  "contractAddress": "0x5fbdb2315678afecb367f032d93f642f64180aa3"
+}
