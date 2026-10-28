@@ -1,24 +1,28 @@
 {
-  "network": "hardhat",
-  "chainId": 31337,
-  "deployer": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-  "timestamp": "2026-10-28T21:51:32.915Z",
+  "network": "mstCoralTestnet",
+  "chainId": 54635,
+  "deployer": "0xded55a728b4ef6e91643ea947699c36e49cffefa",
+  "timestamp": "2026-10-28T22:51:52.186Z",
   "contracts": {
     "PrecompileProbe": {
-      "address": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
-      "codeBytes": 1537
+      "address": "0x94b9b520b975e20e82ce5862c523bfe389c12ed3",
+      "codeBytes": 1537,
+      "explorerUrl": "https://coral.mstscan.com/address/0x94b9b520b975e20e82ce5862c523bfe389c12ed3"
     },
     "PramaanVerifier": {
-      "address": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
-      "codeBytes": 1932
+      "address": "0xed8fe30962b3df64accdf867a355c68addedbf28",
+      "codeBytes": 1932,
+      "explorerUrl": "https://coral.mstscan.com/address/0xed8fe30962b3df64accdf867a355c68addedbf28"
     },
     "PramaanRegistry": {
-      "address": "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
-      "codeBytes": 2087
+      "address": "0x8c182a53fca78fe237734239bdb1256bc2658c5b",
+      "codeBytes": 2087,
+      "explorerUrl": "https://coral.mstscan.com/address/0x8c182a53fca78fe237734239bdb1256bc2658c5b"
     }
   },
   "demoIssuerRegistration": {
     "pubKeyHash": "1611009605506049313254918906125506668212891036786937998993893237370979579959",
-    "txHash": "0xc608f42131343312b6d70533c3b423f7ba99232fe7a76fd667eb279075f59e47"
+    "txHash": "0x2011b9a1191b865ff39443a6c200b399976bd1ec5735006c384848d675992e1c",
+    "explorerUrl": "https://coral.mstscan.com/tx/0x2011b9a1191b865ff39443a6c200b399976bd1ec5735006c384848d675992e1c"
   }
 }

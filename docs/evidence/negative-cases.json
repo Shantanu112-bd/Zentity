@@ -1,43 +1,45 @@
 {
-  "timestamp": "2026-10-28T22:00:08.248Z",
-  "chainId": 31337,
-  "registryAddress": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
-  "verifierAddress": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+  "timestamp": "2026-10-28T22:54:29.289Z",
+  "network": "mstCoralTestnet",
+  "chainId": 54635,
+  "environment": "MST Live Testnet (MST Coral Testnet)",
+  "registryAddress": "0x8c182a53fca78fe237734239bdb1256bc2658c5b",
+  "verifierAddress": "0xed8fe30962b3df64accdf867a355c68addedbf28",
   "cases": {
-    "tampered_proof": {
-      "expected": "InvalidProof",
-      "observed": "VM Exception while processing transaction: reverted with custom error 'InvalidProof()'",
-      "passed": true
+    "TamperedProof": {
+      "expected": "REVERT(InvalidProof)",
+      "actualRevert": "execution reverted: 0x09bde339",
+      "pass": true
     },
-    "tampered_public_input": {
-      "expected": "InvalidProof",
-      "observed": "VM Exception while processing transaction: reverted with custom error 'InvalidProof()'",
-      "passed": true
+    "UnregisteredIssuer": {
+      "expected": "REVERT(UnregisteredIssuer)",
+      "actualRevert": "execution reverted: 0x7371cf38",
+      "pass": true
     },
-    "unregistered_issuer": {
-      "expected": "UnregisteredIssuer",
-      "observed": "VM Exception while processing transaction: reverted with custom error 'UnregisteredIssuer()'",
-      "passed": true
+    "ChainIdMismatch": {
+      "expected": "REVERT(ChainIdMismatch)",
+      "actualRevert": "execution reverted: 0xa179f8c9",
+      "pass": true
     },
-    "wrong_chain_id": {
-      "expected": "ChainIdMismatch",
-      "observed": "VM Exception while processing transaction: reverted with custom error 'ChainIdMismatch()'",
-      "passed": true
+    "RecipientMismatch": {
+      "expected": "REVERT(RecipientMismatch)",
+      "actualRevert": "execution reverted: 0xc0ee95bb",
+      "pass": true
     },
-    "wrong_recipient": {
-      "expected": "RecipientMismatch",
-      "observed": "VM Exception while processing transaction: reverted with custom error 'RecipientMismatch()'",
-      "passed": true
+    "NullifierAlreadySpent": {
+      "expected": "REVERT(NullifierAlreadySpent)",
+      "actualRevert": "execution reverted: 0xb115d857",
+      "pass": true
     },
-    "replayed_nullifier": {
-      "expected": "NullifierAlreadySpent",
-      "observed": "VM Exception while processing transaction: reverted with custom error 'NullifierAlreadySpent()'",
-      "passed": true
+    "ContractPaused": {
+      "expected": "REVERT(EnforcedPause)",
+      "actualRevert": "execution reverted: 0xab35696f",
+      "pass": true
     },
-    "paused_registry": {
-      "expected": "ContractPaused",
-      "observed": "VM Exception while processing transaction: reverted with custom error 'ContractPaused()'",
-      "passed": true
+    "TamperedPublicSignal": {
+      "expected": "REVERT(InvalidProof)",
+      "actualRevert": "execution reverted: 0x09bde339",
+      "pass": true
     }
   }
 }

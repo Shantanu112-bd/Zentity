@@ -162,3 +162,27 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
   - Prover route isolation: `/prove` verified with 0 canvas elements running.
   - Test suite: 46/46 passing in 14s.
   - Secret scan: 0 secrets found; `.env` confirmed untracked.
+
+---
+
+### [2026-10-29 04:30 IST] — Live MST Coral Testnet Deployment, Gas Benchmarking, & Gate 0 PASS
+- **Context:** Deployer funded on Coral Testnet (`54635`); ANTIGRAVITY_MASTER_BUILD_PROMPT.md §5 Steps 2, 6, 7 & Gate 0 closure.
+- **Executed:**
+  1. `pnpm run deploy:coral`:
+     - Chain ID guard passed: `54635` confirmed live.
+     - `PrecompileProbe` deployed: `0x94b9b520b975e20e82ce5862c523bfe389c12ed3` (1,537 bytes).
+     - `PramaanVerifier` deployed: `0xed8fe30962b3df64accdf867a355c68addedbf28` (1,932 bytes).
+     - `PramaanRegistry` deployed: `0x8c182a53fca78fe237734239bdb1256bc2658c5b` (2,087 bytes).
+     - Demo Issuer key hash registered on-chain: tx `0x2011b9a1191b865ff39443a6c200b399976bd1ec5735006c384848d675992e1c`.
+     - `eth_getCode` confirmed bytecode non-empty for all 3 contracts.
+     - Evidence recorded to `docs/evidence/testnet-coral-2026-10-29/deployment.json`.
+  2. `npx hardhat run scripts/pramaan/measure-gas.ts --network mstCoralTestnet`:
+     - Measured on live Coral Testnet: 0x06 `ecAdd` (552 gas), 0x07 `ecMul` (6,396 gas), 0x08 `ecPairing` (113,447 gas), `verifyProof` (259,184 gas), and `verifyAndRecord` (288,882 gas in mined tx `0xa41c72a21eee292173d37ca957dee958610117b29156f80418b6020d7f3ff472`).
+     - Earlier figures relabeled `LOCAL`.
+  3. `npx hardhat run scripts/pramaan/run-negative-cases.ts --network mstCoralTestnet`:
+     - Tested 7 negative cases on live Coral deployed contracts: all 7 safely reverted (tampered proof, unregistered issuer, chainId mismatch, recipient mismatch, replay attack, paused contract, tampered public signal).
+  4. Scoping disclosures corrected:
+     - Proving time clearly labeled as desktop-measured for 5,014-constraint synthetic circuit.
+     - UI performance clearly labeled as desktop-unthrottled.
+  5. Gate 0 updated to `PASS (Live On-Chain Verified on MST Coral Testnet 54635)`.
+  6. Dev server and backend started for user MetaMask submission.

@@ -49,15 +49,16 @@ flowchart TD
 
 | Feature / Layer | Implementation Status | Evidence / Notes |
 |---|---|---|
-| **BN254 EVM Precompiles** | `REAL & MEASURED` | 8/8 probes passed on MST Legacy Testnet (`91562037`) and Mainnet (`4646`) via `eth_call`. |
-| **Circuit & Prover** | `REAL & VERIFIED` | `AgeCredential.circom` compiles to 5,014 constraints; snarkjs generates valid Groth16 proofs. |
-| **Local EVM Verifier & Registry** | `REAL & TESTED` | 32/32 passing tests in Hardhat covering replay, wrong recipient, wrong chainId, unregistered issuer, paused state. |
+| **MST Coral Testnet Contracts** | `REAL & DEPLOYED` | `PramaanVerifier` (`0xed8fe3...`), `PramaanRegistry` (`0x8c182a...`), and `PrecompileProbe` (`0x94b9b5...`) deployed on Chain 54635. |
+| **BN254 EVM Precompiles** | `REAL & MEASURED` | Measured on live Coral Testnet: 0x06 (552 gas), 0x07 (6,396 gas), 0x08 (113,447 gas). |
+| **Circuit & Prover** | `REAL & VERIFIED` | `AgeCredential.circom` compiles to 5,014 constraints; snarkjs generates valid Groth16 proofs in 636 ms on desktop (unthrottled). |
+| **On-Chain Negative Paths** | `REAL & TESTED` | 7/7 negative paths verified on Coral testnet: tampered proof, wrong issuer, chain mismatch, recipient mismatch, replay, pause, tampered date. |
 | **Fastify API & OIDC-Lite** | `REAL & TESTED` | Fastify + `jose` issuing ES256 signed ID tokens with PKCE code verification. |
 | **Credential Container** | `SYNTHETIC (DEMO)` | EdDSA-Poseidon signature over BabyJubjub issued by **DEMO ISSUER**. Real Aadhaar RSA-in-circuit is milestone M2. |
 | **Nullifier Formula** | `UNREVIEWED (DEMO)` | `nullifier = Poseidon(credentialSecret, scopeId)`. Unreviewed primitive; not formally audited. |
 | **Ceremony** | `DEV-ONLY` | Dev-only Powers of Tau (pot13) ceremony. Production ceremony required before release. |
 | **Government Channel** | `SIMULATED STUB` | Signed webhook simulation stub. Not a live government integration. |
-| **MST Coral Testnet** | `UNVERIFIED` | Coral Testnet (`54635`) absent from official docs; demo targets verified Legacy Testnet (`91562037`). |
+| **Mobile Hardware Proving** | `UNVERIFIED` | Client proving benchmarks measured on desktop (macOS arm64); mobile device profiling is unverified. |
 
 ---
 

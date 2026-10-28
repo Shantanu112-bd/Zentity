@@ -1,7 +1,9 @@
 import fs from "fs";
 import path from "path";
 import hre from "hardhat";
+import { defineChain } from "viem";
 import * as snarkjs from "snarkjs";
+import { NETWORKS, assertBroadcastAllowed } from "../../config/networks.ts";
 import {
   issueSyntheticCredential,
   createCircuitInput,
@@ -10,52 +12,106 @@ import {
 } from "./crypto-utils.ts";
 
 async function main() {
-  console.log("\n=== Measuring Native Precompile & Verifier Gas Consumption ===");
+  const networkSlot = (hre as any).network?.name || "local";
+  console.log(`\n=== Measuring Native Precompile & Verifier Gas Consumption [Target: ${networkSlot}] ===`);
 
   const viem = (hre as any).viem;
-  const publicClient = await viem.getPublicClient();
-  const [deployer, user] = await viem.getWalletClients();
+  const isLiveNetwork = networkSlot !== "hardhat" && networkSlot !== "localhost" && networkSlot !== "local";
+
+  let publicClient: any;
+  let walletClient: any;
+  let config: any = null;
+
+  if (isLiveNetwork) {
+    config = NETWORKS[networkSlot];
+    if (!config) throw new Error(`Unknown network: ${networkSlot}`);
+
+    const customChain = defineChain({
+      id: config.chainId,
+      name: config.name,
+      nativeCurrency: { name: config.symbol, symbol: config.symbol, decimals: 18 },
+      rpcUrls: { default: { http: [config.rpcUrl] } },
+    });
+
+    publicClient = await viem.getPublicClient({ chain: customChain });
+    const actualChainId = await publicClient.getChainId();
+    await assertBroadcastAllowed(networkSlot, actualChainId, true);
+
+    const walletClients = await viem.getWalletClients({ chain: customChain });
+    walletClient = walletClients[0];
+  } else {
+    publicClient = await viem.getPublicClient();
+    const walletClients = await viem.getWalletClients();
+    walletClient = walletClients[0];
+  }
+
   const chainId = await publicClient.getChainId();
+  console.log(`[Connected]: Network = ${networkSlot}, Live Chain ID = ${chainId}, Account = ${walletClient?.account?.address}`);
 
   // Load vectors
   const vectorsPath = path.resolve(process.cwd(), "scripts/gate0/vectors.json");
   const vectors = JSON.parse(fs.readFileSync(vectorsPath, "utf-8"));
 
-  // 1. Deploy PrecompileProbe
-  console.log("--> Deploying PrecompileProbe.sol...");
-  const probe = await viem.deployContract("PrecompileProbe");
+  let probe: any;
+  let verifier: any;
+  let registry: any;
 
-  // Probe ecAdd
+  if (isLiveNetwork) {
+    const deployedPath = path.resolve(process.cwd(), "contracts/deployed-addresses.json");
+    if (!fs.existsSync(deployedPath)) {
+      throw new Error("No contracts/deployed-addresses.json found. Run pnpm run deploy:coral first!");
+    }
+    const deployed = JSON.parse(fs.readFileSync(deployedPath, "utf-8"));
+    console.log(`--> Attaching to deployed contracts on ${networkSlot}:`);
+    console.log(`    PrecompileProbe: ${deployed.contracts.PrecompileProbe.address}`);
+    console.log(`    PramaanVerifier: ${deployed.contracts.PramaanVerifier.address}`);
+    console.log(`    PramaanRegistry: ${deployed.contracts.PramaanRegistry.address}`);
+
+    probe = await viem.getContractAt("PrecompileProbe", deployed.contracts.PrecompileProbe.address, {
+      client: { public: publicClient, wallet: walletClient },
+    });
+    verifier = await viem.getContractAt("PramaanVerifier", deployed.contracts.PramaanVerifier.address, {
+      client: { public: publicClient, wallet: walletClient },
+    });
+    registry = await viem.getContractAt("PramaanRegistry", deployed.contracts.PramaanRegistry.address, {
+      client: { public: publicClient, wallet: walletClient },
+    });
+  } else {
+    console.log("--> Deploying PrecompileProbe, PramaanVerifier, and PramaanRegistry locally...");
+    probe = await viem.deployContract("PrecompileProbe");
+    verifier = await viem.deployContract("PramaanVerifier");
+    registry = await viem.deployContract("PramaanRegistry", [verifier.address]);
+
+    const issuer = await getDemoIssuer();
+    await registry.write.registerIssuer([BigInt(issuer.pubKeyHash)]);
+  }
+
+  // 1. Probe native precompiles via PrecompileProbe
+  console.log("\n--> Probing native precompiles on target network...");
   const addRes = await probe.read.probeAdd([vectors.ecAdd.valid.input]);
   const ecAddGas = Number(addRes.gasUsed);
   console.log(`[MEASURED] 0x06 ecAdd Gas: ${ecAddGas} gas`);
 
-  // Probe ecMul
   const mulRes = await probe.read.probeMul([vectors.ecMul.valid.input]);
   const ecMulGas = Number(mulRes.gasUsed);
   console.log(`[MEASURED] 0x07 ecMul Gas: ${ecMulGas} gas`);
 
-  // Probe ecPairing
   const pairingRes = await probe.read.probePairing([vectors.ecPairing.validIdentity.input]);
   const ecPairingGas = Number(pairingRes.gasUsed);
   console.log(`[MEASURED] 0x08 ecPairing Gas: ${ecPairingGas} gas`);
 
-  // 2. Deploy PramaanVerifier and PramaanRegistry
-  console.log("--> Deploying PramaanVerifier and PramaanRegistry...");
-  const verifier = await viem.deployContract("PramaanVerifier");
-  const registry = await viem.deployContract("PramaanRegistry", [verifier.address]);
-
-  const issuer = await getDemoIssuer();
-  await registry.write.registerIssuer([BigInt(issuer.pubKeyHash)]);
-
-  // Generate proof
+  // 2. Generate valid proof for on-chain verification
+  console.log("\n--> Generating valid Groth16 adult proof for target chain...");
   const wasmPath = path.resolve(process.cwd(), "circuits/pramaan/age_credential_js/age_credential.wasm");
   const zkeyPath = path.resolve(process.cwd(), "circuits/pramaan/age_credential_final.zkey");
+
+  // Pick a random scopeId to avoid nullifier collision if run multiple times
+  const uniqueScopeId = Math.floor(Date.now() / 1000);
   const cred = await issueSyntheticCredential({ dobDays: 10000, stateCode: 27 });
   const circuitInput = await createCircuitInput({
     credential: cred,
-    scopeId: 42,
-    recipient: user.account.address,
+    scopeId: uniqueScopeId,
+    recipient: walletClient.account.address,
     chainId,
     currentDateDays: 20000,
     thresholdAgeDays: 6575,
@@ -70,49 +126,71 @@ async function main() {
     abi: verifier.abi,
     functionName: "verifyProof",
     args: [callArgs.a, callArgs.b, callArgs.c, callArgs.input],
-    account: user.account,
+    account: walletClient.account,
   });
   console.log(`[MEASURED] PramaanVerifier.verifyProof Gas: ${verifierGasEstimate.toString()} gas`);
 
-  // Measure verifyAndRecord gas via execution receipt
+  // Measure verifyAndRecord gas via live transaction receipt
+  console.log(`--> Broadcasting verifyAndRecord on ${networkSlot} (Scope ${uniqueScopeId})...`);
   const txHash = await registry.write.verifyAndRecord(
     [callArgs.a, callArgs.b, callArgs.c, callArgs.input],
-    { account: user.account }
+    { account: walletClient.account }
   );
+  console.log(`[WAIT] Awaiting transaction confirmation: ${txHash}...`);
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
   const verifyAndRecordGas = Number(receipt.gasUsed);
-  console.log(`[MEASURED] PramaanRegistry.verifyAndRecord Gas: ${verifyAndRecordGas} gas`);
+  console.log(`[MEASURED] PramaanRegistry.verifyAndRecord Gas: ${verifyAndRecordGas} gas (status: ${receipt.status})`);
 
+  // Build comprehensive report with LOCAL vs LIVE separation
   const gasReport = {
     timestamp: new Date().toISOString(),
-    environment: "Local EVM / PrecompileProbe Harness",
+    network: networkSlot,
     chainId,
-    precompiles: {
+    environment: isLiveNetwork ? `MST Live Testnet (${config?.name || networkSlot})` : "Local EVM (Hardhat node 31337)",
+    contracts: {
+      PrecompileProbe: probe.address,
+      PramaanVerifier: verifier.address,
+      PramaanRegistry: registry.address,
+    },
+    measuredOnChain: {
       "0x06_ecAdd": {
         measuredGas: ecAddGas,
-        status: "MEASURED(LOCAL_EVM)",
-        description: "BN254 curve point addition",
+        targetBudget: "<= 1,000 gas",
+        status: isLiveNetwork ? "MEASURED (MST_CORAL_TESTNET)" : "MEASURED (LOCAL_EVM)",
+        description: "BN254 curve point addition via native precompile staticcall",
       },
       "0x07_ecMul": {
         measuredGas: ecMulGas,
-        status: "MEASURED(LOCAL_EVM)",
-        description: "BN254 curve scalar multiplication",
+        targetBudget: "<= 10,000 gas",
+        status: isLiveNetwork ? "MEASURED (MST_CORAL_TESTNET)" : "MEASURED (LOCAL_EVM)",
+        description: "BN254 curve scalar multiplication via native precompile staticcall",
       },
       "0x08_ecPairing": {
         measuredGas: ecPairingGas,
-        status: "MEASURED(LOCAL_EVM)",
-        description: "BN254 curve bilinear pairing check",
+        targetBudget: "<= 150,000 gas",
+        status: isLiveNetwork ? "MEASURED (MST_CORAL_TESTNET)" : "MEASURED (LOCAL_EVM)",
+        description: "BN254 curve bilinear pairing check via native precompile staticcall",
       },
-    },
-    contracts: {
       PramaanVerifier_verifyProof: {
         measuredGas: Number(verifierGasEstimate),
-        status: "MEASURED(LOCAL_EVM)",
+        targetBudget: "<= 300,000 gas",
+        status: isLiveNetwork ? "MEASURED (MST_CORAL_TESTNET)" : "MEASURED (LOCAL_EVM)",
       },
       PramaanRegistry_verifyAndRecord: {
         measuredGas: verifyAndRecordGas,
-        status: "MEASURED(LOCAL_EVM)",
+        targetBudget: "<= 350,000 gas",
+        txHash: txHash,
+        explorerUrl: config?.explorerUrl ? `${config.explorerUrl}/tx/${txHash}` : undefined,
+        status: isLiveNetwork ? "MEASURED (MST_CORAL_TESTNET)" : "MEASURED (LOCAL_EVM)",
       },
+    },
+    earlierLocalBenchmarks: {
+      note: "Relabeled as LOCAL figures from Hardhat Node (Chain 31337) prior to Coral testnet deployment",
+      local_0x06_ecAdd: 552,
+      local_0x07_ecMul: 6396,
+      local_0x08_ecPairing: 113447,
+      local_verifyProof: 255949,
+      local_verifyAndRecord: 288846,
     },
     blockGasLimitComparison: {
       officialDocumentationClaim: "15,000,000 / 30,000,000",
@@ -126,6 +204,13 @@ async function main() {
   const outPath = path.resolve(process.cwd(), "docs/evidence/gas-measured.json");
   fs.writeFileSync(outPath, JSON.stringify(gasReport, null, 2));
   console.log(`\n[SAVED] Gas measurements written to: ${outPath}\n`);
+
+  if (isLiveNetwork) {
+    const coralDir = path.resolve(process.cwd(), `docs/evidence/testnet-coral-${new Date().toISOString().split("T")[0]}`);
+    if (fs.existsSync(coralDir)) {
+      fs.writeFileSync(path.join(coralDir, "gas-measured.json"), JSON.stringify(gasReport, null, 2));
+    }
+  }
 }
 
 main().catch((err) => {
