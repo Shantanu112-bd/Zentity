@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-10-28T22:20:14.104Z",
+  "landing": {
+    "domContentLoaded": 663,
+    "loadComplete": 664,
+    "fcp": 732,
+    "jsHeapUsedSize": 11068381,
+    "fpsEstimate": 60
+  },
+  "proveRouteIsolation": {
+    "canvasCountOnProveRoute": 0,
+    "portalWrapCountOnProveRoute": 0,
+    "route": "/prove"
+  },
+  "proofGenerationBenchmarks": {
+    "proverEngine": "SnarkJS Groth16 (Web Worker / WASM)",
+    "constraints": 5014,
+    "averageProvingTimeMs": 636,
+    "zeroNetworkEgressVerified": true
+  }
+}

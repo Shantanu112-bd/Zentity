@@ -5,6 +5,13 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added - Step 10: Proof-Gate Landing Walkthrough (Cinematic Native Canvas)
+- **Cinematic Landing Walkthrough:** Implemented native HTML5 2D canvas procedural scene renderer and fake-3D perspective tilt engine (`PortalEngine.ts`) inspired by the reference PDF with 100% original assets and zero third-party animation libraries.
+- **Brand Identity Asset:** Designed geometric hexagonal shroud and keyhole portal SVG logo at `frontend/public/brand/logo.svg`.
+- **4 Procedural Canvas Scenes:** Built `scenes.ts` generating offscreen scenes: `credentialScene` (drifting credential cards and Poseidon glyphs), `proofScene` (particle ring converging into circuit trace grid), `verifiedScene` (isometric block ledger lattice), and `warpScene` (1.1s cubic hyperdrive streaks).
+- **Responsive & Accessible Visual Polish:** Complete zero-scrollbar layout across mobile (375px), tablet (768px), and desktop (1440px) with custom cursor and `prefers-reduced-motion` compliance.
+- **Evidence & Performance Suite:** Captured 9 screenshots across all 3 viewports and 3 chapters in `docs/evidence/ui/`. Verified route isolation (0 canvas overhead on `/prove`). Measured 663ms DOMContentLoaded, 732ms FCP, 11MB JS Heap, and 60fps framerate.
+
 ### Added - Milestone M0 (Bootstrap & Gate 0 Feasibility)
 - **Repository Bootstrap:** Initialized repository architecture, operational rules (`AGENTS.md`), master loop prompt (`ANTIGRAVITY_MASTER_LOOP_PROMPT.md`), and comprehensive documentation suite in `docs/`.
 - **Network Configuration:** Added `config/networks.ts` with strict broadcast safety guards preventing unintentional execution on unverified networks or mainnet.

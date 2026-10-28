@@ -143,3 +143,22 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
 - Residual risk / blocker:
   - B-04: Deployer address `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` currently has 0 tMSTC. Faucet URL: `https://coral-faucet.mstblockchain.com/`. Once funded, running `pnpm run deploy:coral` broadcasts `PrecompileProbe`, `PramaanVerifier`, and `PramaanRegistry` directly to Coral testnet.
 - Next action: Human funds `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` with testnet tMSTC from Coral faucet, then runs `pnpm run deploy:coral`.
+
+---
+
+### [2026-10-29 03:55 IST] — Step 10: Proof-Gate Cinematic Walkthrough & Multi-Viewport Parity
+- **Context:** ANTIGRAVITY_MASTER_BUILD_PROMPT.md §5 Step 10 & docs/reference/ui/UI_ADDENDUM_PRAMAAN.md.
+- **Implemented:**
+  1. `frontend/public/brand/logo.svg`: Original vector logo (geometric hexagonal shroud, keyhole portal, glowing core).
+  2. `frontend/src/landing/scenes.ts`: 4 offscreen procedural 2D canvas generators (`credentialScene`, `proofScene`, `verifiedScene`, `warpScene`).
+  3. `frontend/src/landing/PortalEngine.ts`: Perspective focal 850, 44-point rounded-rect perimeter sampler, screen-locked cover draw, cubic travel expansion, and frame freeze.
+  4. `frontend/src/landing/landing.css`: Responsive design matching reference proportions (1440px desktop, 768px tablet, 375px mobile), zero scrollbars, and `prefers-reduced-motion` compliance.
+  5. `frontend/src/landing/LandingWalkthrough.tsx`: Interactive React component with 0–100% preloader choreography, logo docking, and chapter state machine.
+  6. Polyfills: Buffer polyfill in `frontend/src/polyfills.ts` ensuring clean bundle execution in browser environment.
+  7. Automated Capture & Benchmark Scripts: `scripts/capture-screenshots.js` and `scripts/measure-ui-perf.js`.
+- **Evidence & Verification:**
+  - 9 settled screenshots captured at 3 widths (375px, 768px, 1440px) across all 3 chapters (`credential`, `proof`, `verified`) saved in `docs/evidence/ui/`.
+  - DOMContentLoaded: 663ms, FCP: 732ms, JS Heap: 11.1MB, Framerate: 60fps.
+  - Prover route isolation: `/prove` verified with 0 canvas elements running.
+  - Test suite: 46/46 passing in 14s.
+  - Secret scan: 0 secrets found; `.env` confirmed untracked.
