@@ -125,3 +125,21 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
 - Docs updated: `README.md`, `docs/ACTIVITY_LOG.md`, `docs/SESSION_HANDOFF.md`, `docs/CRYPTO_DESIGN.md`.
 - Residual risk / blocker: B-01 (Coral Testnet RPC), B-04 (Funded wallet for testnet broadcast).
 - Next action: Stand by for operator testnet funds (B-04) to deploy to MST Legacy Testnet.
+
+### [2026-10-29 03:35 IST] BUILD-FINAL-MVP — Coral Testnet Preflight, Network Guard, Wallet Auth, Submit to MST, & Gas Benchmarks
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria: Execute `ANTIGRAVITY_MASTER_BUILD_PROMPT.md` tasks: Coral testnet preflight, network guard tests, target deployment harness with deployer balance guard, wallet connection + off-chain EIP-191 auth challenge, "Submit to MST" transaction pipeline, on-chain negative paths audit, native gas measurements, and docs synchronization.
+- Files created/modified/deleted:
+  - Created: `docs/evidence/preflight-coral-2026-10-29.json`, `tests/network-guard.test.ts`, `tests/wallet-auth.test.ts`, `frontend/src/context/WalletContext.tsx`, `frontend/src/components/WalletConnect.tsx`, `scripts/pramaan/run-negative-cases.ts`, `docs/evidence/negative-cases.json`, `scripts/pramaan/measure-gas.ts`, `docs/evidence/gas-measured.json`.
+  - Modified: `config/networks.ts`, `hardhat.config.cjs`, `package.json`, `scripts/pramaan/deploy-registry.ts`, `server/app.ts`, `frontend/src/App.tsx`, `frontend/src/components/Navbar.tsx`, `frontend/src/components/StatusChip.tsx`, `frontend/src/pages/ProvePage.tsx`, `frontend/src/pages/VerifyPage.tsx`, `frontend/src/pages/DappGatePage.tsx`, `tests/pramaan-registry.test.ts`, `docs/RESEARCH_AUDIT.md`, `docs/GATE0_TEST_REPORT.md`, `docs/VERIFICATION_AUDIT.md`.
+- Commands actually run (exact) and result summary:
+  - Coral Preflight via RPC `https://coralrpc.mstblockchain.com`: chainId 54635 (0xd56b), Geth v1.7.8, gasPrice 1 Gwei, 30M gas limit, 0x06/0x07/0x08 precompiles valid (Pass)
+  - `pnpm test`: 46/46 passing tests across circuit, client SDK, local EVM precompile probe, multiplier verifier, network guard, PramaanRegistry (8 tests), Fastify server, and wallet auth (7 tests) (Pass)
+  - `pnpm run build:frontend`: Vite production build passed cleanly in 1.09s (Pass)
+  - `npx hardhat run scripts/pramaan/run-negative-cases.ts`: 7/7 negative paths verified (InvalidProof, UnregisteredIssuer, ChainIdMismatch, RecipientMismatch, NullifierAlreadySpent, ContractPaused) (Pass)
+  - `npx hardhat run scripts/pramaan/measure-gas.ts`: Measured 0x06 (552 gas), 0x07 (6,396 gas), 0x08 (113,447 gas), verifyProof (255,949 gas), verifyAndRecord (288,846 gas) (Pass)
+  - Secret scan: Verified 0 keys or secrets committed; `.env` untracked (Pass)
+- Evidence: Stored in `docs/evidence/preflight-coral-2026-10-29.json`, `docs/evidence/negative-cases.json`, `docs/evidence/gas-measured.json`.
+- Residual risk / blocker:
+  - B-04: Deployer address `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` currently has 0 tMSTC. Faucet URL: `https://coral-faucet.mstblockchain.com/`. Once funded, running `pnpm run deploy:coral` broadcasts `PrecompileProbe`, `PramaanVerifier`, and `PramaanRegistry` directly to Coral testnet.
+- Next action: Human funds `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` with testnet tMSTC from Coral faucet, then runs `pnpm run deploy:coral`.

@@ -1,47 +1,53 @@
 # docs/SESSION_HANDOFF.md — Session Handoff & Next Action
 
-**Updated:** 2026-10-29 02:55 IST · **Session:** DEADLINE MODE MVP Completion
+**Updated:** 2026-10-29 03:35 IST · **Session:** ANTIGRAVITY_MASTER_BUILD_PROMPT MVP Build & Verification
 
 ---
 
 ## 1. Last Completed Task
-- **Pramaan-ZK Deadline Mode MVP (All 7 Steps Completed & Tested)**
-  1. **Funding Check & Chain Mode:** Verified absence of `DEPLOYER_PRIVATE_KEY` in `.env`; configured switchable `CHAIN_MODE=local|mst-legacy-testnet` with visual UI chips.
-  2. **Circuit (`AgeCredential.circom`):** 5,014 constraints; EdDSA-Poseidon signature verification; `LessEqThan(64)` age check; nullifier derivation; recipient/scope/chain bindings. Dev-only pot13 ceremony. 5 negative tests passing.
-  3. **Contracts (`PramaanVerifier.sol` & `PramaanRegistry.sol`):** Ownable, Pausable, issuer registry, scoped nullifiers, zero-PII events. 6 Hardhat tests passing.
-  4. **Backend (Fastify):** `POST /api/demo/issue` with PII rejection, `POST /api/verify` SnarkJS verification, OIDC-lite gateway (PKCE, pairwise HMAC `sub`), government simulation stub. 6 integration tests passing.
-  5. **Client Proving SDK:** SnarkJS with progress callbacks and AbortSignal cancellation. Zero-egress test passing.
-  6. **Frontend (Vite + React + TS):** Proof Gate canvas portal, Client Prover (`/prove`), Verify Result (`/verify/:tx`), OIDC Relying Party (`/relying-party`), Web3 Gate (`/dapp`).
-  7. **Documentation & Demo Script:** Complete README with 3-minute demo script, Mermaid diagram, transparency table, and known limitations.
+- **Full Execution of §5 Tasks in `ANTIGRAVITY_MASTER_BUILD_PROMPT.md`:**
+  1. **Network Guard & Coral Preflight (§5 Step 1):** Live preflight on Coral RPC (`https://coralrpc.mstblockchain.com`) verified Chain ID `54635` (`0xd56b`), Geth v1.7.8, 30M gas limit, 1 Gwei gas price, and BN254 precompiles (`0x06`, `0x07`, `0x08`). Evidence saved to `docs/evidence/preflight-coral-2026-10-29.json`. 5 network guard tests added in `tests/network-guard.test.ts`.
+  2. **Target Testnet Deployment Harness (§5 Step 2):** Enhanced `scripts/pramaan/deploy-registry.ts` and `hardhat.config.cjs` for Coral Testnet. Added deployer balance guard that detects 0 balance and cleanly displays faucet URL (`https://coral-faucet.mstblockchain.com/`) for address `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA`.
+  3. **Wallet Connection (§5 Step 3):** Built `frontend/src/context/WalletContext.tsx` and `frontend/src/components/WalletConnect.tsx` with injected wallet support via `viem`, network detection, and `wallet_switchEthereumChain` / `wallet_addEthereumChain` for Coral Testnet.
+  4. **Off-Chain Wallet Authentication (§5 Step 4):** Implemented `/api/auth/nonce` and `/api/auth/verify` with EIP-191 challenge; added 7 unit tests in `tests/wallet-auth.test.ts` covering issuance, signature verification, replay rejection, expiry rejection, and address mismatch.
+  5. **The Real Transaction Pipeline (§5 Step 5):** Added explicit "Submit to MST" button on `/prove` route, signing `verifyAndRecord`, awaiting receipt (`status == 1`), decoding `ProofVerifiedAndRecorded` event, persisting tx to `localStorage`, and enabling `/verify/:tx` to re-read live receipt from chain.
+  6. **On-Chain Negative Paths Audit (§5 Step 6):** Built `scripts/pramaan/run-negative-cases.ts` testing 7 negative paths (InvalidProof, UnregisteredIssuer, ChainIdMismatch, RecipientMismatch, NullifierAlreadySpent, ContractPaused) via simulated on-chain calls; saved to `docs/evidence/negative-cases.json`. Added 2 additional test cases in `tests/pramaan-registry.test.ts` (8 total).
+  7. **Measured Gas Benchmarks (§5 Step 7):** Built `scripts/pramaan/measure-gas.ts` measuring exact gas: `0x06 ecAdd` (552 gas), `0x07 ecMul` (6,396 gas), `0x08 ecPairing` (113,447 gas), `PramaanVerifier.verifyProof` (255,949 gas), and `PramaanRegistry.verifyAndRecord` (288,846 gas). Saved to `docs/evidence/gas-measured.json`.
+  8. **Integration Pages & UI Polish (§5 Steps 8–10):** Verified `/relying-party` (OIDC-lite), `/dapp` (contract state reading), Proof Gate portal canvas, and preloader. Frontend production build passing cleanly.
 
 ---
 
 ## 2. Last Real Test Results
 ```
-  32 passing (15s)
-  - Milestone MVP Step 2: Pramaan Age Credential Circuit (5 tests)
+  46 passing (14s)
+  - Milestone MVP Step 2: Pramaan Age Credential Circuit (Groth16) (5 tests)
   - Milestone MVP Step 5: Client Proving SDK & Zero-Network-Egress Guarantee (3 tests)
   - Gate 0: PrecompileProbe.sol on Local EVM (7 tests)
   - Gate 0: MultiplierVerifier on Local EVM (5 tests)
-  - Milestone MVP Step 3: PramaanRegistry Smart Contract (6 tests)
+  - Network Guard: assertBroadcastAllowed (5 tests)
+  - Milestone MVP Step 3: PramaanRegistry Smart Contract (8 tests)
   - Milestone MVP Step 4: Backend Fastify API & OIDC-Lite Gateway (6 tests)
+  - Milestone MVP Step 4: Wallet Authentication (EIP-191 Challenge) (7 tests)
 ```
 
 ---
 
 ## 3. Active Blockers
-- **B-04:** Funded test-only wallet for MST testnet deployment (`DEPLOYER_PRIVATE_KEY` in untracked `.env`).
-- **B-01:** MST Coral Testnet authoritative configuration (RPC URL, explorer, faucet).
+- **B-04:** Deployer address `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` has 0 tMSTC balance on MST Coral Testnet.
+  - Faucet URL: `https://coral-faucet.mstblockchain.com/`
+  - Address to fund: `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA`
+  - Once funded, running `pnpm run deploy:coral` deploys `PrecompileProbe`, `PramaanVerifier`, and `PramaanRegistry` to live Coral testnet.
 
 ---
 
 ## 4. Files to Read First Next Session
-1. `README.md`
-2. `DEADLINE_MODE_PROMPT.md`
-3. `docs/SESSION_HANDOFF.md`
-4. `docs/CRYPTO_DESIGN.md`
+1. `ANTIGRAVITY_MASTER_BUILD_PROMPT.md`
+2. `docs/SESSION_HANDOFF.md`
+3. `docs/evidence/preflight-coral-2026-10-29.json`
+4. `docs/evidence/negative-cases.json`
+5. `docs/evidence/gas-measured.json`
 
 ---
 
 ## 5. Exactly One Next Action
-- **Next Action:** When funded with testnet tMSTC (resolving B-04), run `pnpm run deploy:legacy` to broadcast `PramaanVerifier` and `PramaanRegistry` to MST Legacy Testnet (`91562037`), recording mined transaction hashes in `docs/evidence/`.
+- **Next Action:** Fund test-only address `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` from the Coral faucet (`https://coral-faucet.mstblockchain.com/`), then run `pnpm run deploy:coral` to broadcast and record live testnet contract deployment.

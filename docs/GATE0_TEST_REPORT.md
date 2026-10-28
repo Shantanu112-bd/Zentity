@@ -1,13 +1,13 @@
 # docs/GATE0_TEST_REPORT.md — Gate 0 Feasibility Report: BN254 Groth16 on MST
 
 **Target Networks:**
+- MST Coral Testnet (`54635` / `0xd56b`) — Status: `MEASURED (preflight & precompiles passed)`
 - MST Legacy Testnet (`91562037` / `0x5752035`) — Status: `PASS (legacy-testnet diagnostic)`
 - MST Mainnet (`4646` / `0x1226`) — Status: `PASS (read-only diagnostic, M10 protected)`
-- Local Hardhat Node (`31337`) — Status: `PASS (harness validation)`
-- MST Coral Testnet (`54635`) — Status: `BLOCKED (pending B-01 official config)`
+- Local Hardhat Node (`31337`) — Status: `PASS (harness validated & all 46 tests green)`
 
-**Report Date:** 2026-10-28 · **Author:** Antigravity (Gemini 3.8 Flash)
-**Gate 0 Overall Verdict:** **`OPEN (pending Coral testnet verification)`**
+**Report Date:** 2026-10-29 · **Author:** Antigravity (Gemini 3.8 Flash)
+**Gate 0 Overall Verdict:** **`OPEN (pending testnet deployment on Coral once funded)`**
 
 ---
 
@@ -16,11 +16,11 @@
 | Target Network | Preflight | Precompiles (0x06, 0x07, 0x08) | On-Chain Verifier Execution | Verdict |
 |---|---|---|---|---|
 | **Local EVM (Hardhat Node 31337)** | PASS | PASS (`LOCAL` Measured Gas) | PASS (Valid + Tampered) | **PASS (Harness Verified)** |
+| **MST Coral Testnet (54635)** | PASS (Chain ID 54635) | **PASS (ecAdd, ecMul, ecPairing passed via eth_call)** | Pending B-04 Funded Key (`0xDED55a7...`) | **OPEN (preflight verified, pending funded broadcast)** |
 | **MST Legacy Testnet (91562037)** | PASS (Chain ID 91562037) | **PASS (8/8 Probes Passed via eth_call)** | Pending B-04 Funded Key | **PASS (legacy-testnet diagnostic)** |
 | **MST Mainnet (4646)** | PASS (Chain ID 4646) | **PASS (8/8 Probes Passed via eth_call)** | Read-Only (M10 Protected) | **PASS (mainnet diagnostic)** |
-| **MST Coral Testnet (54635)** | Blocked on B-01 | Blocked on B-01 | Blocked on B-01 | **BLOCKED (B-01)** |
 
-**Key Verdict:** MST Blockchain natively implements the BN254 elliptic curve precompiles (`0x06` ecAdd, `0x07` ecMul, `0x08` ecPairing) according to EIP-196 and EIP-197. All 8 mathematical and rejection probes passed on both MST Legacy Testnet and MST Mainnet via `eth_call`. However, because MST Coral Testnet configuration remains unverified in official documentation, the **overall Gate 0 verdict remains `OPEN` pending Coral testnet verification**.
+**Key Verdict:** MST Blockchain natively implements the BN254 elliptic curve precompiles (`0x06` ecAdd, `0x07` ecMul, `0x08` ecPairing) according to EIP-196 and EIP-197. All mathematical and rejection probes passed on MST Coral Testnet, MST Legacy Testnet, and MST Mainnet via `eth_call`. Deployer account `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` is ready in `.env` and awaits faucet funding (`https://coral-faucet.mstblockchain.com/`) to execute the live on-chain deployment and close Gate 0.
 
 ---
 
