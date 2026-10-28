@@ -306,4 +306,83 @@ describe("Milestone MVP Step 3: PramaanRegistry Smart Contract", function () {
     );
     assert(txHash);
   });
+
+  it("7. Tampered proof coordinate reverts with InvalidProof", async function () {
+    const chainId = await publicClient.getChainId();
+    const cred = await issueSyntheticCredential({
+      dobDays: 10000,
+      stateCode: 27,
+    });
+
+    const circuitInput = await createCircuitInput({
+      credential: cred,
+      scopeId: 300,
+      recipient: user.account.address,
+      chainId,
+      currentDateDays: 20000,
+      thresholdAgeDays: 6575,
+    });
+
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      circuitInput,
+      wasmPath,
+      zkeyPath
+    );
+
+    const callArgs = formatSolidityCalldata(proof, publicSignals);
+
+    // Tamper with proof coordinate pA[0]
+    const tamperedA: [bigint, bigint] = [callArgs.a[0] ^ 1n, callArgs.a[1]];
+
+    await assert.rejects(
+      async () => {
+        await registryContract.write.verifyAndRecord(
+          [tamperedA, callArgs.b, callArgs.c, callArgs.input],
+          { account: user.account }
+        );
+      },
+      /InvalidProof/,
+      "Tampered proof must revert with InvalidProof"
+    );
+  });
+
+  it("8. Zero address recipient reverts with RecipientMismatch", async function () {
+    const chainId = await publicClient.getChainId();
+    const cred = await issueSyntheticCredential({
+      dobDays: 10000,
+      stateCode: 27,
+    });
+
+    const circuitInput = await createCircuitInput({
+      credential: cred,
+      scopeId: 400,
+      recipient: user.account.address,
+      chainId,
+      currentDateDays: 20000,
+      thresholdAgeDays: 6575,
+    });
+
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      circuitInput,
+      wasmPath,
+      zkeyPath
+    );
+
+    const callArgs = formatSolidityCalldata(proof, publicSignals);
+
+    // Tamper with recipient to 0
+    const tamperedInput = [...callArgs.input];
+    tamperedInput[3] = 0n;
+
+    await assert.rejects(
+      async () => {
+        await registryContract.write.verifyAndRecord(
+          [callArgs.a, callArgs.b, callArgs.c, tamperedInput],
+          { account: user.account }
+        );
+      },
+      /RecipientMismatch/,
+      "Zero recipient must revert with RecipientMismatch"
+    );
+  });
 });
