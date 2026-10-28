@@ -1,0 +1,24 @@
+{
+  "network": "hardhat",
+  "chainId": 31337,
+  "deployer": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+  "timestamp": "2026-10-28T21:51:32.915Z",
+  "contracts": {
+    "PrecompileProbe": {
+      "address": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      "codeBytes": 1537
+    },
+    "PramaanVerifier": {
+      "address": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+      "codeBytes": 1932
+    },
+    "PramaanRegistry": {
+      "address": "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
+      "codeBytes": 2087
+    }
+  },
+  "demoIssuerRegistration": {
+    "pubKeyHash": "1611009605506049313254918906125506668212891036786937998993893237370979579959",
+    "txHash": "0xc608f42131343312b6d70533c3b423f7ba99232fe7a76fd667eb279075f59e47"
+  }
+}
