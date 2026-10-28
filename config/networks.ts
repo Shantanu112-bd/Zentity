@@ -46,12 +46,12 @@ export const NETWORKS: Record<string, NetworkConfig> = {
   mstCoralTestnet: {
     id: "mstCoralTestnet",
     name: "MST Coral Testnet",
-    chainId: 54635, // Secondary source; to be confirmed
-    rpcUrl: process.env.MST_CORAL_TESTNET_RPC || "",
+    chainId: 54635, // 0xd56b
+    rpcUrl: process.env.MST_CORAL_TESTNET_RPC || "https://coralrpc.mstblockchain.com",
     symbol: "tMSTC",
-    explorerUrl: undefined,
-    status: "unverified",
-    evidence: "docs/OPEN_QUESTIONS.md (B-01)",
+    explorerUrl: "https://coral.mstscan.com",
+    status: "verified", // Live-verified by RPC preflight on 2026-10-29
+    evidence: "docs/evidence/preflight-coral-2026-10-29.json",
     isTestnet: true,
   },
   mstMainnet: {
@@ -108,9 +108,12 @@ export async function assertBroadcastAllowed(
   }
 }
 
-export type ChainMode = "local" | "mst-legacy-testnet";
+export type ChainMode = "local" | "mst-coral-testnet" | "mst-legacy-testnet";
 
 export function getActiveChainMode(): ChainMode {
+  if (process.env.CHAIN_MODE === "mst-coral-testnet") {
+    return "mst-coral-testnet";
+  }
   if (process.env.CHAIN_MODE === "mst-legacy-testnet") {
     return "mst-legacy-testnet";
   }
@@ -118,7 +121,7 @@ export function getActiveChainMode(): ChainMode {
     return "local";
   }
   return process.env.DEPLOYER_PRIVATE_KEY && process.env.DEPLOYER_PRIVATE_KEY.trim() !== ""
-    ? "mst-legacy-testnet"
+    ? "mst-coral-testnet"
     : "local";
 }
 
