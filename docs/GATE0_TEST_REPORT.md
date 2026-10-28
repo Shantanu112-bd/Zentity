@@ -7,7 +7,7 @@
 - Local Hardhat Node (`31337`) — Status: `PASS (harness validated & all 46 tests green)`
 
 **Report Date:** 2026-10-29 · **Author:** Antigravity (Gemini 3.8 Flash)
-**Gate 0 Overall Verdict:** **`OPEN (pending testnet deployment on Coral once funded)`**
+**Gate 0 Overall Verdict:** **`PASS (Live On-Chain Verified on MST Coral Testnet 54635)`**
 
 ---
 
@@ -15,12 +15,12 @@
 
 | Target Network | Preflight | Precompiles (0x06, 0x07, 0x08) | On-Chain Verifier Execution | Verdict |
 |---|---|---|---|---|
+| **MST Coral Testnet (54635)** | **PASS** (Chain ID 54635) | **PASS** (ecAdd=552, ecMul=6,396, ecPairing=113,447) | **PASS** (verifyProof=259,184 gas, verifyAndRecord=288,882 gas in tx `0xa41c72a2...`) | **PASS (Target Network Verified)** |
 | **Local EVM (Hardhat Node 31337)** | PASS | PASS (`LOCAL` Measured Gas) | PASS (Valid + Tampered) | **PASS (Harness Verified)** |
-| **MST Coral Testnet (54635)** | PASS (Chain ID 54635) | **PASS (ecAdd, ecMul, ecPairing passed via eth_call)** | Pending B-04 Funded Key (`0xDED55a7...`) | **OPEN (preflight verified, pending funded broadcast)** |
-| **MST Legacy Testnet (91562037)** | PASS (Chain ID 91562037) | **PASS (8/8 Probes Passed via eth_call)** | Pending B-04 Funded Key | **PASS (legacy-testnet diagnostic)** |
+| **MST Legacy Testnet (91562037)** | PASS (Chain ID 91562037) | **PASS (8/8 Probes Passed via eth_call)** | Deferred (shuts down 31 Jan 2027) | **PASS (legacy-testnet diagnostic)** |
 | **MST Mainnet (4646)** | PASS (Chain ID 4646) | **PASS (8/8 Probes Passed via eth_call)** | Read-Only (M10 Protected) | **PASS (mainnet diagnostic)** |
 
-**Key Verdict:** MST Blockchain natively implements the BN254 elliptic curve precompiles (`0x06` ecAdd, `0x07` ecMul, `0x08` ecPairing) according to EIP-196 and EIP-197. All mathematical and rejection probes passed on MST Coral Testnet, MST Legacy Testnet, and MST Mainnet via `eth_call`. Deployer account `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` is ready in `.env` and awaits faucet funding (`https://coral-faucet.mstblockchain.com/`) to execute the live on-chain deployment and close Gate 0.
+**Key Verdict:** MST Blockchain natively implements the BN254 elliptic curve precompiles (`0x06` ecAdd, `0x07` ecMul, `0x08` ecPairing) according to EIP-196 and EIP-197. Deployer key `0xDED55a728B4ef6E91643eA947699C36e49CFfEFA` was funded with 50 tMSTC from the Coral faucet, successfully deploying `PrecompileProbe` (`0x94b9b5...`), `PramaanVerifier` (`0xed8fe3...`), and `PramaanRegistry` (`0x8c182a...`). On-chain bytecode was verified via `eth_getCode`, 7/7 negative security cases were verified on Coral testnet, and native Groth16 attribute verification was successfully mined on-chain. Gate 0 is fully **PASSED**.
 
 ---
 

@@ -5,6 +5,13 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added - MST Coral Testnet Deployment & Gate 0 Closure
+- **On-Chain Deployment on MST Coral Testnet (`54635`):** Deployed `PrecompileProbe` (`0x94b9b520b975e20e82ce5862c523bfe389c12ed3`), `PramaanVerifier` (`0xed8fe30962b3df64accdf867a355c68addedbf28`), and `PramaanRegistry` (`0x8c182a53fca78fe237734239bdb1256bc2658c5b`). Registered Demo Issuer key hash on-chain (tx `0x2011b9a1191b865ff39443a6c200b399976bd1ec5735006c384848d675992e1c`). Bytecode verified via `eth_getCode`.
+- **Live On-Chain Gas Benchmarks:** Measured native precompiles and verification on Coral Testnet: 0x06 `ecAdd` (552 gas), 0x07 `ecMul` (6,396 gas), 0x08 `ecPairing` (113,447 gas), `verifyProof` (259,184 gas), and `verifyAndRecord` (288,882 gas in mined tx `0xa41c72a21eee292173d37ca957dee958610117b29156f80418b6020d7f3ff472`). Earlier Hardhat numbers relabeled `LOCAL`.
+- **On-Chain Negative Paths Audit on Coral:** Verified 7/7 failure modes revert safely on Coral testnet: tampered proof, unregistered issuer, chainId mismatch, recipient mismatch, replay attack, paused state, and tampered public signal.
+- **Scoping Disclosures:** Corrected performance disclosures in `PERF_BENCHMARKS.md`: proving time is for 5,014-constraint synthetic circuit on desktop; UI perf is desktop-unthrottled; physical mobile hardware remains unverified.
+- **Gate 0 Status:** Updated verdict to `PASS (Live On-Chain Verified on MST Coral Testnet 54635)`.
+
 ### Added - Step 10: Proof-Gate Landing Walkthrough (Cinematic Native Canvas)
 - **Cinematic Landing Walkthrough:** Implemented native HTML5 2D canvas procedural scene renderer and fake-3D perspective tilt engine (`PortalEngine.ts`) inspired by the reference PDF with 100% original assets and zero third-party animation libraries.
 - **Brand Identity Asset:** Designed geometric hexagonal shroud and keyhole portal SVG logo at `frontend/public/brand/logo.svg`.

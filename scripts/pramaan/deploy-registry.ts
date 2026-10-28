@@ -30,14 +30,19 @@ async function main() {
       rpcUrls: { default: { http: [config.rpcUrl] } },
       blockExplorers: config.explorerUrl ? { default: { name: "Explorer", url: config.explorerUrl } } : undefined,
     });
-    deployOptions = { chain: customChain };
-
     publicClient = await viem.getPublicClient({ chain: customChain });
     const actualChainId = await publicClient.getChainId();
     await assertBroadcastAllowed(networkSlot, actualChainId, true);
 
     const walletClients = await viem.getWalletClients({ chain: customChain });
     walletClient = walletClients[0];
+
+    deployOptions = {
+      client: {
+        public: publicClient,
+        wallet: walletClient,
+      },
+    };
   } else {
     publicClient = await viem.getPublicClient();
     const walletClients = await viem.getWalletClients();
@@ -81,13 +86,26 @@ async function main() {
   // 4. Register Demo Issuer
   console.log("--> Registering Demo Issuer key hash...");
   const issuer = await getDemoIssuer();
-  const regTxHash = await registry.write.registerIssuer([BigInt(issuer.pubKeyHash)], deployOptions);
+  const regTxHash = await registry.write.registerIssuer([BigInt(issuer.pubKeyHash)], {
+    account: walletClient.account,
+  });
+  console.log(`[WAIT] Awaiting transaction confirmation: ${regTxHash}...`);
+  await publicClient.waitForTransactionReceipt({ hash: regTxHash });
   console.log(`[PASS] Demo Issuer registered: ${issuer.pubKeyHash} (tx: ${regTxHash})`);
 
-  // Verify bytecodes via getCode
+  // Verify bytecodes via eth_getCode
+  console.log("\n--> Verifying on-chain bytecode via eth_getCode...");
   const probeCode = await publicClient.getBytecode({ address: probe.address });
   const verifierCode = await publicClient.getBytecode({ address: verifier.address });
   const registryCode = await publicClient.getBytecode({ address: registry.address });
+
+  if (!probeCode || probeCode === "0x") throw new Error(`PrecompileProbe bytecode empty at ${probe.address}`);
+  if (!verifierCode || verifierCode === "0x") throw new Error(`PramaanVerifier bytecode empty at ${verifier.address}`);
+  if (!registryCode || registryCode === "0x") throw new Error(`PramaanRegistry bytecode empty at ${registry.address}`);
+
+  console.log(`[PASS] eth_getCode PrecompileProbe (${probe.address}): ${(probeCode.length - 2) / 2} bytes`);
+  console.log(`[PASS] eth_getCode PramaanVerifier (${verifier.address}): ${(verifierCode.length - 2) / 2} bytes`);
+  console.log(`[PASS] eth_getCode PramaanRegistry (${registry.address}): ${(registryCode.length - 2) / 2} bytes`);
 
   const dateStr = new Date().toISOString().split("T")[0];
   const explorerBase = config?.explorerUrl || "";
@@ -100,17 +118,17 @@ async function main() {
     contracts: {
       PrecompileProbe: {
         address: probe.address,
-        codeBytes: (probeCode?.length || 2) / 2 - 1,
+        codeBytes: (probeCode.length - 2) / 2,
         explorerUrl: explorerBase ? `${explorerBase}/address/${probe.address}` : undefined,
       },
       PramaanVerifier: {
         address: verifier.address,
-        codeBytes: (verifierCode?.length || 2) / 2 - 1,
+        codeBytes: (verifierCode.length - 2) / 2,
         explorerUrl: explorerBase ? `${explorerBase}/address/${verifier.address}` : undefined,
       },
       PramaanRegistry: {
         address: registry.address,
-        codeBytes: (registryCode?.length || 2) / 2 - 1,
+        codeBytes: (registryCode.length - 2) / 2,
         explorerUrl: explorerBase ? `${explorerBase}/address/${registry.address}` : undefined,
       },
     },
@@ -129,8 +147,11 @@ async function main() {
   );
 
   // Save to docs/evidence/
+  const dirName = isLiveNetwork
+    ? (networkSlot === "mstCoralTestnet" ? `testnet-coral-${dateStr}` : `testnet-${networkSlot}-${dateStr}`)
+    : "";
   const evidenceDir = isLiveNetwork
-    ? path.resolve(process.cwd(), `docs/evidence/testnet-${networkSlot}-${dateStr}`)
+    ? path.resolve(process.cwd(), `docs/evidence/${dirName}`)
     : path.resolve(process.cwd(), `docs/evidence`);
   if (!fs.existsSync(evidenceDir)) {
     fs.mkdirSync(evidenceDir, { recursive: true });
@@ -140,6 +161,15 @@ async function main() {
     ? path.join(evidenceDir, "deployment.json")
     : path.join(evidenceDir, `registry-deployment-${networkSlot}.json`);
   fs.writeFileSync(evidenceFile, JSON.stringify(deploymentData, null, 2));
+
+  // If Coral, also write to testnet-mstCoralTestnet-${dateStr} for complete alias coverage
+  if (networkSlot === "mstCoralTestnet") {
+    const aliasDir = path.resolve(process.cwd(), `docs/evidence/testnet-mstCoralTestnet-${dateStr}`);
+    if (!fs.existsSync(aliasDir)) {
+      fs.mkdirSync(aliasDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(aliasDir, "deployment.json"), JSON.stringify(deploymentData, null, 2));
+  }
 
   console.log(`\n[SUCCESS] Deployed addresses recorded to: contracts/deployed-addresses.json`);
   console.log(`[SUCCESS] Evidence recorded to: ${evidenceFile}\n`);
