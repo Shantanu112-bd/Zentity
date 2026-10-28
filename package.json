@@ -11,6 +11,7 @@
     "build:circuit": "tsx scripts/pramaan/build-circuit.ts",
     "deploy:local": "hardhat run scripts/pramaan/deploy-registry.ts --network localhost",
     "deploy:legacy": "hardhat run scripts/pramaan/deploy-registry.ts --network mstLegacyTestnet",
+    "server": "tsx server/index.ts",
     "test": "hardhat test tests/*.test.ts"
   },
   "devDependencies": {
@@ -25,7 +26,11 @@
     "viem": "^2.21.57"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.1",
+    "@fastify/rate-limit": "^11.2.1",
     "circomlib": "^2.0.5",
-    "circomlibjs": "^0.1.7"
+    "circomlibjs": "^0.1.7",
+    "fastify": "^5.12.7",
+    "jose": "^6.2.13"
   }
 }
