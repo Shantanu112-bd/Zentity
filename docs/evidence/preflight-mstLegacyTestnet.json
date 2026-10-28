@@ -1,0 +1,94 @@
+{
+  "network": "mstLegacyTestnet",
+  "name": "MST Legacy Testnet",
+  "rpcUrl": "https://testnetrpc.mstblockchain.com",
+  "expectedChainId": 91562037,
+  "timestamp": "2026-10-28T16:53:35.731Z",
+  "calls": {
+    "eth_chainId": {
+      "result": "0x5752035",
+      "latencyMs": 1295
+    },
+    "net_version": {
+      "result": "91562037",
+      "latencyMs": 313
+    },
+    "web3_clientVersion": {
+      "result": "Geth/v1.7.3-5c7d31a4-20260519/linux-amd64/go1.25.0",
+      "latencyMs": 311
+    },
+    "eth_gasPrice": {
+      "result": "0x3b9aca00",
+      "latencyMs": 362
+    },
+    "eth_getBalance": {
+      "result": "0x0",
+      "latencyMs": 312
+    },
+    "eth_getBlockByNumber": {
+      "result": {
+        "baseFeePerGas": "0x0",
+        "blobGasUsed": "0x0",
+        "difficulty": "0x2",
+        "excessBlobGas": "0x0",
+        "extraData": "0xda8301070388356337643331613488676f312e32352e30836c696e007820be98a3a1f568302e917656273eb0653280c71d79cc28e5722d844c6da6f061222ba9781b20e650a9a30a34672612f9a31dcd19244528b5e83bacf455c38f14e5b5c900",
+        "gasLimit": "0x3473bc0",
+        "gasUsed": "0x0",
+        "hash": "0x05f63e0cd33b61fae5e4c2a67b2a2972c6a44368a852d4562583c375a4d39a9f",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "milliTimestamp": "0x1a1836e7280",
+        "miner": "0xa936d437d7b83515733e253d7efbe58ad954a203",
+        "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "nonce": "0x0000000000000000",
+        "number": "0x656c9f",
+        "parentHash": "0xf6e96d4d09b12c46a16eb1506213983b9a1eb14aaa9e0191375792ce7d20a2c0",
+        "receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "sha3Uncles": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+        "size": "0x287",
+        "stateRoot": "0xba84c40323fc37c22e44248ca2ea8722d12a7281759630df2c34eb6ad8fe1d1f",
+        "timestamp": "0x6ae22890",
+        "totalDifficulty": "0xbd783d",
+        "transactions": [],
+        "transactionsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "uncles": [],
+        "withdrawals": [],
+        "withdrawalsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+      },
+      "latencyMs": 312
+    },
+    "eth_estimateGas": {
+      "error": {
+        "code": -32000,
+        "message": "failed with 50000000 gas: insufficient funds for gas * price + value: address 0x0000000000000000000000000000000000000001 have 0 want 1"
+      },
+      "latencyMs": 309
+    }
+  },
+  "blockSummary": {
+    "blockNum": 6646943,
+    "gasLimit": 55000000,
+    "blockTime": 1793206416,
+    "hash": "0x05f63e0cd33b61fae5e4c2a67b2a2972c6a44368a852d4562583c375a4d39a9f"
+  },
+  "blockSamples": [
+    {
+      "index": 1,
+      "blockNumber": 6646943,
+      "timestamp": 1793206419350,
+      "latencyMs": 393
+    },
+    {
+      "index": 2,
+      "blockNumber": 6646947,
+      "timestamp": 1793206430314,
+      "latencyMs": 961
+    },
+    {
+      "index": 3,
+      "blockNumber": 6646951,
+      "timestamp": 1793206441216,
+      "latencyMs": 899
+    }
+  ],
+  "observedBlockTimeSec": "2.73"
+}
