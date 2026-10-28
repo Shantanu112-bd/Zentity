@@ -108,3 +108,20 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
 - Docs updated: `ACTIVITY_LOG.md`, `CHANGELOG.md`, `SESSION_HANDOFF.md`, `GATE0_TEST_REPORT.md`, `RESEARCH_AUDIT.md`, `VERIFICATION_AUDIT.md`, `PROJECT_CONTEXT.md`, `implementation_plan.md`.
 - Residual risk / blocker: B-01 (Coral official config), B-04 (Funded testnet wallet).
 - Next action: Awaiting human operator to supply funded test-only key in `.env` (B-04) and Coral testnet info (B-01), then execute `pnpm run gate0:legacy`. Do NOT start M1.
+
+### [2026-10-29 02:55 IST] MVP-COMPLETE — Full Deadline Mode MVP Implementation & Verification
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria: Complete all 7 ordered work steps of `DEADLINE_MODE_PROMPT.md`: funding check, age credential circuit, registry contracts, Fastify backend + OIDC-lite gateway, client proving SDK with zero-egress guarantee, Vite React frontend with Proof Gate portal, README with demo script and transparency table.
+- Files created/modified/deleted:
+  - Created: `DEADLINE_MODE_PROMPT.md`, `circuits/pramaan/age_credential.circom`, `circuits/pramaan/verification_key.json`, `contracts/PramaanRegistry.sol`, `contracts/PramaanVerifier.sol`, `scripts/pramaan/build-circuit.ts`, `scripts/pramaan/crypto-utils.ts`, `scripts/pramaan/deploy-registry.ts`, `server/app.ts`, `server/index.ts`, `server/oidc.ts`, `packages/client/src/prover.ts`, `frontend/index.html`, `frontend/vite.config.ts`, `frontend/src/*` (components, pages), `tests/circuit-age-credential.test.ts`, `tests/pramaan-registry.test.ts`, `tests/server.test.ts`, `tests/client-zero-egress.test.ts`.
+  - Modified: `package.json`, `README.md`, `docs/CRYPTO_DESIGN.md`, `docs/SESSION_HANDOFF.md`, `config/networks.ts`.
+- Commands actually run (exact) and result summary:
+  - `pnpm test`: 32/32 tests passing across circuits, contracts, backend, and zero-egress SDK (Pass)
+  - `npx vite build frontend`: Production build succeeded in 943ms (Pass)
+  - Secret scan: `git grep -iE "BEGIN (RSA|EC|OPENSSH|DSA|PGP|PRIVATE) KEY"`: 0 secrets found (Pass)
+- Evidence: Hardhat test logs and verification keys stored in `circuits/pramaan/` and `frontend/public/circuits/`.
+- Errors -> diagnosis -> fix: Resolved module export syntax for fastify and types; adjusted substring assertion in zero-egress test.
+- Security/privacy implications: Zero PII policy enforced at circuit, contract, API, and client levels.
+- Docs updated: `README.md`, `docs/ACTIVITY_LOG.md`, `docs/SESSION_HANDOFF.md`, `docs/CRYPTO_DESIGN.md`.
+- Residual risk / blocker: B-01 (Coral Testnet RPC), B-04 (Funded wallet for testnet broadcast).
+- Next action: Stand by for operator testnet funds (B-04) to deploy to MST Legacy Testnet.
