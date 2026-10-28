@@ -107,3 +107,22 @@ export async function assertBroadcastAllowed(
     );
   }
 }
+
+export type ChainMode = "local" | "mst-legacy-testnet";
+
+export function getActiveChainMode(): ChainMode {
+  if (process.env.CHAIN_MODE === "mst-legacy-testnet") {
+    return "mst-legacy-testnet";
+  }
+  if (process.env.CHAIN_MODE === "local") {
+    return "local";
+  }
+  return process.env.DEPLOYER_PRIVATE_KEY && process.env.DEPLOYER_PRIVATE_KEY.trim() !== ""
+    ? "mst-legacy-testnet"
+    : "local";
+}
+
+export function hasDeployerKey(): boolean {
+  return Boolean(process.env.DEPLOYER_PRIVATE_KEY && process.env.DEPLOYER_PRIVATE_KEY.trim() !== "");
+}
+
