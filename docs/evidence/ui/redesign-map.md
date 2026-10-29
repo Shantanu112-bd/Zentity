@@ -51,3 +51,4 @@ The previous Planet Jumping portal mechanics are superseded by this specificatio
 1. **Zero Cryptographic Regression:** Circuit (`AgeCredential.circom`), verifier (`PramaanVerifier.sol`), registry (`PramaanRegistry.sol`), and proving SDK (`prover.ts`) remain untouched.
 2. **Zero Test Regressions:** All 46 test cases, including zero-egress network assertion and circuit negative constraints, will pass without changes.
 3. **No Third-Party Media Leaks:** All assets are generated procedurally or self-hosted locally. `grep` test against external CDNs will yield 0 matches.
+

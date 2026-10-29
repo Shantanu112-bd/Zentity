@@ -6,6 +6,7 @@ import { ProvePage } from "./pages/ProvePage";
 import { VerifyPage } from "./pages/VerifyPage";
 import { RelyingPartyPage } from "./pages/RelyingPartyPage";
 import { DappGatePage } from "./pages/DappGatePage";
+import { DevUiShowcase } from "./theme/DevUiShowcase";
 
 export const App: React.FC = () => {
   return (
@@ -14,6 +15,9 @@ export const App: React.FC = () => {
         <Routes>
           {/* Landing Walkthrough */}
           <Route path="/" element={<LandingPage />} />
+
+          {/* Dev Showcase */}
+          <Route path="/dev/ui" element={<DevUiShowcase />} />
 
           {/* Working App Shell Routes */}
           <Route path="/app/prove" element={<ProvePage />} />

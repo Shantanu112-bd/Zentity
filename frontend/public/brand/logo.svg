@@ -1,15 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" fill="none">
-  <defs>
-    <linearGradient id="pg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#35f0c8" />
-      <stop offset="100%" stop-color="#8b7bff" />
-    </linearGradient>
-  </defs>
-  <!-- Outer Hexagonal Shroud -->
-  <polygon points="50,6 88,28 88,72 50,94 12,72 12,28" stroke="url(#pg-grad)" stroke-width="4.5" stroke-linejoin="round" />
-  <!-- Inner Proof Gate Keyhole / Portal Geometry -->
-  <circle cx="50" cy="42" r="14" stroke="#35f0c8" stroke-width="3.5" />
-  <polygon points="43,46 57,46 63,74 37,74" fill="url(#pg-grad)" opacity="0.9" />
-  <!-- Central Cryptographic Core -->
-  <circle cx="50" cy="42" r="4.5" fill="#fff" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
+  <!-- Pramaan-ZK Original Geometric Emblem (256x256 viewBox, pure white geometry) -->
+  <g fill="#ffffff">
+    <!-- Top Apex Facet -->
+    <polygon points="128,24 164,72 92,72" opacity="0.95" />
+    
+    <!-- Upper Left Wing Facet -->
+    <polygon points="128,24 92,72 44,110 58,66" opacity="0.8" />
+    
+    <!-- Upper Right Wing Facet -->
+    <polygon points="128,24 198,66 212,110 164,72" opacity="0.8" />
+    
+    <!-- Central Hexagonal Core Void / Shroud -->
+    <polygon points="128,78 168,104 168,152 128,178 88,152 88,104" opacity="0.15" />
+    <polygon points="128,84 162,106 162,150 128,172 94,150 94,106" stroke="#ffffff" stroke-width="4" fill="none" opacity="0.85" />
+    
+    <!-- Inner ZK Nullifier Point -->
+    <circle cx="128" cy="128" r="14" fill="#ffffff" />
+    
+    <!-- Left Body Armor Plate -->
+    <polygon points="44,110 88,104 88,152 48,168 34,136" opacity="0.75" />
+    
+    <!-- Right Body Armor Plate -->
+    <polygon points="212,110 222,136 208,168 168,152 168,104" opacity="0.75" />
+    
+    <!-- Lower Left Facet -->
+    <polygon points="48,168 88,152 128,178 128,232 76,204" opacity="0.9" />
+    
+    <!-- Lower Right Facet -->
+    <polygon points="208,168 180,204 128,232 128,178 168,152" opacity="0.9" />
+    
+    <!-- Bottom Anchor Tip -->
+    <polygon points="128,178 138,206 128,232 118,206" opacity="1.0" />
+  </g>
 </svg>

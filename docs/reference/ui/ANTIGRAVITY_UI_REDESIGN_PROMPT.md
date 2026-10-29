@@ -66,3 +66,4 @@ Utilities (implement as global CSS exactly, Tailwind optional):
 Routes restyled, components created, tests/build results, screenshots path, perf numbers (labelled), commits, and any element that still deviates from the reference, stated plainly.
 
 **Begin now with step A.**
+
