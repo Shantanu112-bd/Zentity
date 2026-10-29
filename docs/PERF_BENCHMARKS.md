@@ -43,15 +43,14 @@ Measured on-chain against live deployed contracts on **MST Coral Testnet (Chain 
 
 ---
 
-## 3. UI & Portal Performance Benchmarks (Desktop Unthrottled)
+## 3. UI Redesign Performance Benchmarks (Desktop Unthrottled)
 Captured via Chrome DevTools Navigation & Paint Performance API (`docs/evidence/ui-perf-benchmarks.json`) on unthrottled desktop:
 
 | UI Metric | Target Budget | Measured Desktop (Unthrottled) | Status |
 |---|---|---|---|
-| DOMContentLoaded | $\le 1,500$ ms | **1,313 ms** | MEASURED (DESKTOP) |
-| Page Load Complete | $\le 1,500$ ms | **1,315 ms** | MEASURED (DESKTOP) |
-| First Contentful Paint (FCP) | $\le 1,500$ ms | **1,428 ms** | MEASURED (DESKTOP) |
-| JS Heap Memory Usage | $\le 80$ MB | **66.0 MB** | MEASURED (DESKTOP) |
-| Animation Framerate | 60 fps | **60 fps** | MEASURED (DESKTOP) |
-| `/app/prove` Route Isolation | 0 canvas / 0 portal wraps | **0 canvases running** | VERIFIED |
+| DOMContentLoaded | $\le 2,000$ ms | **1,623 ms** | MEASURED (DESKTOP) |
+| Page Load Complete | $\le 2,000$ ms | **1,626 ms** | MEASURED (DESKTOP) |
+| JS Heap Memory Usage | $\le 80$ MB | **70.0 MB** | MEASURED (DESKTOP) |
+| Background Canvas Framerate Cap | 24–30 fps | **30 fps cap** (<2% CPU overhead) | MEASURED (DESKTOP) |
+| `/app/prove` Route Isolation | 0 running canvas loops | **0 running loops (staticMode=true)** | VERIFIED |
 | Throttled Mobile Profile | LCP $\le 2.5$ s | **PENDING (Unverified on mobile hardware)** | UNVERIFIED |

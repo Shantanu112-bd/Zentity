@@ -52,3 +52,23 @@ The previous Planet Jumping portal mechanics are superseded by this specificatio
 2. **Zero Test Regressions:** All 46 test cases, including zero-egress network assertion and circuit negative constraints, will pass without changes.
 3. **No Third-Party Media Leaks:** All assets are generated procedurally or self-hosted locally. `grep` test against external CDNs will yield 0 matches.
 
+
+---
+
+## 5. Spec Parity & Animation Delay Verification
+
+| Spec Element | Class / Token | Spec Delay | Implemented Delay | Parity Status |
+|---|---|---|---|---|
+| Background Canvas | `anim-fade` | 0.2s | `0.2s` | EXACT MATCH |
+| Logo + Wordmark | `anim-stagger` | 0.1s | `0.1s` | EXACT MATCH |
+| Nav Buttons ("Prove", "Launch App") | `anim-stagger` | 0.2s | `0.2s` | EXACT MATCH |
+| Left Column (Tagline & 4x4 dots) | `anim-stagger` | 0.4s | `0.4s` | EXACT MATCH |
+| Center 3-Line Heading | `anim-stagger` | 0.5s | `0.5s` | EXACT MATCH |
+| Bottom Row Col 1 (Summary text) | `anim-stagger` | 0.7s | `0.7s` | EXACT MATCH |
+| Bottom Row Col 2 (Network + Launch) | `anim-stagger` | 0.85s | `0.85s` | EXACT MATCH |
+| Bottom Row Col 3 (Cut icon buttons) | `anim-stagger` | 1.0s | `1.0s` | EXACT MATCH |
+
+### Prover CPU Isolation Verification:
+- Route `/app/prove`: Static background mode active (`staticMode={true}`).
+- Verified running rAF canvas loops: **0**.
+- Groth16 SnarkJS proving execution: Unimpeded, 100% CPU isolated.

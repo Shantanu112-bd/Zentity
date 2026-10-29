@@ -1,16 +1,18 @@
 {
-  "timestamp": "2026-10-29T06:08:33.334Z",
+  "timestamp": "2026-10-29T07:12:05.127Z",
+  "label": "Desktop Unthrottled",
   "landing": {
-    "domContentLoaded": 1313,
-    "loadComplete": 1315,
-    "fcp": 1428,
-    "jsHeapUsedSize": 69258719,
-    "fpsEstimate": 60
+    "domContentLoadedMs": 1623,
+    "loadCompleteMs": 1626,
+    "fcpMs": null,
+    "jsHeapUsedBytes": 70040720,
+    "environment": "Desktop (Unthrottled, M-series Mac)"
   },
   "proveRouteIsolation": {
-    "canvasCountOnProveRoute": 0,
-    "portalWrapCountOnProveRoute": 0,
-    "route": "/app/prove"
+    "route": "/app/prove",
+    "canvasCount": 1,
+    "staticModeActive": true,
+    "runningAnimationLoops": 0
   },
   "proofGenerationBenchmarks": {
     "proverEngine": "SnarkJS Groth16 (Web Worker / WASM)",

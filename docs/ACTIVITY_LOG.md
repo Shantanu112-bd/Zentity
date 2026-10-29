@@ -214,3 +214,35 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
   7. Universal App Shell: Implemented `AppShell.tsx` for all working routes (`/app/prove`, `/app/verify`, `/app/dapp`, `/app/relying-party`) providing identical design language, chrome headers, live chain facts, and centered glass functional panels with zero continuous canvas animation on `/app/prove`.
   8. Screenshots & Verification: 24 screenshots captured across 375px, 768px, and 1440px in `docs/evidence/ui/`. UI performance benchmarked in `docs/evidence/ui-perf-benchmarks.json`.
   9. Cleanliness & Security: Grep for unauthorized CDN / third-party URLs returned 0 matches. Test suite: 46/46 passing.
+
+
+---
+
+### [2026-10-29 12:45 IST] — Full UI Redesign Implementation & Verification
+- **Context:** `ANTIGRAVITY_UI_REDESIGN_PROMPT.md` and reference spec `bDmADrNPj4BiT_qYsfvm-neWDol26SLv6udUYv7W0sE.md`.
+- **Branch:** `ui/redesign`.
+- **Executed Steps A through F:**
+  1. **Step A:** Checked out `ui/redesign`, saved prompt and spec in `docs/reference/ui/`, authored comprehensive architectural migration document in `docs/evidence/ui/redesign-map.md`. Committed `21a5f4d`.
+  2. **Step B:** Created theme design system in `frontend/src/theme/`:
+     - `BackgroundStage.tsx`: Procedural, looping, dark particle vortex with soft light streaks & subtle grain; capped at 24–30 FPS; supports `staticMode={true}` for CPU isolation during proving; respects `prefers-reduced-motion`.
+     - `CutButton.tsx` (`.btn-cut` 12px cut and `.btn-cut-border` 1px outline).
+     - `CutIconButton.tsx` (`.btn-cut-sm` 8px cut).
+     - `Glass.tsx` panel and `CutInput.tsx` fields.
+     - `StatusChip.tsx` adhering strictly to status vocabulary (`DEMO / SYNTHETIC`, `OFF-CHAIN VERIFIED`, `ZK VERIFIED ON-CHAIN`, etc.).
+     - Accessible focus-visible fix for polygon clipping via inner box shadows (`inset 0 0 0 2px #000, inset 0 0 0 4px #fff`).
+     - Added `/dev/ui` QA showcase route. Committed `9486058`.
+  3. **Step C:** Implemented spec-exact landing page (`/` in `LandingPage.tsx`):
+     - Outer frame `p-3 md:p-4`, inner stage `rounded-2xl relative bg-black`.
+     - Staggered entrances (.anim-stagger) matching exact delay table: 0.1s logo, 0.2s nav buttons, 0.4s left col, 0.5s center heading, 0.7s col 1, 0.85s col 2, 1.0s col 3.
+     - 3-column responsive bottom row with active network label and white cut "Launch App" button.
+     - Clean SVG brand logo and "P R A M A A N" wordmark. Committed `64a2f54`.
+  4. **Step D:** Housed all working pages (`/app/prove`, `/app/verify/:tx`, `/app/dapp`, `/app/relying-party`) inside new `AppShell`:
+     - Replaced outdated `.menu` pill styles with `.btn-cut` and `.btn-cut-border`.
+     - Preserved all IDs, handlers, inputs, and test criteria.
+     - Safely decommissioned superseded Planet Jumping code from `frontend/src/landing/`. Committed `d631370`.
+  5. **Step E:** Verified route flows, deep links (`/app/verify/:tx`), and added redesign-styled `NotFoundPage.tsx` for 404 handling. Committed `1b228af`.
+  6. **Step F:** Verification & Benchmarking:
+     - 24 screenshots captured at 1440px, 768px, and 375px into `docs/evidence/ui/redesign/`.
+     - Measured UI performance: DOMContentLoaded 1,623 ms, Heap 70 MB, `/app/prove` running animation loops = 0.
+     - Grep test for forbidden strings (`vortx|cloudfront|ubernatural|planet jumping`) returned 0 matches in frontend src.
+     - Full test suite: 46/46 passing in 18s.

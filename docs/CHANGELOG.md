@@ -41,3 +41,21 @@ The format is based on Keep a Changelog.
   - Implemented two-stage verifier deployment runner testing default `evmVersion` first, falling back to `paris` only if default fails.
 - **Test Suite:**
   - Automated Hardhat test suite in `tests/gate0-*.test.ts` (12/12 passing tests) covering valid proofs, tampered signals, flipped coordinates, swapped terms, and deterministic repeated execution.
+
+
+## [0.3.0] - 2026-10-29
+### Added
+- Complete UI redesign matching `bDmADrNPj4BiT_qYsfvm-neWDol26SLv6udUYv7W0sE.md` specification:
+  - Full-screen black outer frame (`p-3 md:p-4`) with rounded-2xl inner stage.
+  - Procedural dark particle vortex background stage with soft light streaks, 24–30 FPS cap, and bottom darkening gradient for high contrast.
+  - Octagonal cut-corner buttons (`.btn-cut`, `.btn-cut-border`, `.btn-cut-sm`) with custom inset `:focus-visible` outline clipping survival.
+  - Staggered fadeUp (`0.8s cubic-bezier(0.16, 1, 0.3, 1)`) and fadeIn animations with exact delay tables (0.1s to 1.0s).
+  - Inter typography (weights 300–900) loaded via Google Fonts with preconnect.
+  - Custom 256×256 geometric vector brand logo with "P R A M A A N" tracking wordmark.
+  - Dev-only visual QA showcase route at `/dev/ui`.
+  - Dedicated 404 page in redesign aesthetic.
+  - High-fidelity screenshots across 1440px, 768px, and 375px in `docs/evidence/ui/redesign/`.
+### Performance & Security
+- Isolated CPU for Groth16 SnarkJS Web Worker: BackgroundStage operates in `staticMode` on `/app/*` routes, running 0 continuous rAF animation loops during proving.
+- Zero external CDN hotlinks: All media and icons are locally hosted or drawn procedurally.
+- All 46 tests passing with zero regressions.

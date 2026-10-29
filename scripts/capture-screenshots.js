@@ -3,25 +3,25 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const viewports = [
-  { name: "375px", width: 375, height: 667, isMobile: true },
-  { name: "768px", width: 768, height: 1024, isMobile: false },
   { name: "1440px", width: 1440, height: 900, isMobile: false },
+  { name: "768px", width: 768, height: 1024, isMobile: false },
+  { name: "375px", width: 375, height: 667, isMobile: true },
 ];
 
 const targets = [
-  { slug: "preloader", url: "http://127.0.0.1:5173/?skipPreloader=false", delay: 1500 },
-  { slug: "chapter-credential", url: "http://127.0.0.1:5173/?chapter=credential&skipPreloader=true", delay: 2000 },
-  { slug: "chapter-proof", url: "http://127.0.0.1:5173/?chapter=proof&skipPreloader=true", delay: 2000 },
-  { slug: "chapter-verified", url: "http://127.0.0.1:5173/?chapter=verified&skipPreloader=true", delay: 2000 },
-  { slug: "app-prove", url: "http://127.0.0.1:5173/app/prove", delay: 1800 },
-  { slug: "app-verify", url: "http://127.0.0.1:5173/app/verify", delay: 1800 },
-  { slug: "app-dapp", url: "http://127.0.0.1:5173/app/dapp", delay: 1800 },
-  { slug: "app-relying-party", url: "http://127.0.0.1:5173/app/relying-party", delay: 1800 },
+  { slug: "landing", url: "http://127.0.0.1:5173/", delay: 1500 },
+  { slug: "app-prove-idle", url: "http://127.0.0.1:5173/app/prove", delay: 1500 },
+  { slug: "app-verify", url: "http://127.0.0.1:5173/app/verify", delay: 1500 },
+  { slug: "app-verify-tx", url: "http://127.0.0.1:5173/app/verify/0x9b46ee740c0a9694ff24ec64152504b8686fdb2e5d99aa56b176d6ec5a64ceea", delay: 1500 },
+  { slug: "app-dapp", url: "http://127.0.0.1:5173/app/dapp", delay: 1500 },
+  { slug: "app-relying-party", url: "http://127.0.0.1:5173/app/relying-party", delay: 1500 },
+  { slug: "dev-ui", url: "http://127.0.0.1:5173/dev/ui", delay: 1500 },
+  { slug: "not-found", url: "http://127.0.0.1:5173/404-test", delay: 1200 },
 ];
 
 async function run() {
-  console.log("=== Starting High-Fidelity UI Screenshot Captures ===");
-  const outDir = path.join(__dirname, "..", "docs", "evidence", "ui");
+  console.log("=== Capturing High-Fidelity UI Redesign Screenshots ===");
+  const outDir = path.join(__dirname, "..", "docs", "evidence", "ui", "redesign");
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir, { recursive: true });
   }
@@ -90,7 +90,7 @@ async function run() {
   } finally {
     chrome.kill();
   }
-  console.log("=== All Screenshots Successfully Captured ===");
+  console.log("=== All Redesign Screenshots Successfully Captured ===");
 }
 
 run().catch((err) => {
