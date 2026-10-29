@@ -1,12 +1,9 @@
 :root {
-  --font-heading: 'Syne', sans-serif;
+  --font-heading: 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --bg-primary: #08090d;
-  --bg-card: rgba(18, 20, 29, 0.75);
-  --accent-cyan: #00f2fe;
-  --accent-blue: #4facfe;
-  --accent-emerald: #10b981;
+  --bg-primary: #000000;
+  --bg-card: rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -17,15 +14,15 @@
 
 body {
   font-family: var(--font-body);
-  background-color: var(--bg-primary);
-  color: #f1f5f9;
+  background-color: #000000;
+  color: #ffffff;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, .font-heading {
   font-family: var(--font-heading);
-  letter-spacing: -0.02em;
 }
 
 code, pre, .font-mono {

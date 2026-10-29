@@ -6,6 +6,7 @@ import { ProvePage } from "./pages/ProvePage";
 import { VerifyPage } from "./pages/VerifyPage";
 import { RelyingPartyPage } from "./pages/RelyingPartyPage";
 import { DappGatePage } from "./pages/DappGatePage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import { DevUiShowcase } from "./theme/DevUiShowcase";
 
 export const App: React.FC = () => {
@@ -27,15 +28,15 @@ export const App: React.FC = () => {
           <Route path="/app/dapp" element={<DappGatePage />} />
           <Route path="/app/registry" element={<DappGatePage />} />
 
-          {/* Legacy / Direct Route Compatibility (Redirects or Direct Mount) */}
+          {/* Legacy / Direct Route Compatibility */}
           <Route path="/prove" element={<ProvePage />} />
           <Route path="/verify/:tx" element={<VerifyPage />} />
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/relying-party" element={<RelyingPartyPage />} />
           <Route path="/dapp" element={<DappGatePage />} />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* 404 Fallback */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </WalletProvider>
