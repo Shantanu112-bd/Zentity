@@ -6,6 +6,7 @@ import { ProvePage } from "./pages/ProvePage";
 import { VerifyPage } from "./pages/VerifyPage";
 import { RelyingPartyPage } from "./pages/RelyingPartyPage";
 import { DappGatePage } from "./pages/DappGatePage";
+import { SimulationPage } from "./pages/SimulationPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { DevUiShowcase } from "./theme/DevUiShowcase";
 
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
           <Route path="/app/relying-party" element={<RelyingPartyPage />} />
           <Route path="/app/dapp" element={<DappGatePage />} />
           <Route path="/app/registry" element={<DappGatePage />} />
+          <Route path="/app/simulation" element={<SimulationPage />} />
 
           {/* Legacy / Direct Route Compatibility */}
           <Route path="/prove" element={<ProvePage />} />
@@ -34,6 +36,7 @@ export const App: React.FC = () => {
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/relying-party" element={<RelyingPartyPage />} />
           <Route path="/dapp" element={<DappGatePage />} />
+          <Route path="/simulation" element={<SimulationPage />} />
 
           {/* 404 Fallback */}
           <Route path="*" element={<NotFoundPage />} />
