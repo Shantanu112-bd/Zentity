@@ -48,10 +48,10 @@ Captured via Chrome DevTools Navigation & Paint Performance API (`docs/evidence/
 
 | UI Metric | Target Budget | Measured Desktop (Unthrottled) | Status |
 |---|---|---|---|
-| DOMContentLoaded | $\le 1,000$ ms | **663 ms** | MEASURED (DESKTOP) |
-| Page Load Complete | $\le 1,500$ ms | **664 ms** | MEASURED (DESKTOP) |
-| First Contentful Paint (FCP) | $\le 1,000$ ms | **732 ms** | MEASURED (DESKTOP) |
-| JS Heap Memory Usage | $\le 30$ MB | **11.1 MB** | MEASURED (DESKTOP) |
+| DOMContentLoaded | $\le 1,500$ ms | **1,313 ms** | MEASURED (DESKTOP) |
+| Page Load Complete | $\le 1,500$ ms | **1,315 ms** | MEASURED (DESKTOP) |
+| First Contentful Paint (FCP) | $\le 1,500$ ms | **1,428 ms** | MEASURED (DESKTOP) |
+| JS Heap Memory Usage | $\le 80$ MB | **66.0 MB** | MEASURED (DESKTOP) |
 | Animation Framerate | 60 fps | **60 fps** | MEASURED (DESKTOP) |
-| `/prove` Route Isolation | 0 canvas / 0 portal wraps | **0 canvases running** | VERIFIED |
+| `/app/prove` Route Isolation | 0 canvas / 0 portal wraps | **0 canvases running** | VERIFIED |
 | Throttled Mobile Profile | LCP $\le 2.5$ s | **PENDING (Unverified on mobile hardware)** | UNVERIFIED |

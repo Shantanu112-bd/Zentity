@@ -1,16 +1,16 @@
 {
-  "timestamp": "2026-10-28T22:20:14.104Z",
+  "timestamp": "2026-10-29T06:08:33.334Z",
   "landing": {
-    "domContentLoaded": 663,
-    "loadComplete": 664,
-    "fcp": 732,
-    "jsHeapUsedSize": 11068381,
+    "domContentLoaded": 1313,
+    "loadComplete": 1315,
+    "fcp": 1428,
+    "jsHeapUsedSize": 69258719,
     "fpsEstimate": 60
   },
   "proveRouteIsolation": {
     "canvasCountOnProveRoute": 0,
     "portalWrapCountOnProveRoute": 0,
-    "route": "/prove"
+    "route": "/app/prove"
   },
   "proofGenerationBenchmarks": {
     "proverEngine": "SnarkJS Groth16 (Web Worker / WASM)",

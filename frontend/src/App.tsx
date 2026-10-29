@@ -1,48 +1,38 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { WalletProvider } from "./context/WalletContext";
-import { Navbar } from "./components/Navbar";
-import { Footer } from "./components/Footer";
 import { LandingPage } from "./pages/LandingPage";
 import { ProvePage } from "./pages/ProvePage";
 import { VerifyPage } from "./pages/VerifyPage";
 import { RelyingPartyPage } from "./pages/RelyingPartyPage";
 import { DappGatePage } from "./pages/DappGatePage";
 
-const AppLayout: React.FC = () => {
-  const location = useLocation();
-  const isLanding = location.pathname === "/";
-
-  if (isLanding) {
-    return (
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-      </Routes>
-    );
-  }
-
+export const App: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#08090d] text-slate-100">
-      <Navbar />
-      <main className="flex-1">
+    <WalletProvider>
+      <Router>
         <Routes>
+          {/* Landing Walkthrough */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* Working App Shell Routes */}
+          <Route path="/app/prove" element={<ProvePage />} />
+          <Route path="/app/verify/:tx" element={<VerifyPage />} />
+          <Route path="/app/verify" element={<VerifyPage />} />
+          <Route path="/app/relying-party" element={<RelyingPartyPage />} />
+          <Route path="/app/dapp" element={<DappGatePage />} />
+          <Route path="/app/registry" element={<DappGatePage />} />
+
+          {/* Legacy / Direct Route Compatibility (Redirects or Direct Mount) */}
           <Route path="/prove" element={<ProvePage />} />
           <Route path="/verify/:tx" element={<VerifyPage />} />
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/relying-party" element={<RelyingPartyPage />} />
           <Route path="/dapp" element={<DappGatePage />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
-  );
-};
 
-export const App: React.FC = () => {
-  return (
-    <WalletProvider>
-      <Router>
-        <AppLayout />
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </Router>
     </WalletProvider>
   );

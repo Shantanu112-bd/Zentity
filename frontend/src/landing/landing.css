@@ -1,40 +1,105 @@
 /**
  * frontend/src/landing/landing.css
  * 
- * Cinematic Proof-Gate Landing Styles
- * Implements the layout mechanics, typography, and choreographies from UI_REFERENCE_Planet_Jumping
- * Styled for Pramaan-ZK brand:
- * - Condensed display title
- * - Thin preloader counter
- * - Fake-3D portal canvas positioning
- * - Staggered entrance and travel switch transitions
+ * Exact Reference Styles for Pramaan-ZK Experience
+ * Matches reference "Planet Jumping" PDF (sections 2, 5, 6, 9, 10, 11) verbatim.
  */
 
-/* ------------------------------------------------------------------------- */
-/* 1. Layout & Experience Shell                                              */
-/* ------------------------------------------------------------------------- */
+/* ========================================================================= */
+/* 1. FONTS & ROOT TOKENS (PDF §2)                                           */
+/* ========================================================================= */
+@font-face {
+  font-family: 'SF Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/Inter-Regular.ttf') format('truetype'), local('Arial');
+}
+
+@font-face {
+  font-family: 'SF Pro';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/Inter-Bold.ttf') format('truetype'), local('Arial Bold');
+}
+
+@font-face {
+  font-family: 'SF Pro Thin';
+  font-style: normal;
+  font-weight: 100;
+  src: url('/fonts/Inter-Thin.ttf') format('truetype'), local('Arial');
+}
+
+@font-face {
+  font-family: 'Aalto';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/Anton-Regular.ttf') format('truetype'), local('Arial Narrow');
+}
+
+:root {
+  font-family: 'SF Pro', Arial, sans-serif;
+  color: #fff;
+  background: #090807;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0a0908;
+}
+
+/* ========================================================================= */
+/* 2. LAYOUT CSS (PDF §5)                                                    */
+/* ========================================================================= */
 .experience {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   min-height: 540px;
   overflow: hidden;
-  background: #06080b;
+  background: #0a0908;
   color: #fff;
-  font-family: "Inter", Arial, sans-serif;
+  font-family: 'SF Pro', Arial, sans-serif;
   font-synthesis: none;
   user-select: none;
 }
 
-.experience .shade {
+.backgrounds,
+.background,
+.shade,
+.transition-layer,
+.transition-layer video {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.background {
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.background.is-visible {
+  opacity: 1;
+}
+
+.shade {
   z-index: 1;
   background: linear-gradient(to bottom, transparent 52%, rgba(0, 0, 0, 0.88) 100%);
   pointer-events: none;
 }
 
-.experience .chrome {
+.chrome {
   position: absolute;
   z-index: 4;
   transition: opacity 0.45s ease, filter 0.45s ease;
@@ -46,14 +111,12 @@
   pointer-events: none;
 }
 
-.experience.is-transitioning .portal-heading {
-  opacity: 0 !important;
+.experience.is-committing .background {
+  transition: none !important;
 }
 
-/* ------------------------------------------------------------------------- */
-/* 2. Header & Translucent Pill Navigation                                   */
-/* ------------------------------------------------------------------------- */
-.experience .header {
+/* HEADER */
+.header {
   left: clamp(18px, 1.95vw, 28px);
   right: clamp(18px, 1.95vw, 28px);
   top: clamp(18px, 3.1vh, 28px);
@@ -62,7 +125,7 @@
   align-items: center;
 }
 
-.experience .brand-slot {
+.brand-slot {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -70,27 +133,27 @@
   color: #fff;
 }
 
-.experience .brand-name {
-  font-family: "Inter", sans-serif;
-  font-weight: 800;
+.brand-name {
+  font-family: 'SF Pro', Arial, sans-serif;
+  font-weight: 700;
   font-size: 16px;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   opacity: 0;
   transition: opacity 0.8s ease;
 }
 
-.experience .brand-name.is-visible {
+.brand-name.is-visible {
   opacity: 1;
 }
 
-.experience .header-actions {
+.header-actions {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.experience .nav {
+.nav {
   display: flex;
   align-items: center;
   height: 42px;
@@ -98,131 +161,120 @@
   border: 1px solid rgba(255, 255, 255, 0.45);
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 999px;
 }
 
-.experience .nav a {
+.nav a {
   color: #fff;
   text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
   padding: 8px 19px;
   border-radius: 999px;
   line-height: 1;
+  font-size: 14px;
   transition: background 0.2s, color 0.2s;
 }
 
-.experience .nav a.active {
+.nav a.active {
   background: #fff;
   color: #000;
 }
 
-.experience .menu-btn {
+.menu {
   height: 42px;
   padding: 0 20px;
   border: 0;
   border-radius: 999px;
   background: #fff;
   color: #000;
-  font-size: 13px;
-  font-weight: 600;
   cursor: pointer;
-  display: flex;
+  font-family: 'SF Pro', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   text-decoration: none;
-  transition: opacity 0.2s;
+  line-height: 1;
+  transition: opacity 0.2s ease;
 }
 
-.experience .menu-btn:hover {
+.menu:hover {
   opacity: 0.9;
 }
 
-/* ------------------------------------------------------------------------- */
-/* 3. Sidebar Chapters List                                                  */
-/* ------------------------------------------------------------------------- */
-.experience .planet-list {
+/* SIDEBAR PLANET LIST */
+.planet-list {
   left: clamp(18px, 1.95vw, 28px);
   top: 50%;
   transform: translateY(-43%);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 15px;
+  gap: 6px;
+  font-size: 16px;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.experience .planet-item {
+.planet-item {
   display: flex;
   align-items: center;
-  min-height: 22px;
-  color: rgba(255, 255, 255, 0.45);
+  min-height: 20px;
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  transition: color 0.2s;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-.experience .planet-item:hover {
-  color: rgba(255, 255, 255, 0.8);
+.planet-item:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.experience .planet-item.active {
+.planet-item.active {
   color: #fff;
   font-size: 18px;
   font-weight: 700;
   gap: 8px;
 }
 
-.experience .planet-item.active:before {
-  content: "";
-  width: 14px;
-  height: 14px;
+.planet-item.active:before {
+  content: '';
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #35f0c8;
-  box-shadow: 0 0 10px rgba(53, 240, 200, 0.6);
+  background: #fff;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
-/* ------------------------------------------------------------------------- */
-/* 4. Portal Canvas & Trigger Button                                         */
-/* ------------------------------------------------------------------------- */
-.experience .portal-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: 3;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.experience .portal-wrap {
+/* PORTAL */
+.portal-wrap {
   position: absolute;
   left: 50%;
   top: 50%;
   width: min(320px, 31vw);
   transform: translate(-50%, -54%);
   perspective: none;
-  z-index: 4;
 }
 
-.experience .portal-heading {
+.portal-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-  font-size: 14px;
-  font-family: "JetBrains Mono", monospace;
-  color: rgba(255, 255, 255, 0.7);
-  opacity: 0;
-}
-
-.experience .portal-heading strong {
   font-size: 16px;
-  color: #35f0c8;
-  margin-left: 8px;
+  opacity: 0;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-.experience .portal {
+.portal-heading strong {
+  font-size: 18px;
+  margin-left: 8px;
+  color: #fff;
+}
+
+.portal {
   position: relative;
   display: block;
   width: 100%;
@@ -237,15 +289,31 @@
   transform: none !important;
 }
 
-.experience .portal:focus-visible {
-  outline: 2px solid #35f0c8;
+.portal:focus-visible {
+  outline: 2px solid #fff;
   outline-offset: 4px;
 }
 
-/* ------------------------------------------------------------------------- */
-/* 5. Main Content: Giant Title & Fact Sheet                                 */
-/* ------------------------------------------------------------------------- */
-.experience .planet-content {
+.portal video,
+.portal img {
+  visibility: hidden;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.portal-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* CONTENT */
+.planet-content {
   position: absolute;
   left: clamp(28px, 4vw, 58px);
   right: clamp(28px, 3vw, 44px);
@@ -257,71 +325,129 @@
   pointer-events: auto;
 }
 
-.experience .planet-content h1 {
-  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
-  font-size: clamp(110px, 14vw, 240px);
+.planet-content h1 {
+  font-family: 'Aalto', 'Arial Narrow', sans-serif;
+  font-size: clamp(128px, 21.8vw, 314px);
   font-weight: 400;
   line-height: 0.72;
   margin: 0 0 -0.04em;
-  letter-spacing: 0.01em;
-  transform: translateX(-16px);
+  letter-spacing: 0;
+  transform: translateX(-32px);
   opacity: 0;
   color: #fff;
-  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
 }
 
-.experience .planet-content dl {
-  width: min(460px, 35vw);
+.planet-content dl {
+  width: min(447px, 34vw);
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
 }
 
-.experience .fact {
+.fact {
   display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: 16px;
+  grid-template-columns: 138px 1fr;
+  gap: 18px;
   padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.48);
   opacity: 0;
 }
 
-.experience .fact:last-child {
+.fact:last-child {
   border-bottom: 0;
 }
 
-.experience .fact dt {
+.fact dt {
   font-weight: 700;
-  color: #35f0c8;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
+  color: #fff;
+  margin: 0;
 }
 
-.experience .fact dd {
+.fact dd {
   margin: 0;
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.35;
 }
 
-/* ------------------------------------------------------------------------- */
-/* 6. Preloader Choreography                                                 */
-/* ------------------------------------------------------------------------- */
+.fact-cta {
+  margin-top: 16px;
+}
+
+/* MISC */
+.transition-layer {
+  display: none;
+}
+
+.scene-canvas {
+  display: none;
+}
+
+.loading {
+  position: absolute;
+  z-index: 12;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  opacity: 0;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: opacity 0.2s;
+  color: #fff;
+}
+
+.experience.is-loading .loading {
+  opacity: 0.8;
+}
+
+.experience.is-transitioning .header,
+.experience.is-transitioning .planet-list {
+  opacity: 1;
+  filter: none;
+  pointer-events: auto;
+}
+
+.experience.is-transitioning .shade {
+  opacity: 1;
+}
+
+/* ========================================================================= */
+/* 3. PRELOADER (PDF §6)                                                     */
+/* ========================================================================= */
 .preloader {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 50;
+  z-index: 20;
   background: #000;
   overflow: hidden;
   transition: opacity 0.5s ease;
 }
 
-.preloader.is-done {
+.preloader video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preloader-shade {
+  position: absolute;
+  inset: auto 0 0;
+  height: 35%;
+  background: linear-gradient(to bottom, transparent, #000);
+}
+
+.preloader.is-background {
+  z-index: 0;
+}
+
+.preloader.is-background .preloader-shade {
   opacity: 0;
-  pointer-events: none;
 }
 
 .floating-logo {
   position: fixed;
-  z-index: 52;
+  z-index: 22;
   left: 50%;
   top: 50%;
   width: 59px;
@@ -349,19 +475,19 @@
 
 .preloader-count {
   position: fixed;
-  z-index: 52;
+  z-index: 22;
   left: 50%;
   bottom: clamp(22px, 3.1vh, 28px);
   display: flex;
   align-items: flex-end;
   gap: 4px;
   transform: translateX(-50%);
-  font-family: "Inter", Arial, sans-serif;
+  font-family: 'SF Pro', Arial, sans-serif;
   line-height: 1;
 }
 
-.preloader-count > span:first-child {
-  font-family: "Inter", Arial, sans-serif;
+.preloader-count>span:first-child {
+  font-family: 'SF Pro Thin', 'SF Pro', Arial, sans-serif;
   font-size: 64px;
   font-weight: 100;
   color: #fff;
@@ -370,7 +496,7 @@
 .preloader-count .percent {
   font-size: 24px;
   padding-bottom: 4px;
-  color: #35f0c8;
+  color: #fff;
 }
 
 .preloader-count.is-leaving {
@@ -385,14 +511,23 @@
   }
 }
 
-/* ------------------------------------------------------------------------- */
-/* 7. Custom Cursor                                                          */
-/* ------------------------------------------------------------------------- */
-.custom-cursor {
-  display: none;
+body:not(.preload-complete) .custom-cursor {
+  opacity: 0 !important;
 }
 
+/* ========================================================================= */
+/* 4. CUSTOM CURSOR (PDF §9)                                                 */
+/* ========================================================================= */
 @media (hover: hover) and (pointer: fine) {
+
+  html,
+  body,
+  button,
+  a,
+  .portal {
+    cursor: none !important;
+  }
+
   .custom-cursor {
     display: block;
     position: fixed;
@@ -422,20 +557,19 @@
   .cursor-dot {
     width: 12px;
     height: 12px;
-    background: #35f0c8;
-    box-shadow: 0 0 10px rgba(53, 240, 200, 0.8);
+    background: #fff;
   }
 
   .cursor-orbit {
     width: 36px;
     height: 36px;
-    border: 1px solid rgba(53, 240, 200, 0.8);
-    background: rgba(53, 240, 200, 0.15);
+    border: 1px solid #fff;
+    background: rgba(255, 255, 255, 0.4);
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .custom-cursor.is-enter .cursor-orbit {
-    transform: translate(-50%, -50%) scale(1.18);
+    transform: translate(-50%, -50%) scale(1.16);
   }
 
   .cursor-label {
@@ -443,8 +577,8 @@
     top: 26px;
     left: 0;
     transform: translateX(-50%) translateY(-4px);
-    font: 14px/1.2 "JetBrains Mono", monospace;
-    color: #35f0c8;
+    font: 16px/1.2 'SF Pro', Arial, sans-serif;
+    color: #fff;
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -456,70 +590,89 @@
   }
 }
 
-/* ------------------------------------------------------------------------- */
-/* 8. Keyframe Animations & Staggered Reveal Choreography                    */
-/* ------------------------------------------------------------------------- */
-.experience:not(.intro-ready) .header,
-.experience:not(.intro-ready) .planet-list,
-.experience:not(.intro-ready) .planet-content h1,
-.experience:not(.intro-ready) .planet-content .fact {
+/* ========================================================================= */
+/* 5. ENTRANCE / SWITCH ANIMATIONS (PDF §10)                                 */
+/* ========================================================================= */
+body:not(.intro-ready) .header,
+body:not(.intro-ready) .planet-list,
+body:not(.intro-ready) .planet-content h1,
+body:not(.intro-ready) .planet-content .fact {
   opacity: 0;
 }
 
-.experience.intro-ready .header {
+.intro-ready .header {
   animation: reveal-down 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 }
 
-.experience.intro-ready .planet-list {
+.intro-ready .planet-list {
   animation: reveal-side 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.65s both;
 }
 
-.experience.content-revealing h1 {
+.content-revealing h1 {
   animation: title-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.experience.content-revealing .fact {
+.content-revealing .fact {
   animation: fact-rise 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.experience.content-revealing .fact:nth-child(1) {
+.fact:nth-child(1) {
   animation-delay: 0.52s;
 }
-.experience.content-revealing .fact:nth-child(2) {
+
+.fact:nth-child(2) {
   animation-delay: 0.68s;
 }
-.experience.content-revealing .fact:nth-child(3) {
+
+.fact:nth-child(3) {
   animation-delay: 0.84s;
 }
-.experience.content-revealing .fact:nth-child(4) {
+
+.fact:nth-child(4) {
   animation-delay: 1s;
 }
 
-.experience.mask-revealing .portal-heading {
+.mask-revealing .portal-heading {
   animation: portal-caption 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.experience .planet-list.is-switching .planet-item {
+.planet-list.is-switching .planet-item {
   animation: menu-row 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.experience .planet-list.is-switching .planet-item:nth-child(1) {
+.planet-list.is-switching .planet-item:nth-child(1) {
   animation-delay: 0.02s;
 }
-.experience .planet-list.is-switching .planet-item:nth-child(2) {
+
+.planet-list.is-switching .planet-item:nth-child(2) {
   animation-delay: 0.05s;
 }
-.experience .planet-list.is-switching .planet-item:nth-child(3) {
+
+.planet-list.is-switching .planet-item:nth-child(3) {
   animation-delay: 0.08s;
 }
-.experience .planet-list.is-switching .planet-item:nth-child(4) {
+
+.planet-list.is-switching .planet-item:nth-child(4) {
   animation-delay: 0.11s;
 }
-.experience .planet-list.is-switching .planet-item:nth-child(5) {
+
+.planet-list.is-switching .planet-item:nth-child(5) {
   animation-delay: 0.14s;
 }
 
-.experience .planet-list.is-switching .planet-item.active:before {
+.planet-list.is-switching .planet-item:nth-child(6) {
+  animation-delay: 0.17s;
+}
+
+.planet-list.is-switching .planet-item:nth-child(7) {
+  animation-delay: 0.20s;
+}
+
+.planet-list.is-switching .planet-item:nth-child(8) {
+  animation-delay: 0.23s;
+}
+
+.planet-list.is-switching .planet-item.active:before {
   animation: active-dot 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
 }
 
@@ -529,6 +682,7 @@
     filter: blur(8px);
     transform: translateY(-18px);
   }
+
   to {
     opacity: 1;
     filter: blur(0);
@@ -542,6 +696,7 @@
     filter: blur(8px);
     transform: translate(-20px, -43%);
   }
+
   to {
     opacity: 1;
     filter: blur(0);
@@ -555,6 +710,7 @@
     filter: blur(12px);
     transform: translate(-32px, 42px);
   }
+
   to {
     opacity: 1;
     filter: blur(0);
@@ -568,6 +724,7 @@
     filter: blur(7px);
     transform: translateY(18px);
   }
+
   to {
     opacity: 1;
     filter: blur(0);
@@ -581,6 +738,7 @@
     filter: blur(7px);
     transform: translateY(22px);
   }
+
   to {
     opacity: 1;
     filter: blur(0);
@@ -593,6 +751,7 @@
     opacity: 0.35;
     transform: translateX(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -604,103 +763,96 @@
     opacity: 0;
     transform: scale(0);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
 
-/* ------------------------------------------------------------------------- */
-/* 9. Responsive Adjustments                                                 */
-/* ------------------------------------------------------------------------- */
+/* ========================================================================= */
+/* 6. RESPONSIVE BREAKPOINTS (PDF §11)                                       */
+/* ========================================================================= */
 @media (max-width: 900px) {
-  .experience .nav {
+  .nav {
     display: none;
   }
-  .experience .portal-wrap {
-    top: 40%;
-    width: min(240px, 40vw);
+
+  .portal-wrap {
+    width: min(300px, 48vw);
   }
-  .experience .planet-content {
-    left: clamp(20px, 3vw, 36px);
-    right: clamp(20px, 3vw, 36px);
-    bottom: clamp(16px, 2.5vh, 24px);
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+
+  .planet-content h1 {
+    font-size: clamp(105px, 24vw, 190px);
   }
-  .experience .planet-content h1 {
-    font-size: clamp(64px, 11vw, 96px);
-    transform: none;
-    margin: 0;
-    line-height: 0.85;
+
+  .planet-content dl {
+    width: 43vw;
   }
-  .experience .planet-content dl {
-    width: min(460px, 100%);
-    font-size: 13px;
-    align-self: flex-start;
-  }
-  .experience .fact {
+
+  .fact {
     grid-template-columns: 110px 1fr;
-    padding: 6px 0;
   }
-  .experience .planet-list {
-    display: none;
+
+  .planet-list {
+    font-size: 14px;
+  }
+
+  .planet-item.active {
+    font-size: 16px;
   }
 }
 
 @media (max-width: 640px) {
   .experience {
-    min-height: 100vh;
-    overflow: hidden;
+    min-height: 600px;
   }
-  .experience .planet-list {
+
+  .planet-list {
     display: none;
   }
-  .experience .portal-wrap {
-    top: 31%;
-    width: min(170px, 48vw);
+
+  .portal-wrap {
+    top: 44%;
+    width: min(260px, 66vw);
   }
-  .experience .planet-content {
-    left: 16px;
-    right: 16px;
-    bottom: 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+
+  .planet-content {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    display: block;
   }
-  .experience .planet-content h1 {
-    font-size: clamp(38px, 10.5vw, 48px);
-    line-height: 0.85;
-    margin: 0;
-    transform: none;
+
+  .planet-content h1 {
+    font-size: clamp(98px, 30vw, 160px);
+    margin-bottom: 20px;
   }
-  .experience .planet-content dl {
+
+  .planet-content dl {
     width: 100%;
-    font-size: 11px;
-    align-self: flex-start;
-  }
-  .experience .fact {
-    grid-template-columns: 82px 1fr;
-    padding: 2.5px 0;
-    gap: 6px;
-  }
-  .experience .fact dt {
-    font-size: 10px;
-  }
-  .experience .fact dd {
-    font-size: 10.5px;
-    line-height: 1.25;
-  }
-  .experience .portal-heading {
-    font-size: 11px;
-  }
-  .experience .portal-heading strong {
     font-size: 13px;
   }
-  .experience .portal {
-    border-radius: 54px;
+
+  .fact {
+    grid-template-columns: 92px 1fr;
+    padding: 5px 0;
+  }
+
+  .portal-heading {
+    font-size: 14px;
+  }
+
+  .portal-heading strong {
+    font-size: 16px;
+  }
+
+  .menu {
+    height: 38px;
+  }
+
+  .portal {
+    border-radius: 70px;
   }
 }
 
@@ -709,7 +861,68 @@
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
-  .experience .portal {
+
+  .portal {
     transform: none !important;
   }
+}
+
+/* ========================================================================= */
+/* 7. MENU OVERLAY                                                           */
+/* ========================================================================= */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(10, 9, 8, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(24px, 4vw, 48px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.menu-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.menu-overlay-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 600px;
+}
+
+.menu-overlay-link {
+  font-family: 'Aalto', 'Arial Narrow', sans-serif;
+  font-size: clamp(36px, 6vw, 64px);
+  color: #fff;
+  text-decoration: none;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.menu-overlay-link:hover {
+  transform: translateX(12px);
+  opacity: 0.8;
+}
+
+.menu-overlay-link span.num {
+  font-family: 'SF Pro Thin', Arial, sans-serif;
+  font-size: clamp(20px, 3vw, 32px);
+  color: rgba(255, 255, 255, 0.4);
 }

@@ -198,3 +198,19 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
   3. Pushed clean to `origin/main` (commit `eb3de95`).
   4. Configured upstream tracking: `main` set to track `origin/main`.
   5. Tree status: 0 uncommitted changes, working tree clean, `.env` untracked.
+
+
+---
+
+### [2026-10-29 11:40 IST] — Exact Reference UI Alignment & Full App Shell Parity
+- **Context:** ANTIGRAVITY_UI_ALIGNMENT_PROMPT.md & reference PDF `91A9eXRcgcCLFCVM1syH9Xm0MbG_R1VH57UCo8r9qKI_md.pdf`.
+- **Executed:**
+  1. Parity Audit: Documented 146 criteria across PDF sections 3 to 12 in `docs/evidence/ui/parity-audit.md`. Closed all 28 identified gaps.
+  2. Typography: Self-hosted local font families in `frontend/public/fonts/` (Inter-Regular, Inter-Bold, Inter-Thin, Anton-Regular) mapped to `'SF Pro'`, `'SF Pro Thin'`, and `'Aalto'` with standard fallback stacks.
+  3. Color Palette: Aligned background to `#0a0908` / `#090807`, cursor to pure white (12px dot, 36px ring with `scale(1.16)` on enter), active chapter indicator to solid 16px white circle, and fact keys (`dt`) to white bold.
+  4. Exact Math & Timings: Replicated tilt angles (37.4 / -33), smoothing (`dt * .009`), focal 850, corner radius 90, 44-point rounded polygon sampler, cursor lerp 0.2, expansion 1100ms, and mask reveal 1050ms.
+  5. 8-Row Sidebar: Replicated full 8-item sidebar navigation (Credential, Proof, Verified, Registry, Relying Party, dApp Gate, Gov Stub, Docs) with staggered `.is-switching` animation (.02s to .23s delays) triggered via forced DOM reflow (`offsetWidth`).
+  6. Menu Overlay: Full-screen translucent blur overlay opened via white `.menu` pill button.
+  7. Universal App Shell: Implemented `AppShell.tsx` for all working routes (`/app/prove`, `/app/verify`, `/app/dapp`, `/app/relying-party`) providing identical design language, chrome headers, live chain facts, and centered glass functional panels with zero continuous canvas animation on `/app/prove`.
+  8. Screenshots & Verification: 24 screenshots captured across 375px, 768px, and 1440px in `docs/evidence/ui/`. UI performance benchmarked in `docs/evidence/ui-perf-benchmarks.json`.
+  9. Cleanliness & Security: Grep for unauthorized CDN / third-party URLs returned 0 matches. Test suite: 46/46 passing.

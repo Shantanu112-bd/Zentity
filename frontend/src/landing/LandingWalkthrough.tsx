@@ -1,6 +1,14 @@
+/**
+ * frontend/src/landing/LandingWalkthrough.tsx
+ * 
+ * Cinematic Proof-Gate Landing Experience
+ * Strictly aligned with reference specifications
+ * for the Pramaan-ZK privacy protocol.
+ */
+
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import { PortalEngine, ChapterId, ChapterData } from "./PortalEngine";
 import { useWallet } from "../context/WalletContext";
 import "./landing.css";
@@ -11,6 +19,7 @@ export const LandingWalkthrough: React.FC = () => {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const portalBtnRef = useRef<HTMLButtonElement | null>(null);
+  const planetListRef = useRef<HTMLElement | null>(null);
   const cursorRef = useRef<HTMLDivElement | null>(null);
   const cursorDotRef = useRef<HTMLSpanElement | null>(null);
   const cursorOrbitRef = useRef<HTMLSpanElement | null>(null);
@@ -35,7 +44,7 @@ export const LandingWalkthrough: React.FC = () => {
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [isContentRevealing, setIsContentRevealing] = useState<boolean>(shouldSkipPreload);
   const [isMaskRevealing, setIsMaskRevealing] = useState<boolean>(shouldSkipPreload);
-  const [isSwitchingMenu, setIsSwitchingMenu] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
   // Cursor state
   const mousePos = useRef({ x: -100, y: -100 });
@@ -43,7 +52,19 @@ export const LandingWalkthrough: React.FC = () => {
   const [isCursorEnter, setIsCursorEnter] = useState<boolean>(false);
   const [isCursorVisible, setIsCursorVisible] = useState<boolean>(false);
 
-  // Chapters Definition
+  // 8-Row Sidebar Mapping per §2
+  const sidebarItems = [
+    { id: "credential", label: "Credential", isChapter: true },
+    { id: "proof", label: "Proof", isChapter: true },
+    { id: "verified", label: "Verified", isChapter: true },
+    { id: "registry", label: "Registry", href: "/app/dapp" },
+    { id: "relying-party", label: "Relying Party", href: "/app/relying-party" },
+    { id: "dapp-gate", label: "dApp Gate", href: "/app/dapp" },
+    { id: "gov-stub", label: "Gov Stub (Simulation)", href: "/app/relying-party" },
+    { id: "docs", label: "Docs", href: "https://github.com/Shantanu112-bd/Zentity", external: true },
+  ];
+
+  // Chapters Definition per §2
   const chapters: Record<ChapterId, ChapterData> = {
     credential: {
       id: "credential",
@@ -52,7 +73,7 @@ export const LandingWalkthrough: React.FC = () => {
       nextNumber: "[02]",
       nextName: "Proof",
       facts: [
-        ["Input:", "Synthetic demo credential (labelled DEMO / SYNTHETIC)"],
+        ["Input:", "Synthetic demo credential (DEMO / SYNTHETIC)"],
         ["Signed by:", "Demo issuer, EdDSA-Poseidon curve"],
         ["Stays on:", "Your device (zero network egress verified)"],
         ["Real Aadhaar QR:", "Not supported yet (future work, Milestone M2)"],
@@ -65,7 +86,7 @@ export const LandingWalkthrough: React.FC = () => {
       nextNumber: "[03]",
       nextName: "Verified",
       facts: [
-        ["Statement:", "Age >= 18, issuer registered on-chain"],
+        ["Statement:", "Age ≥ 18, issuer registered on-chain"],
         ["Prover:", "SnarkJS Web Worker in your browser"],
         ["Reveals:", "Nullifier hash + 7 public signals only"],
         ["Setup:", "DEV-ONLY Groth16 ceremony (5,014 constraints)"],
@@ -75,11 +96,11 @@ export const LandingWalkthrough: React.FC = () => {
       id: "verified",
       number: "[03]",
       name: "VERIFIED",
-      nextNumber: "[--]",
-      nextName: "Terminal",
+      nextNumber: "[04]",
+      nextName: "Launch",
       facts: [
         ["Check:", "Groth16 verifier contract on MST Blockchain"],
-        ["Network:", `${targetNetwork?.name || "MST Coral Testnet"} (Chain ${targetNetwork?.chainId || 54635})`],
+        ["Network:", `${targetNetwork?.name || "MST Coral Testnet"} (${targetNetwork?.chainId || 54635})`],
         ["Evidence:", "Mined receipt and state check at /verify/:tx"],
         ["Not claimed:", "Government/UIDAI endorsement or real identity"],
       ],
@@ -88,43 +109,53 @@ export const LandingWalkthrough: React.FC = () => {
 
   const activeData = chapters[currentChapter];
 
-  // 1. Preloader sequence
+  // 1. Preloader sequence (~3s duration matching reference feel)
   useEffect(() => {
-    if (shouldSkipPreload) return;
+    if (shouldSkipPreload) {
+      document.body.classList.add("preload-complete", "intro-ready");
+      return;
+    }
 
-    let currentVal = 0;
-    const interval = setInterval(() => {
-      currentVal += 5;
-      if (currentVal >= 100) {
-        currentVal = 100;
-        setPreloadCount(100);
-        clearInterval(interval);
+    const startTime = performance.now();
+    const duration = 2800; // ~3s sequence
 
-        // Sequence after 100%
+    const timer = setInterval(() => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(100, Math.round((elapsed / duration) * 100));
+      setPreloadCount(progress);
+
+      if (progress >= 100) {
+        clearInterval(timer);
+        // Step 1: Counter leaves (blur-up) & logo glides to header
         setTimeout(() => {
-          setIsDocked(true); // Logo glides to top-left header slot
-        }, 300);
+          setIsDocked(true);
+        }, 150);
 
+        // Step 2: Preloader hides, chrome drops in
         setTimeout(() => {
           setIsPreloading(false);
           setIsIntroReady(true);
           setIsMaskRevealing(true);
+          document.body.classList.add("preload-complete", "intro-ready");
         }, 750);
 
+        // Step 3: Content reveals
         setTimeout(() => {
           setIsContentRevealing(true);
-        }, 1100);
+        }, 1050);
 
+        // Step 4: Logo settles into chrome
         setTimeout(() => {
           setIsSettled(true);
-        }, 2200);
-      } else {
-        setPreloadCount(currentVal);
+        }, 2150);
       }
-    }, 45);
+    }, 30);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearInterval(timer);
+      document.body.classList.remove("preload-complete", "intro-ready");
+    };
+  }, [shouldSkipPreload]);
 
   // 2. Initialize PortalEngine
   useEffect(() => {
@@ -133,8 +164,13 @@ export const LandingWalkthrough: React.FC = () => {
     const engine = new PortalEngine(canvasRef.current, portalBtnRef.current, {
       onChapterCommit: (nextChapter) => {
         setCurrentChapter(nextChapter);
-        setIsSwitchingMenu(true);
-        setTimeout(() => setIsSwitchingMenu(false), 600);
+        // Retrigger .is-switching on .planet-list using DOM reflow per PDF §4
+        const planetList = planetListRef.current;
+        if (planetList) {
+          planetList.classList.remove("is-switching");
+          void planetList.offsetWidth; // Force reflow
+          planetList.classList.add("is-switching");
+        }
       },
       onTransitionStart: () => {
         setIsTransitioning(true);
@@ -146,7 +182,7 @@ export const LandingWalkthrough: React.FC = () => {
         setIsMaskRevealing(true);
         setTimeout(() => {
           setIsContentRevealing(true);
-        }, 150);
+        }, 100);
       },
     });
 
@@ -159,7 +195,7 @@ export const LandingWalkthrough: React.FC = () => {
     return () => {
       engine.destroy();
     };
-  }, []);
+  }, [initialChapter]);
 
   // 3. Custom Cursor smooth interpolation loop
   useEffect(() => {
@@ -175,7 +211,7 @@ export const LandingWalkthrough: React.FC = () => {
       }
       if (cursorOrbitRef.current) {
         cursorOrbitRef.current.style.transform = `translate3d(${orbitPos.current.x}px, ${orbitPos.current.y}px, 0) translate(-50%, -50%) ${
-          isCursorEnter ? "scale(1.18)" : "scale(1)"
+          isCursorEnter ? "scale(1.16)" : "scale(1)"
         }`;
       }
 
@@ -205,7 +241,7 @@ export const LandingWalkthrough: React.FC = () => {
 
   const handlePortalClick = async () => {
     if (currentChapter === "verified") {
-      // Terminal: clicking does nothing on landing walkthrough
+      // Terminal: clicking does nothing on landing walkthrough per §2
       return;
     }
     if (engineRef.current) {
@@ -213,13 +249,16 @@ export const LandingWalkthrough: React.FC = () => {
     }
   };
 
-  const sidebarLabels = [
-    { id: "credential", label: "Credential", isChapter: true },
-    { id: "proof", label: "Proof", isChapter: true },
-    { id: "verified", label: "Verify", isChapter: true },
-    { id: "registry", label: "Registry", href: "/dapp" },
-    { id: "channels", label: "Channels", href: "/relying-party" },
-  ];
+  const handleLaunchApp = async () => {
+    if (engineRef.current) {
+      setIsTransitioning(true);
+      await engineRef.current.expandAndLaunch(() => {
+        navigate("/app/prove");
+      });
+    } else {
+      navigate("/app/prove");
+    }
+  };
 
   return (
     <main
@@ -230,19 +269,22 @@ export const LandingWalkthrough: React.FC = () => {
       }`}
       data-chapter={currentChapter}
     >
-      {/* 3D Portal Canvas */}
-      <canvas ref={canvasRef} className="portal-canvas" aria-hidden="true" />
+      {/* Background container */}
+      <div className="backgrounds" aria-hidden="true" />
 
-      {/* Screen Shade (linear gradient bottom 48%) */}
+      {/* 3D Portal Canvas */}
+      <canvas ref={canvasRef} id="portal-canvas" className="portal-canvas" aria-hidden="true" />
+
+      {/* Screen Shade (linear gradient bottom 48% per §5) */}
       <div className="shade" aria-hidden="true" />
 
       {/* 1. Header (Chrome) */}
       <header className="header chrome">
-        <Link to="/" className="brand-slot">
+        <Link to="/" className="brand-slot" aria-label="Pramaan-ZK Home">
           {/* Logo docking target slot */}
-          <div className="w-[37px] h-[36px]" />
+          <div style={{ width: "37px", height: "36px" }} />
           <span className={`brand-name ${isDocked ? "is-visible" : ""}`}>
-            Pramaan<span className="text-[#35f0c8]">-ZK</span>
+            Pramaan-ZK
           </span>
         </Link>
 
@@ -251,47 +293,63 @@ export const LandingWalkthrough: React.FC = () => {
             <Link to="/" className="active">
               About
             </Link>
-            <Link to="/prove">Prove</Link>
-            <Link to="/verify">Verify</Link>
-            <a href="https://github.com/Shantanu112-bd/Zentity" target="_blank" rel="noreferrer">
-              Docs
-            </a>
+            <Link to="/app/prove">Explore</Link>
+            <button
+              type="button"
+              onClick={handleLaunchApp}
+              className="hover:text-white transition-colors"
+            >
+              Launch App
+            </button>
           </nav>
 
-          <Link to="/prove" className="menu-btn">
-            <span>Launch</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <button
+            type="button"
+            className="menu"
+            onClick={() => setIsMenuOpen(true)}
+            aria-label="Open Navigation Menu"
+          >
+            Menu
+          </button>
         </div>
       </header>
 
-      {/* 2. Sidebar (Chrome) */}
-      <aside className="planet-list chrome" aria-label="Walkthrough Chapters">
-        <ul className={`space-y-1.5 ${isSwitchingMenu ? "is-switching" : ""}`}>
-          {sidebarLabels.map((item) => {
-            const isActive = item.id === currentChapter;
-            return (
-              <li key={item.id}>
-                {item.isChapter ? (
-                  <span
-                    className={`planet-item ${isActive ? "active" : ""}`}
-                    onClick={() => {
-                      if (!isActive && item.id !== "verified" && engineRef.current) {
-                        handlePortalClick();
-                      }
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                ) : (
-                  <Link to={item.href || "#"} className="planet-item opacity-60 hover:opacity-100">
-                    {item.label}
-                  </Link>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+      {/* 2. Sidebar (Chrome) - 8 items per §2 & §4 */}
+      <aside
+        ref={planetListRef}
+        className="planet-list chrome"
+        aria-label="Walkthrough Chapters"
+      >
+        {sidebarItems.map((item) => {
+          const isActive = item.id === currentChapter;
+          return item.isChapter ? (
+            <span
+              key={item.id}
+              className={`planet-item ${isActive ? "active" : ""}`}
+              onClick={() => {
+                if (!isActive && item.id !== "verified" && engineRef.current) {
+                  handlePortalClick();
+                }
+              }}
+            >
+              {item.label}
+            </span>
+          ) : item.external ? (
+            <a
+              key={item.id}
+              href={item.href}
+              target="_blank"
+              rel="noreferrer"
+              className="planet-item"
+            >
+              {item.label}
+            </a>
+          ) : (
+            <Link key={item.id} to={item.href} className="planet-item">
+              {item.label}
+            </Link>
+          );
+        })}
       </aside>
 
       {/* 3. Portal Trigger Wrap (Chrome) */}
@@ -306,6 +364,7 @@ export const LandingWalkthrough: React.FC = () => {
 
         <button
           ref={portalBtnRef}
+          id="portal"
           type="button"
           onClick={handlePortalClick}
           onMouseEnter={() => setIsCursorEnter(true)}
@@ -313,8 +372,8 @@ export const LandingWalkthrough: React.FC = () => {
           className="portal"
           aria-label={
             currentChapter === "verified"
-              ? "Walkthrough completed at Verified state"
-              : `Proceed to next chapter: ${activeData.nextName}`
+              ? "Terminal: Walkthrough complete"
+              : `Travel to ${activeData.nextName}`
           }
         />
       </section>
@@ -323,25 +382,47 @@ export const LandingWalkthrough: React.FC = () => {
       <section className="planet-content chrome" aria-live="polite">
         <h1 id="planet-title">{activeData.name}</h1>
 
-        <dl id="facts">
-          {activeData.facts.map(([key, val], idx) => (
-            <div key={idx} className="fact">
-              <dt>{key}</dt>
-              <dd>{val}</dd>
+        <div>
+          <dl id="facts">
+            {activeData.facts.map(([key, val], idx) => (
+              <div key={idx} className="fact">
+                <dt>{key}</dt>
+                <dd>{val}</dd>
+              </div>
+            ))}
+          </dl>
+
+          {/* White .menu-style CTA pill on terminal chapter per §2 */}
+          {currentChapter === "verified" && (
+            <div className="fact-cta">
+              <button
+                type="button"
+                onClick={handleLaunchApp}
+                className="menu"
+                style={{ marginTop: "16px", gap: "8px" }}
+              >
+                <span>Launch App</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
-          ))}
-        </dl>
+          )}
+        </div>
       </section>
 
-      {/* 5. Preloader Choreography */}
+      {/* 5. Preloader Sequence (PDF §6) */}
       {isPreloading && (
-        <div className={`preloader ${preloadCount === 100 ? "is-done" : ""}`}>
-          <div className="w-full h-full bg-[#06080b]" />
+        <div
+          id="preloader"
+          className={`preloader ${preloadCount === 100 ? "is-background" : ""}`}
+          aria-label="Loading Experience"
+        >
+          <div className="preloader-shade" />
         </div>
       )}
 
-      {/* Floating Logo (flies from dead-center to header slot over 2s) */}
+      {/* Floating Logo (glides from screen centre to header slot over 2s) */}
       <img
+        id="floating-logo"
         src="/brand/logo.svg"
         alt="Pramaan-ZK"
         className={`floating-logo ${isDocked ? "is-docked" : ""} ${isSettled ? "is-settled" : ""}`}
@@ -349,8 +430,12 @@ export const LandingWalkthrough: React.FC = () => {
 
       {/* Preloader Counter */}
       {isPreloading && (
-        <div className={`preloader-count ${preloadCount === 100 ? "is-leaving" : ""}`} aria-live="polite">
-          <span>{preloadCount}</span>
+        <div
+          id="preloader-count"
+          className={`preloader-count ${preloadCount === 100 ? "is-leaving" : ""}`}
+          aria-live="polite"
+        >
+          <span id="preloader-value">{preloadCount}</span>
           <span className="percent">%</span>
         </div>
       )}
@@ -362,9 +447,69 @@ export const LandingWalkthrough: React.FC = () => {
         aria-hidden="true"
       >
         <span ref={cursorDotRef} className="cursor-dot" />
-        <span ref={cursorOrbitRef} className="cursor-orbit">
-          <span className="cursor-label">Enter</span>
-        </span>
+        <span ref={cursorOrbitRef} className="cursor-orbit" />
+        <span className="cursor-label">Enter</span>
+      </div>
+
+      {/* 7. Menu Overlay per §2 */}
+      <div className={`menu-overlay ${isMenuOpen ? "is-open" : ""}`}>
+        <div className="menu-overlay-header">
+          <span className="brand-name is-visible">Pramaan-ZK Menu</span>
+          <button
+            type="button"
+            className="menu"
+            onClick={() => setIsMenuOpen(false)}
+            aria-label="Close Menu"
+          >
+            <X className="w-4 h-4 mr-2" />
+            <span>Close</span>
+          </button>
+        </div>
+        <div className="menu-overlay-nav">
+          <Link
+            to="/"
+            onClick={() => setIsMenuOpen(false)}
+            className="menu-overlay-link"
+          >
+            <span className="num">[01]</span> About & Overview
+          </Link>
+          <Link
+            to="/app/prove"
+            onClick={() => setIsMenuOpen(false)}
+            className="menu-overlay-link"
+          >
+            <span className="num">[02]</span> Generate Proof
+          </Link>
+          <Link
+            to="/app/verify"
+            onClick={() => setIsMenuOpen(false)}
+            className="menu-overlay-link"
+          >
+            <span className="num">[03]</span> Verify On-Chain
+          </Link>
+          <Link
+            to="/app/dapp"
+            onClick={() => setIsMenuOpen(false)}
+            className="menu-overlay-link"
+          >
+            <span className="num">[04]</span> dApp Gate & Registry
+          </Link>
+          <Link
+            to="/app/relying-party"
+            onClick={() => setIsMenuOpen(false)}
+            className="menu-overlay-link"
+          >
+            <span className="num">[05]</span> Relying Party OIDC
+          </Link>
+          <a
+            href="https://github.com/Shantanu112-bd/Zentity"
+            target="_blank"
+            rel="noreferrer"
+            className="menu-overlay-link"
+          >
+            <span className="num">[06]</span> Documentation
+          </a>
+        </div>
       </div>
     </main>
   );

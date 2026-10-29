@@ -73,3 +73,4 @@ Chapter content (landing explains the process; it never implies someone has been
 ## 4. Final report (≤15 lines)
 
 Parity audit summary (matches / intentional differences / remaining gaps), routes restyled, tests passed, screenshots path, perf numbers (labelled), commits, and anything that still does not match the reference, stated plainly.
+

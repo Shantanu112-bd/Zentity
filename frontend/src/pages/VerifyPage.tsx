@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ShieldCheck, CheckCircle2, ExternalLink, ArrowLeft, RefreshCw, Cpu, AlertTriangle } from "lucide-react";
+import { ShieldCheck, CheckCircle2, ExternalLink, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle } from "lucide-react";
 import { ProofGateCanvas } from "../components/ProofGateCanvas";
 import { StatusChip } from "../components/StatusChip";
 import { useWallet } from "../context/WalletContext";
+import { AppShell } from "../components/AppShell";
 
 export const VerifyPage: React.FC = () => {
   const { tx } = useParams<{ tx: string }>();
@@ -20,7 +21,7 @@ export const VerifyPage: React.FC = () => {
     setVerificationError(null);
 
     try {
-      // 1. Get health/chain mode
+      // 1. Get health / chain mode
       const healthRes = await fetch("/health");
       const healthData = await healthRes.json();
       if (healthData.chainMode) setChainMode(healthData.chainMode);
@@ -29,7 +30,6 @@ export const VerifyPage: React.FC = () => {
       const txParam = tx?.trim();
       const isTxHash = Boolean(txParam && /^0x[a-fA-F0-9]{64}$/.test(txParam));
 
-      // Check localStorage for persisted recent proof
       const saved = localStorage.getItem("pramaan_last_tx");
       let cachedData: any = null;
       if (saved) {
@@ -67,7 +67,6 @@ export const VerifyPage: React.FC = () => {
             status: success ? "success" : "reverted",
           });
         } else if (cachedData && cachedData.txHash?.toLowerCase() === txParam?.toLowerCase()) {
-          // If transaction was just mined or local
           setIsVerified(cachedData.status === "success");
           setLiveReceipt(cachedData);
         } else {
@@ -75,12 +74,10 @@ export const VerifyPage: React.FC = () => {
           setVerificationError(`Transaction receipt not found on ${targetNetwork.name} yet.`);
         }
       } else {
-        // Param is nullifier or demo string
         if (cachedData) {
           setIsVerified(cachedData.status === "success");
           setLiveReceipt(cachedData);
         } else {
-          // Default to off-chain mathematical pass for demo nullifier
           setIsVerified(true);
         }
       }
@@ -98,142 +95,135 @@ export const VerifyPage: React.FC = () => {
   }, [tx, targetNetwork]);
 
   const explorerBase = targetNetwork.explorerUrl || "https://coral.mstscan.com";
-  const txHash = liveReceipt?.txHash || (tx && /^0x[a-fA-F0-9]{64}$/.test(tx) ? tx : undefined);
-  const explorerUrl = txHash ? `${explorerBase}/tx/${txHash}` : undefined;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Link
-        to="/prove"
-        className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-cyan-400 mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Client Prover</span>
-      </Link>
+    <AppShell
+      title="VERIFY"
+      activeStepId={isVerified ? "verified" : isChecking ? "checking" : "pending"}
+      steps={[
+        { id: "checking", label: "Check RPC" },
+        { id: "receipt", label: "Receipt" },
+        { id: "verified", label: "On-Chain Gate" },
+      ]}
+      facts={[
+        ["Network:", `${targetNetwork?.name || "MST Coral"} (${targetNetwork?.chainId || 54635})`],
+        ["Verifier:", "0xed8fe3...addedbf28"],
+        ["Registry:", "0x8c182a...bc2658c5b"],
+        [
+          "Status:",
+          liveReceipt ? (
+            <span className={liveReceipt.status === "success" ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
+              {liveReceipt.status === "success" ? "MINED (0x1)" : "REVERTED (0x0)"}
+            </span>
+          ) : isChecking ? (
+            "POLLING RPC..."
+          ) : (
+            "PENDING RECEIPT"
+          ),
+        ],
+      ]}
+    >
+      <div className="space-y-6 text-center sm:text-left">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/app/prove"
+              className="text-xs text-neutral-400 hover:text-white inline-flex items-center gap-1 font-mono"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Prover</span>
+            </Link>
+          </div>
 
-      <div className="glass-panel p-8 rounded-3xl border border-slate-800 text-center relative overflow-hidden">
-        {/* Background glow */}
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 ${isVerified ? "bg-cyan-500/10" : "bg-red-500/10"} rounded-full blur-3xl pointer-events-none -z-10`} />
+          <div className="flex items-center gap-2">
+            {isVerified ? (
+              <StatusChip type="ZK VERIFIED ON-CHAIN" txHash={liveReceipt?.txHash} />
+            ) : (
+              <StatusChip type="DEMO / SYNTHETIC" />
+            )}
+            <button
+              type="button"
+              onClick={fetchLiveState}
+              className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              title="Refresh status"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+        </div>
 
-        <div className="inline-flex items-center gap-2 mb-4">
-          <StatusChip
-            type={liveReceipt ? "ZK VERIFIED ON-CHAIN" : "OFF-CHAIN VERIFIED"}
-            txHash={txHash}
-            explorerUrl={explorerBase}
+        {/* State-Accurate Gate Canvas (Opens only when status == 1 on live receipt) */}
+        <div className="flex flex-col items-center justify-center py-4">
+          <ProofGateCanvas
+            isOpen={isVerified}
+            openness={isVerified ? 1 : 0}
+            size={240}
+            className="mb-3"
           />
-          <StatusChip type="DEMO / SYNTHETIC" />
+
+          <h2 className="text-xl font-bold text-white tracking-tight">
+            {isVerified
+              ? "On-Chain Zero-Knowledge Gate: OPEN"
+              : isChecking
+              ? "Verifying Transaction Receipt..."
+              : "On-Chain Gate: CLOSED"}
+          </h2>
+          <p className="text-xs text-neutral-300 mt-1 max-w-md text-center">
+            {isVerified
+              ? "ZK Proof cryptographically verified by PramaanVerifier.sol on MST Coral Testnet."
+              : verificationError || "Waiting for receipt confirmation on live blockchain."}
+          </p>
         </div>
 
-        <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-white mb-2">
-          Attribute Verification Result
-        </h1>
-        <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
-          The Proof Gate reflects cryptographic verification status directly from the zero-knowledge proof.
-        </p>
+        {/* Receipt Details */}
+        {liveReceipt && (
+          <div className="p-4 bg-black/60 rounded-2xl border border-white/15 text-xs font-mono space-y-2">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="text-neutral-400">Live Transaction Receipt</span>
+              <a
+                href={`${explorerBase}/tx/${liveReceipt.txHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-white underline inline-flex items-center gap-1 text-[11px]"
+              >
+                <span>View on Explorer</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
 
-        {/* The Proof Gate Portal reflecting Real State */}
-        <div className="flex justify-center my-6">
-          <ProofGateCanvas isOpen={isVerified} openness={isVerified ? 1 : 0} size={380} />
-        </div>
-
-        {/* Error / Alert */}
-        {verificationError && (
-          <div className="max-w-lg mx-auto mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span>{verificationError}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+              <div>
+                <span className="text-neutral-400">Tx Hash: </span>
+                <span className="text-white">{liveReceipt.txHash?.slice(0, 12)}...{liveReceipt.txHash?.slice(-8)}</span>
+              </div>
+              <div>
+                <span className="text-neutral-400">Block Number: </span>
+                <span className="text-white">{liveReceipt.blockNumber}</span>
+              </div>
+              <div>
+                <span className="text-neutral-400">Gas Used: </span>
+                <span className="text-white">{liveReceipt.gasUsed}</span>
+              </div>
+              <div>
+                <span className="text-neutral-400">Status: </span>
+                <span className={liveReceipt.status === "success" ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
+                  {liveReceipt.status === "success" ? "SUCCESS (0x1)" : "REVERTED (0x0)"}
+                </span>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Verdict Details (Live State Re-read) */}
-        <div className="max-w-lg mx-auto bg-slate-950/80 rounded-2xl border border-slate-800/80 p-5 text-left font-mono text-xs space-y-2">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2">
-            <span className="text-slate-400 font-sans font-semibold">Verification Statement</span>
-            <span className={isVerified ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
-              {isVerified ? "AGE >= 18 PROVEN" : "VERIFICATION PENDING / FAILED"}
-            </span>
+        {verificationError && (
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold block mb-0.5">Verification Pending or Reverted</span>
+              {verificationError}
+            </div>
           </div>
-
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Target Identifier:</span>
-            <span className="text-slate-200 break-all">{txParamLabel(tx)}</span>
-          </div>
-
-          {liveReceipt && (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Mined Block:</span>
-                <span className="text-cyan-400">{liveReceipt.blockNumber}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Gas Used:</span>
-                <span className="text-slate-200">{liveReceipt.gasUsed} gas</span>
-              </div>
-              {txHash && (
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Explorer Check:</span>
-                  <a
-                    href={explorerUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-cyan-400 hover:underline inline-flex items-center gap-1"
-                  >
-                    <span>View on MSTScan</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              )}
-            </>
-          )}
-
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Target Network:</span>
-            <span className="text-cyan-400">{targetNetwork.name} ({targetNetwork.chainId})</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Mathematical Curve:</span>
-            <span className="text-slate-300">BN254 (alt_bn128) &bull; EdDSA-Poseidon</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Precompiles Used:</span>
-            <span className="text-slate-300">0x06 (ecAdd), 0x07 (ecMul), 0x08 (ecPairing)</span>
-          </div>
-        </div>
-
-        <div className="mt-8 flex items-center justify-center gap-4">
-          <button
-            type="button"
-            onClick={fetchLiveState}
-            disabled={isChecking}
-            className="px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? "animate-spin" : ""}`} />
-            <span>Re-check Live Chain</span>
-          </button>
-
-          <Link
-            to="/relying-party"
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-semibold text-xs hover:opacity-90 transition-all"
-          >
-            Test Web2 Relying Party (OIDC)
-          </Link>
-          <Link
-            to="/dapp"
-            className="px-6 py-2.5 rounded-xl glass-panel text-slate-300 hover:text-white font-medium text-xs transition-all"
-          >
-            Test Web3 dApp Gate
-          </Link>
-        </div>
+        )}
       </div>
-    </div>
+    </AppShell>
   );
 };
-
-function txParamLabel(tx?: string): string {
-  if (!tx) return "demo-nullifier-42";
-  if (tx.length > 24) {
-    return `${tx.slice(0, 12)}...${tx.slice(-10)}`;
-  }
-  return tx;
-}

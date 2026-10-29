@@ -324,6 +324,32 @@ export class PortalEngine {
   }
 
   /**
+   * Expand portal to full-screen and transition into working app
+   * Reuses the 1100ms travel expansion mechanics per §2
+   */
+  public async expandAndLaunch(onComplete: () => void): Promise<void> {
+    if (this.isBusy) return;
+    this.isBusy = true;
+    this.targetX = 0;
+    this.targetY = 0;
+    this.onTransitionStart?.();
+
+    // 1. Expansion phase: 1100ms with warp scene
+    this.transitionActive = true;
+    await this.animateValue((v) => (this.expansion = v), 1100);
+
+    // 2. Freeze frame
+    const freeze = document.createElement("canvas");
+    freeze.width = window.innerWidth;
+    freeze.height = window.innerHeight;
+    const fctx = freeze.getContext("2d")!;
+    fctx.drawImage(this.warpScene.canvas, 0, 0, freeze.width, freeze.height);
+    this.frozenCanvas = freeze;
+
+    onComplete();
+  }
+
+  /**
    * Travel transition trigger (click or Enter/Space on portal button)
    */
   public async travel(): Promise<void> {

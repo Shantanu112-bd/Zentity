@@ -16,7 +16,7 @@ async function main() {
 
   try {
     // 1. Benchmark Landing Page Initial Load & Navigation Timing
-    const url = "http://127.0.0.1:4173/?skipPreloader=true";
+    const url = "http://127.0.0.1:5173/?skipPreloader=true";
     const tab = await fetch("http://127.0.0.1:9222/json/new?" + encodeURIComponent(url), { method: "PUT" }).then(r => r.json());
     const ws = new WebSocket(tab.webSocketDebuggerUrl);
 
@@ -66,8 +66,8 @@ async function main() {
     console.log("Landing Page Performance Metrics:", timingData);
 
     // 2. Measure Proving Execution Route Isolation
-    // Verify that /prove has zero portal canvases running
-    const proveTab = await fetch("http://127.0.0.1:9222/json/new?http://127.0.0.1:4173/prove", { method: "PUT" }).then(r => r.json());
+    // Verify that /app/prove has zero portal canvases running
+    const proveTab = await fetch("http://127.0.0.1:9222/json/new?http://127.0.0.1:5173/app/prove", { method: "PUT" }).then(r => r.json());
     const proveWs = new WebSocket(proveTab.webSocketDebuggerUrl);
 
     const proveMetrics = await new Promise((resolve) => {
