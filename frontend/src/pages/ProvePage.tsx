@@ -388,17 +388,7 @@ export const ProvePage: React.FC = () => {
               type="button"
               disabled={isProving || !credential}
               onClick={handleGenerateProof}
-              className="menu"
-              style={{
-                height: "38px",
-                padding: "0 22px",
-                fontSize: "13px",
-                background: "#fff",
-                color: "#000",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
+              className="btn-cut px-5 py-2.5 text-xs text-black font-medium inline-flex items-center gap-2 hover:bg-white/90"
             >
               {isProving ? (
                 <>
@@ -466,15 +456,7 @@ export const ProvePage: React.FC = () => {
                 type="button"
                 disabled={isVerifying}
                 onClick={handleVerifyOffChain}
-                className="menu"
-                style={{
-                  height: "38px",
-                  padding: "0 18px",
-                  fontSize: "12px",
-                  background: "rgba(255, 255, 255, 0.15)",
-                  color: "#fff",
-                  border: "1px solid rgba(255, 255, 255, 0.3)",
-                }}
+                className="btn-cut-border px-4 py-2.5 text-xs text-white font-medium inline-flex items-center gap-1.5 hover:bg-white/10"
               >
                 {isVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
                 <span>Verify Off-Chain</span>
@@ -484,14 +466,7 @@ export const ProvePage: React.FC = () => {
                 type="button"
                 disabled={isSubmittingOnChain}
                 onClick={handleSubmitOnChain}
-                className="menu"
-                style={{
-                  height: "38px",
-                  padding: "0 22px",
-                  fontSize: "12px",
-                  background: "#fff",
-                  color: "#000",
-                }}
+                className="btn-cut px-5 py-2.5 text-xs text-black font-medium inline-flex items-center gap-1.5 hover:bg-white/90"
               >
                 {isSubmittingOnChain ? (
                   <>

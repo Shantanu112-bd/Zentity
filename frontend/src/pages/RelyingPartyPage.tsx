@@ -121,14 +121,7 @@ export const RelyingPartyPage: React.FC = () => {
               type="button"
               disabled={isLoading}
               onClick={initiateOidcLogin}
-              className="menu"
-              style={{
-                height: "40px",
-                padding: "0 24px",
-                background: "#fff",
-                color: "#000",
-                fontSize: "13px",
-              }}
+              className="btn-cut px-6 py-3 bg-white text-black text-xs font-semibold hover:bg-white/90 transition-colors"
             >
               {isLoading ? "Redirecting..." : "Sign in with Pramaan-ZK"}
             </button>

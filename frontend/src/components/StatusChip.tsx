@@ -1,5 +1,21 @@
+/**
+ * frontend/src/components/StatusChip.tsx
+ * 
+ * Truthful Status Chip in Octagonal Cut Design Language
+ * Strictly adheres to AGENTS.md §4 and ANTIGRAVITY_UI_REDESIGN_PROMPT.md §2 & §3:
+ * - Octagonal clip-path
+ * - Preserves existing API props (type, txHash, explorerUrl)
+ * - Supported types:
+ *   - "DEMO / SYNTHETIC"
+ *   - "LOCAL VERIFIED"
+ *   - "OFF-CHAIN VERIFIED"
+ *   - "TESTNET TX CONFIRMED"
+ *   - "ZK VERIFIED ON-CHAIN"
+ *   (Never "REAL CREDENTIAL VERIFIED")
+ */
+
 import React from "react";
-import { CheckCircle2, ShieldCheck, Sparkles, Cpu, ExternalLink } from "lucide-react";
+import { CheckCircle2, ExternalLink } from "lucide-react";
 
 export type ChipType =
   | "ZK VERIFIED ON-CHAIN"
@@ -11,98 +27,79 @@ export type ChipType =
   | "SIMULATED"
   | "REAL";
 
-interface StatusChipProps {
-  type: ChipType;
+export interface StatusChipProps {
+  type: ChipType | string;
   txHash?: string;
   explorerUrl?: string;
   className?: string;
+  size?: "sm" | "md";
 }
 
-export const StatusChip: React.FC<StatusChipProps> = ({ type, txHash, explorerUrl, className = "" }) => {
+export const StatusChip: React.FC<StatusChipProps> = ({
+  type,
+  txHash,
+  explorerUrl,
+  className = "",
+  size = "md",
+}) => {
   const getExplorerLink = () => {
     if (!txHash) return null;
     const base = explorerUrl || "https://coral.mstscan.com";
     return `${base.replace(/\/$/, "")}/tx/${txHash}`;
   };
 
-  switch (type) {
-    case "ZK VERIFIED ON-CHAIN":
-    case "REAL":
-      return (
-        <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 ${className}`}
-          title="Cryptographically verified and recorded on MST Blockchain"
-        >
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>ZK VERIFIED ON-CHAIN</span>
-          {txHash && (
-            <a
-              href={getExplorerLink() || "#"}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-emerald-300 ml-1 inline-flex items-center"
-              title="View transaction on MSTScan"
-            >
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
-        </span>
-      );
+  let styleClasses = "bg-white/10 text-white/90 border-white/20";
+  let dotColor = "bg-white/60";
+  let displayLabel = type;
 
-    case "TESTNET TX CONFIRMED":
-      return (
-        <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30 ${className}`}
-          title="Transaction mined on MST Testnet"
-        >
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>TESTNET TX CONFIRMED</span>
-        </span>
-      );
+  if (type === "REAL") displayLabel = "ZK VERIFIED ON-CHAIN";
+  if (type === "SYNTHETIC" || type === "SIMULATED") displayLabel = "DEMO / SYNTHETIC";
 
-    case "LOCAL VERIFIED":
-      return (
-        <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-500/15 text-teal-400 border border-teal-500/30 ${className}`}
-          title="Verified on local Hardhat EVM"
-        >
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>LOCAL VERIFIED</span>
-        </span>
-      );
-
-    case "OFF-CHAIN VERIFIED":
-      return (
-        <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 ${className}`}
-          title="Verified mathematically via Groth16 SnarkJS"
-        >
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>OFF-CHAIN VERIFIED</span>
-        </span>
-      );
-
+  switch (displayLabel) {
     case "DEMO / SYNTHETIC":
-    case "SYNTHETIC":
-      return (
-        <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 ${className}`}
-          title="Synthetic credential issued by DEMO ISSUER (not real Aadhaar)"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>DEMO / SYNTHETIC</span>
-        </span>
-      );
-
-    case "SIMULATED":
-      return (
-        <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-400 border border-purple-500/30 ${className}`}
-          title="Simulated Environment / Stub"
-        >
-          <Cpu className="w-3.5 h-3.5" />
-          <span>SIMULATED</span>
-        </span>
-      );
+      styleClasses = "bg-amber-500/10 text-amber-300 border-amber-500/30";
+      dotColor = "bg-amber-400";
+      break;
+    case "LOCAL VERIFIED":
+    case "OFF-CHAIN VERIFIED":
+      styleClasses = "bg-sky-500/10 text-sky-300 border-sky-500/30";
+      dotColor = "bg-sky-400";
+      break;
+    case "TESTNET TX CONFIRMED":
+      styleClasses = "bg-blue-500/10 text-blue-300 border-blue-500/30";
+      dotColor = "bg-blue-400";
+      break;
+    case "ZK VERIFIED ON-CHAIN":
+      styleClasses = "bg-emerald-500/10 text-emerald-300 border-emerald-500/30";
+      dotColor = "bg-emerald-400";
+      break;
   }
+
+  const paddingClass = size === "sm" ? "px-2.5 py-1 text-[10px]" : "px-3.5 py-1 text-xs";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 font-medium tracking-wider uppercase border ${styleClasses} ${paddingClass} ${className}`}
+      style={{
+        clipPath:
+          size === "sm"
+            ? "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)"
+            : "polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px)",
+      }}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+      <span>{displayLabel}</span>
+      {txHash && (
+        <a
+          href={getExplorerLink() || "#"}
+          target="_blank"
+          rel="noreferrer"
+          className="hover:text-white ml-1 inline-flex items-center"
+          title="View transaction on MSTScan"
+        >
+          <ExternalLink className="w-3 h-3" />
+        </a>
+      )}
+    </span>
+  );
 };

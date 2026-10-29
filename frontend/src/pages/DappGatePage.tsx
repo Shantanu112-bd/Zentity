@@ -100,14 +100,7 @@ export const DappGatePage: React.FC = () => {
           <button
             type="button"
             onClick={checkRegistryState}
-            className="menu w-full"
-            style={{
-              height: "40px",
-              background: "#fff",
-              color: "#000",
-              fontWeight: 700,
-              fontSize: "13px",
-            }}
+            className="btn-cut w-full py-3 bg-white text-black text-xs font-semibold hover:bg-white/90 transition-colors"
           >
             Check Nullifier On-Chain
           </button>
