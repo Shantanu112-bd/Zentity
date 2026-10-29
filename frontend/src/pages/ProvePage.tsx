@@ -1,20 +1,43 @@
-import React, { useState, useEffect } from "react";
+/**
+ * frontend/src/pages/ProvePage.tsx
+ * 
+ * Progressive Disclosure Client-Side Prover Page
+ * Strictly adheres to ANTIGRAVITY_APP_UI_REFINEMENT_PROMPT.md:
+ * - 4-Step Progressive Disclosure: Credential -> Proof -> Submit -> Result
+ * - 12-column grid layout on desktop: 8 cols main (active step card only), 4 cols sticky summary
+ * - Responsive mobile view with compact progress steps and collapsible summary
+ * - Zero network egress: Groth16 witness computation runs entirely in client Web Worker
+ * - Truthful status labels (DEMO / SYNTHETIC, LOCAL VERIFIED, ZK VERIFIED ON-CHAIN)
+ */
+
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Shield,
-  Sparkles,
-  CheckCircle,
   Loader2,
   ArrowRight,
-  AlertCircle,
-  Send,
+  ArrowLeft,
   ExternalLink,
+  CheckCircle,
+  XCircle,
+  Send,
+  Database,
+  Cpu,
 } from "lucide-react";
+import {
+  PageShell,
+  PageHeader,
+  Card,
+  DataList,
+  CodeBlock,
+  StatusBanner,
+  ProgressSteps,
+  Field,
+} from "../components/layout";
 import { StatusChip } from "../components/StatusChip";
 import { useWallet, TxResult } from "../context/WalletContext";
 import { issueSyntheticCredential, SyntheticCredential } from "../../../scripts/pramaan/crypto-utils.ts";
 import { generateProofClientSide, ProofResult } from "../../../packages/client/src/prover.ts";
-import { AppShell } from "../components/AppShell";
 
 export const ProvePage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,10 +46,14 @@ export const ProvePage: React.FC = () => {
     isConnected,
     isCorrectNetwork,
     targetNetwork,
+    contracts,
     connect,
     switchNetwork,
     submitProofToMST,
   } = useWallet();
+
+  // Progressive Disclosure Step State: 0 = Credential, 1 = Proof, 2 = Submit, 3 = Result
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
 
   // Preset Credentials
   const [selectedPreset, setSelectedPreset] = useState<"adult" | "minor" | "custom">("adult");
@@ -40,6 +67,7 @@ export const ProvePage: React.FC = () => {
   const [progressPercent, setProgressPercent] = useState<number>(0);
   const [proofResult, setProofResult] = useState<ProofResult | null>(null);
   const [provingError, setProvingError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Verification State
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
@@ -57,6 +85,14 @@ export const ProvePage: React.FC = () => {
     }
   }, [address]);
 
+  // Steps definition for ProgressSteps
+  const steps = [
+    { id: "credential", label: "Credential", description: "Synthetic fixture" },
+    { id: "proof", label: "Proof", description: "SnarkJS client-side" },
+    { id: "submit", label: "Submit", description: "Off-chain / Coral" },
+    { id: "result", label: "Result", description: "On-chain receipt" },
+  ];
+
   // Initialize or fetch credential
   const handleSelectPreset = async (preset: "adult" | "minor") => {
     setSelectedPreset(preset);
@@ -66,7 +102,6 @@ export const ProvePage: React.FC = () => {
     setOnChainTxResult(null);
     setOnChainError(null);
 
-    const currentDateDays = 20000;
     // Adult: 25 years -> dobDays = 10869
     // Minor: 16 years -> dobDays = 14156
     const dobDays = preset === "adult" ? 10869 : 14156;
@@ -105,10 +140,23 @@ export const ProvePage: React.FC = () => {
     handleSelectPreset("adult");
   }, []);
 
+  // Cancel Proving Handler
+  const handleCancelProving = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsProving(false);
+    setProgressPercent(0);
+    setProgressStage("");
+    setProvingError("Proving cancelled by user.");
+  };
+
   // Execute Proof Generation
   const handleGenerateProof = async () => {
     if (!credential) return;
 
+    abortControllerRef.current = new AbortController();
     setIsProving(true);
     setProvingError(null);
     setProofResult(null);
@@ -129,6 +177,7 @@ export const ProvePage: React.FC = () => {
         {
           wasmUrl: "/circuits/age_credential.wasm",
           zkeyUrl: "/circuits/age_credential_final.zkey",
+          signal: abortControllerRef.current.signal,
           onProgress: (stage, percent) => {
             setProgressStage(stage);
             setProgressPercent(percent);
@@ -139,9 +188,13 @@ export const ProvePage: React.FC = () => {
       setProofResult(result);
       setProgressPercent(100);
       setProgressStage("PROVING_COMPLETE");
+      // Auto advance to Step 2 (Submit)
+      setCurrentStepIndex(2);
     } catch (err: any) {
       console.error("Proving failed:", err);
-      if (selectedPreset === "minor") {
+      if (err.name === "AbortError" || String(err).includes("aborted")) {
+        setProvingError("Proving run cancelled cleanly.");
+      } else if (selectedPreset === "minor") {
         setProvingError(
           "PROOF REJECTED BY CIRCUIT: Credential age is under 18! LessEqThan(64) constraint unsatisfied. (Expected negative test behavior)."
         );
@@ -150,6 +203,7 @@ export const ProvePage: React.FC = () => {
       }
     } finally {
       setIsProving(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -202,6 +256,8 @@ export const ProvePage: React.FC = () => {
       );
 
       setOnChainTxResult(txRes);
+      // Auto-advance to Step 3 (Result)
+      setCurrentStepIndex(3);
 
       // Persist last tx for VerifyPage re-reading
       const stored = {
@@ -224,324 +280,555 @@ export const ProvePage: React.FC = () => {
     }
   };
 
-  const activeStep = onChainTxResult
-    ? "result"
-    : isSubmittingOnChain
-    ? "submit"
-    : proofResult
-    ? "submit"
-    : isProving
-    ? "proof"
-    : "credential";
+  const registryAddress = contracts?.PramaanRegistry?.address || "0x8c182a53cf989c45091a182be4b6d43e26cb5c5b";
+  const explorerUrl = targetNetwork.explorerUrl
+    ? `${targetNetwork.explorerUrl}/address/${registryAddress}`
+    : "https://coral.mstscan.com";
 
   return (
-    <AppShell
-      title="PROVE"
-      activeStepId={activeStep}
-      steps={[
-        { id: "credential", label: "Credential" },
-        { id: "proof", label: "Proof" },
-        { id: "submit", label: "Submit" },
-        { id: "result", label: "Result" },
-      ]}
-      facts={[
-        ["Network:", `${targetNetwork?.name || "MST Coral"} (${targetNetwork?.chainId || 54635})`],
-        ["Registry:", "0x8c182a53...5c5b"],
-        ["Circuit:", "AgeCredential (5,014 constraints)"],
-        ["Privacy:", "Zero-PII egress (proved client-side)"],
-      ]}
-    >
-      <div className="space-y-6">
-        {/* Header Badges */}
-        <div className="flex flex-wrap items-center gap-2 mb-2">
-          <StatusChip type="DEMO / SYNTHETIC" />
-          <StatusChip type="OFF-CHAIN VERIFIED" />
-        </div>
-
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Client-Side Groth16 Prover
-          </h2>
-          <p className="text-xs sm:text-sm text-neutral-300 mt-1">
-            Compute zk-SNARKs entirely in your browser Web Worker. No private credential data ever leaves your device.
-          </p>
-        </div>
-
-        {/* Step 1: Synthetic Credential Selection */}
-        <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-5 sm:p-7">
-          <div className="flex items-center justify-between mb-4">
-            <span className="font-[450] text-white text-sm sm:text-base">
-              1. Choose Synthetic Credential
+    <PageShell>
+      <PageHeader
+        eyebrow="ZK Client Prover"
+        title="Prove Attribute"
+        description="Generate a cryptographic zero-knowledge proof of age ≥ 18 without disclosing date of birth or identity."
+        rightSlot={
+          <div className="flex items-center gap-2">
+            <StatusChip type="DEMO / SYNTHETIC" size="sm" />
+            <span className="hidden sm:inline-block px-2.5 py-1 text-xs font-mono rounded border border-white/20 bg-white/5 text-white/70">
+              5,014 Constraints
             </span>
-            <span className="text-[11px] font-mono text-white/50">DEMO ISSUER (EdDSA)</span>
           </div>
+        }
+      />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <button
-              type="button"
-              onClick={() => handleSelectPreset("adult")}
-              className={`p-4 rounded-[14px] border text-left transition-all ${
-                selectedPreset === "adult"
-                  ? "border-white bg-white/10 text-white shadow-lg"
-                  : "border-white/[0.08] bg-black/30 text-white/60 hover:border-white/20"
-              }`}
+      {/* Stepper Bar */}
+      <div className="mb-8">
+        <ProgressSteps
+          steps={steps}
+          currentStepIndex={currentStepIndex}
+          onStepClick={(idx) => {
+            // Allow stepping back to inspected steps
+            if (idx <= currentStepIndex || (idx === 1 && credential) || (idx === 2 && proofResult) || (idx === 3 && onChainTxResult)) {
+              setCurrentStepIndex(idx);
+            }
+          }}
+        />
+      </div>
+
+      {/* 12-Column Responsive Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ========================================================= */}
+        {/* Main Column (8 cols): Active Step Card Only               */}
+        {/* ========================================================= */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* STEP 0: CREDENTIAL SELECTION */}
+          {currentStepIndex === 0 && (
+            <Card
+              title="1. Choose Synthetic Credential"
+              subtitle="Select a synthetic fixture signed with the demo EdDSA issuer key. No real PII is collected or processed."
+              headerAction={<StatusChip type="DEMO / SYNTHETIC" size="sm" />}
+              divider
+              footer={
+                <button
+                  type="button"
+                  onClick={() => setCurrentStepIndex(1)}
+                  disabled={!credential}
+                  className="btn-cut px-6 py-2.5 text-xs text-black font-medium inline-flex items-center gap-2 hover:bg-white/90 disabled:opacity-40"
+                >
+                  <span>Continue to Context & Proving</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              }
             >
-              <div className="font-[450] text-sm mb-1 text-white">
-                Adult (Age 25)
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-6">
+                {/* Adult Preset */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectPreset("adult")}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    selectedPreset === "adult"
+                      ? "border-white bg-white/10 text-white shadow-lg"
+                      : "border-white/10 bg-black/40 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  <div className="font-medium text-sm mb-1 text-white">Adult (Age 25)</div>
+                  <div className="text-xs text-white/60">DOB: ~1999 · State: 27</div>
+                  <div className="text-[11px] font-mono text-emerald-400 mt-2 font-medium">≥ 18 PASSES</div>
+                </button>
+
+                {/* Minor Preset */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectPreset("minor")}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    selectedPreset === "minor"
+                      ? "border-rose-400 bg-rose-500/15 text-white shadow-lg"
+                      : "border-white/10 bg-black/40 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  <div className="font-medium text-sm mb-1 text-rose-300">Minor (Age 16)</div>
+                  <div className="text-xs text-white/60">DOB: ~2008 · State: 27</div>
+                  <div className="text-[11px] font-mono text-rose-400 mt-2 font-medium">&lt; 18 REVERTS</div>
+                </button>
+
+                {/* Custom API */}
+                <button
+                  type="button"
+                  onClick={handleIssueCustom}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    selectedPreset === "custom"
+                      ? "border-amber-400 bg-amber-500/15 text-white shadow-lg"
+                      : "border-white/10 bg-black/40 text-white/60 hover:border-white/30"
+                  }`}
+                >
+                  <div className="font-medium text-sm mb-1 text-amber-300">Custom Synthetic API</div>
+                  <div className="text-xs text-white/60">POST /api/demo/issue</div>
+                  <div className="text-[11px] font-mono text-amber-400 mt-2 font-medium">Zero-PII Filter</div>
+                </button>
               </div>
-              <div className="text-[11px] text-white/60">DOB: ~1999 &bull; State: 27</div>
-              <div className="text-[10px] font-mono text-emerald-400 mt-2">&ge; 18 PASSES</div>
-            </button>
 
-            <button
-              type="button"
-              onClick={() => handleSelectPreset("minor")}
-              className={`p-4 rounded-[14px] border text-left transition-all ${
-                selectedPreset === "minor"
-                  ? "border-rose-400 bg-rose-500/15 text-white shadow-lg"
-                  : "border-white/[0.08] bg-black/30 text-white/60 hover:border-white/20"
-              }`}
-            >
-              <div className="font-[450] text-sm mb-1 text-rose-300">
-                Minor (Age 16)
-              </div>
-              <div className="text-[11px] text-white/60">DOB: ~2008 &bull; State: 27</div>
-              <div className="text-[10px] font-mono text-rose-400 mt-2">&lt; 18 REVERTS</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleIssueCustom}
-              className={`p-4 rounded-[14px] border text-left transition-all ${
-                selectedPreset === "custom"
-                  ? "border-white bg-white/10 text-white shadow-lg"
-                  : "border-white/[0.08] bg-black/30 text-white/60 hover:border-white/20"
-              }`}
-            >
-              <div className="font-[450] text-sm mb-1 text-amber-300">
-                Custom API Issue
-              </div>
-              <div className="text-[11px] text-white/60">POST /api/demo/issue</div>
-              <div className="text-[10px] font-mono text-amber-400 mt-2">Zero-PII Filter</div>
-            </button>
-          </div>
-
-          {credential && (
-            <div className="mt-3 p-3.5 bg-black/50 rounded-[14px] border border-white/[0.08] font-mono text-[11px] text-white/70">
-              <div className="flex items-center justify-between text-white/50 mb-2 border-b border-white/[0.06] pb-1.5">
-                <span>Signed Credential Fields</span>
-                <span className="text-[10px] text-amber-300">Client Memory Only</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-[10px]">
-                <div>dobDays: <span className="text-white">{credential.dobDays}</span></div>
-                <div>stateCode: <span className="text-white">{credential.stateCode}</span></div>
-                <div className="col-span-2 truncate">credentialSecret: <span className="text-white/40">{credential.credentialSecret}</span></div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Step 2: Context Binding Configuration */}
-        <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-5 sm:p-7">
-          <span className="font-[450] text-white text-sm sm:text-base block mb-4">
-            2. Bind Context (Scope, Recipient, Chain)
-          </span>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs font-mono">
-            <div>
-              <label className="text-white/50 block mb-1.5">Scope ID</label>
-              <input
-                type="text"
-                value={scopeId}
-                onChange={(e) => setScopeId(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-black/40 border border-white/20 rounded-[11px] text-white focus:outline-none focus:border-white/50"
-              />
-            </div>
-
-            <div>
-              <label className="text-white/50 block mb-1.5">Recipient Address</label>
-              <input
-                type="text"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-black/40 border border-white/20 rounded-[11px] text-white focus:outline-none focus:border-white/50 truncate"
-              />
-            </div>
-
-            <div>
-              <label className="text-white/50 block mb-1.5">Target Chain</label>
-              <input
-                type="text"
-                readOnly
-                value={`${targetNetwork.chainId} (${targetNetwork.name})`}
-                className="w-full px-3.5 py-2.5 bg-black/60 border border-white/10 rounded-[11px] text-white/50 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
-            <span className="text-xs text-white/60 font-[450]">
-              Epoch date: <strong className="text-white">20,000 days</strong> (~2024)
-            </span>
-
-            <button
-              type="button"
-              disabled={isProving || !credential}
-              onClick={handleGenerateProof}
-              className="h-[46px] px-6 bg-[#E9E9E9] rounded-[12px] text-[#0A0707] text-[14px] font-[450] hover:bg-white transition-opacity disabled:opacity-50 inline-flex items-center gap-2 font-medium"
-            >
-              {isProving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Proving ({progressPercent}%)...</span>
-                </>
-              ) : (
-                <>
-                  <Shield className="w-4 h-4" />
-                  <span>Generate Proof</span>
-                </>
+              {credential && (
+                <div className="p-4 bg-black/60 rounded-xl border border-white/10 font-mono text-xs text-white/70 space-y-2">
+                  <div className="flex items-center justify-between text-white/50 border-b border-white/10 pb-2">
+                    <span className="uppercase tracking-wider text-[11px]">In-Memory Credential Data</span>
+                    <span className="text-[11px] text-amber-300">Never transmitted</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>dobDays: <span className="text-white font-mono">{credential.dobDays}</span></div>
+                    <div>stateCode: <span className="text-white font-mono">{credential.stateCode}</span></div>
+                    <div className="col-span-2 truncate">
+                      credentialSecret: <span className="text-white/40">{credential.credentialSecret}</span>
+                    </div>
+                  </div>
+                </div>
               )}
-            </button>
-          </div>
+            </Card>
+          )}
 
-          {/* Progress Bar */}
-          {isProving && (
-            <div className="mt-4 pt-3 border-t border-white/10">
-              <div className="flex items-center justify-between text-xs font-mono text-white/70 mb-1.5">
-                <span>{progressStage.replace(/_/g, " ")}</span>
-                <span>{progressPercent}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-white transition-all duration-300"
-                  style={{ width: `${progressPercent}%` }}
+          {/* STEP 1: CONTEXT & PROOF GENERATION */}
+          {currentStepIndex === 1 && (
+            <Card
+              title="2. Bind Context & Generate Proof"
+              subtitle="Scope binds the nullifier to prevent cross-dApp tracking. The recipient address binds on-chain authorization."
+              divider
+              footer={
+                <div className="w-full flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStepIndex(0)}
+                    disabled={isProving}
+                    className="px-4 py-2 text-xs text-white/70 hover:text-white inline-flex items-center gap-1.5"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back to Credential
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    {isProving && (
+                      <button
+                        type="button"
+                        onClick={handleCancelProving}
+                        className="btn-cut-border px-4 py-2 text-xs text-rose-300 hover:text-white"
+                      >
+                        Cancel
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      disabled={isProving || !credential}
+                      onClick={handleGenerateProof}
+                      className="btn-cut px-6 py-2.5 text-xs text-black font-medium inline-flex items-center gap-2 hover:bg-white/90 disabled:opacity-40"
+                    >
+                      {isProving ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Generating ({progressPercent}%)...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="w-3.5 h-3.5" />
+                          <span>Generate Proof</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              }
+            >
+              <div className="space-y-4 mb-6">
+                <Field
+                  label="Scope ID"
+                  value={scopeId}
+                  onChange={(e) => setScopeId(e.target.value)}
+                  disabled={isProving}
+                  helperText="Unique identifier for the consuming application (prevents cross-dApp linkability)."
+                />
+
+                <Field
+                  label="Recipient Address"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  disabled={isProving}
+                  helperText="EVM address authorized to receive and register the nullifier on-chain."
+                  rightElement={
+                    address && recipient !== address ? (
+                      <button
+                        type="button"
+                        onClick={() => setRecipient(address)}
+                        className="text-[11px] font-mono text-white/60 hover:text-white underline"
+                      >
+                        Use Wallet
+                      </button>
+                    ) : null
+                  }
+                />
+
+                <Field
+                  label="Target Chain"
+                  value={`${targetNetwork.chainId} (${targetNetwork.name})`}
+                  disabled
+                  helperText="ZK circuit binds chain ID to prevent cross-chain relay attacks."
                 />
               </div>
-            </div>
+
+              {/* Proving Progress Display */}
+              {isProving && (
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-white/80">
+                    <span className="flex items-center gap-2">
+                      <Cpu className="w-3.5 h-3.5 text-amber-300" />
+                      <span>{progressStage.replace(/_/g, " ")}</span>
+                    </span>
+                    <span>{progressPercent}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-white transition-all duration-300"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-white/50 pt-1">
+                    SnarkJS Groth16 witness calculation executing in Web Worker...
+                  </p>
+                </div>
+              )}
+
+              {/* Error Alert */}
+              {provingError && (
+                <StatusBanner
+                  variant="error"
+                  title="Circuit Constraint Unsatisfied"
+                  description={provingError}
+                  className="mt-4"
+                />
+              )}
+            </Card>
           )}
 
-          {/* Error Alert */}
-          {provingError && (
-            <div className="mt-4 p-4 rounded-[14px] bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold block mb-0.5">Circuit Constraint Rejection</span>
-                {provingError}
+          {/* STEP 2: REVIEW & SUBMIT */}
+          {currentStepIndex === 2 && proofResult && (
+            <Card
+              title="3. Review Proof & Submit"
+              subtitle="The zero-knowledge proof has been computed. Verify off-chain via Fastify API or submit directly to the MST Coral smart contract."
+              headerAction={<StatusChip type="LOCAL VERIFIED" size="sm" />}
+              divider
+              footer={
+                <div className="w-full flex items-center justify-between flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStepIndex(1)}
+                    className="px-4 py-2 text-xs text-white/70 hover:text-white inline-flex items-center gap-1.5"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Re-prove
+                  </button>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      disabled={isVerifying}
+                      onClick={handleVerifyOffChain}
+                      className="btn-cut-border px-4 py-2 text-xs text-white hover:bg-white/5"
+                    >
+                      {isVerifying ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Loader2 className="w-3 h-3 animate-spin" /> Verifying...
+                        </span>
+                      ) : (
+                        <span>Verify Off-Chain</span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isSubmittingOnChain}
+                      onClick={handleSubmitOnChain}
+                      className="btn-cut px-6 py-2.5 text-xs text-black font-medium inline-flex items-center gap-2 hover:bg-white/90 disabled:opacity-40"
+                    >
+                      {isSubmittingOnChain ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Submitting to MST...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Submit to MST ({targetNetwork.name})</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              }
+            >
+              <div className="space-y-4 mb-6">
+                <div className="p-4 bg-black/60 rounded-xl border border-white/10 space-y-1.5">
+                  <div className="text-[11px] font-mono uppercase tracking-wider text-white/50">
+                    Derived Unique Nullifier
+                  </div>
+                  <div className="font-mono text-xs text-white break-all select-all">
+                    {proofResult.nullifier}
+                  </div>
+                  <p className="text-[11px] text-white/40">
+                    Scope-isolated nullifier ensures single-use without revealing Aadhaar secret.
+                  </p>
+                </div>
+
+                <div className="text-xs uppercase font-mono text-white/50 tracking-wider">
+                  Calldata Summary
+                </div>
+                <CodeBlock
+                  title="Solidity Groth16 Calldata"
+                  code={{
+                    a: [proofResult.solidityCalldata.a[0].slice(0, 18) + "...", "..."],
+                    b: [[proofResult.solidityCalldata.b[0][0].slice(0, 18) + "...", "..."], ["..."]],
+                    c: [proofResult.solidityCalldata.c[0].slice(0, 18) + "...", "..."],
+                    publicSignals: proofResult.solidityCalldata.pubSignals,
+                  }}
+                />
               </div>
-            </div>
+
+              {verificationOutcome && (
+                <StatusBanner
+                  variant="success"
+                  title="Fastify Off-Chain Verification Passed"
+                  description="SnarkJS verified the Groth16 proof against the verification key on the server."
+                  details={verificationOutcome}
+                  className="mb-4"
+                />
+              )}
+
+              {onChainError && (
+                <StatusBanner
+                  variant="error"
+                  title="Submission Error"
+                  description={onChainError}
+                  className="mb-4"
+                />
+              )}
+            </Card>
+          )}
+
+          {/* STEP 3: RESULT MINED ON-CHAIN */}
+          {currentStepIndex === 3 && onChainTxResult && (
+            <Card
+              title="4. Proof Verified On-Chain"
+              subtitle="The PramaanRegistry contract successfully verified the proof and recorded the nullifier on MST Coral Testnet."
+              headerAction={
+                <StatusChip
+                  type="ZK VERIFIED ON-CHAIN"
+                  txHash={onChainTxResult.txHash}
+                  explorerUrl={targetNetwork.explorerUrl}
+                  size="sm"
+                />
+              }
+              divider
+              footer={
+                <div className="w-full flex items-center justify-between flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentStepIndex(0);
+                      setOnChainTxResult(null);
+                      setProofResult(null);
+                      handleSelectPreset("adult");
+                    }}
+                    className="btn-cut-border px-4 py-2 text-xs text-white"
+                  >
+                    <span>Prove Another Credential</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/app/verify/${onChainTxResult.txHash}`)}
+                    className="btn-cut px-5 py-2.5 text-xs text-black font-medium inline-flex items-center gap-2 hover:bg-white/90"
+                  >
+                    <span>View in Verification Gate</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              }
+            >
+              <StatusBanner
+                variant="success"
+                title="Transaction Mined Successfully"
+                description={`Block #${onChainTxResult.blockNumber} confirmed on ${targetNetwork.name}. Nullifier registered for Scope ID ${scopeId}.`}
+                className="mb-6"
+              />
+
+              <DataList
+                items={[
+                  {
+                    label: "Transaction Hash",
+                    value: onChainTxResult.txHash,
+                    isMono: true,
+                    truncateMiddle: true,
+                    copyable: true,
+                  },
+                  {
+                    label: "Block Number",
+                    value: onChainTxResult.blockNumber.toString(),
+                    isMono: true,
+                  },
+                  {
+                    label: "Gas Consumed",
+                    value: `${Number(onChainTxResult.gasUsed).toLocaleString()} units`,
+                    isMono: true,
+                  },
+                  {
+                    label: "Registry Status",
+                    value: onChainTxResult.status === 1 ? "1 (Confirmed Success)" : "0 (Reverted)",
+                    isMono: true,
+                  },
+                  {
+                    label: "Recorded Nullifier",
+                    value: proofResult?.nullifier || "N/A",
+                    isMono: true,
+                    truncateMiddle: true,
+                    copyable: true,
+                  },
+                ]}
+                className="mb-6"
+              />
+
+              {onChainTxResult.explorerUrl && (
+                <div className="p-3 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between text-xs">
+                  <span className="text-white/60">MST Coral Block Explorer:</span>
+                  <a
+                    href={onChainTxResult.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white underline inline-flex items-center gap-1 font-mono hover:text-white/80"
+                  >
+                    <span>View Transaction</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </Card>
           )}
         </div>
 
-        {/* Step 3: Proof Result & Submission */}
-        {proofResult && (
-          <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-5 sm:p-7 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span className="font-[450] text-white text-sm sm:text-base">
-                  Proof Generated Successfully
+        {/* ========================================================= */}
+        {/* Sticky Sidebar Summary (4 cols)                            */}
+        {/* ========================================================= */}
+        <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-8">
+          {/* Target Network Card */}
+          <div className="bg-white/[0.05] border border-white/15 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+              <span className="text-xs font-mono uppercase tracking-wider text-white/50">Network Status</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            </div>
+            <div className="text-xs space-y-1 font-mono">
+              <div className="flex justify-between">
+                <span className="text-white/50">Network:</span>
+                <span className="text-white font-medium">{targetNetwork.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Chain ID:</span>
+                <span className="text-white">{targetNetwork.chainId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Slot:</span>
+                <span className="text-amber-300">testnet-coral</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Connected Wallet Card */}
+          <div className="bg-white/[0.05] border border-white/15 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+              <span className="text-xs font-mono uppercase tracking-wider text-white/50">Active Wallet</span>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${isConnected ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/50"}`}>
+                {isConnected ? "Connected" : "Disconnected"}
+              </span>
+            </div>
+            <div className="text-xs space-y-1 font-mono">
+              <div className="flex justify-between items-center">
+                <span className="text-white/50">Account:</span>
+                <span className="text-white truncate max-w-[160px]" title={address || undefined}>
+                  {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "None"}
                 </span>
               </div>
-              <StatusChip type="OFF-CHAIN VERIFIED" />
+              {!isConnected && (
+                <button
+                  type="button"
+                  onClick={connect}
+                  className="w-full mt-2 py-2 text-xs bg-white text-black font-medium rounded-lg hover:bg-white/90"
+                >
+                  Connect MetaMask
+                </button>
+              )}
             </div>
-
-            <div className="p-3.5 bg-black/60 rounded-[14px] border border-white/[0.08] text-[11px] font-mono space-y-1">
-              <div className="text-white/50">Derived Nullifier:</div>
-              <div className="text-white font-bold break-all">{proofResult.nullifier}</div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                type="button"
-                disabled={isVerifying}
-                onClick={handleVerifyOffChain}
-                className="h-[46px] px-5 rounded-[12px] border border-white/30 text-white text-[13.5px] font-[450] hover:bg-white/5 transition-colors inline-flex items-center gap-2"
-              >
-                {isVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                <span>Verify Off-Chain</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={isSubmittingOnChain}
-                onClick={handleSubmitOnChain}
-                className="h-[46px] px-6 bg-[#E9E9E9] rounded-[12px] text-[#0A0707] text-[14px] font-[450] hover:bg-white transition-opacity disabled:opacity-50 inline-flex items-center gap-2 font-medium"
-              >
-                {isSubmittingOnChain ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Submitting on MST...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Submit to MST ({targetNetwork.name})</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate(`/app/verify/${onChainTxResult?.txHash || proofResult.nullifier}`)}
-                className="ml-auto text-xs text-white/70 hover:text-white inline-flex items-center gap-1 font-[450]"
-              >
-                <span>View Verification Gate</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Fastify API outcome */}
-            {verificationOutcome && (
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center justify-between">
-                <span>Fastify API Verified: Groth16 mathematical check passed.</span>
-                <StatusChip type="OFF-CHAIN VERIFIED" />
-              </div>
-            )}
-
-            {/* On-Chain Mined Receipt */}
-            {onChainTxResult && (
-              <div className="p-4 bg-black/60 rounded-xl border border-emerald-500/40 text-xs space-y-2">
-                <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                  <span className="font-semibold text-emerald-400">
-                    Mined on {targetNetwork.name}
-                  </span>
-                  <StatusChip
-                    type="ZK VERIFIED ON-CHAIN"
-                    txHash={onChainTxResult.txHash}
-                    explorerUrl={targetNetwork.explorerUrl}
-                  />
-                </div>
-
-                <div className="font-mono text-[11px] text-neutral-300 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  <div>
-                    Tx:{" "}
-                    <a
-                      href={onChainTxResult.explorerUrl || "#"}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-white underline inline-flex items-center gap-1"
-                    >
-                      {onChainTxResult.txHash.slice(0, 10)}...{onChainTxResult.txHash.slice(-8)}
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                  <div>Block: {onChainTxResult.blockNumber.toString()}</div>
-                  <div>Gas: {onChainTxResult.gasUsed.toString()}</div>
-                  <div>Status: {onChainTxResult.status}</div>
-                </div>
-              </div>
-            )}
-
-            {onChainError && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-                <span>{onChainError}</span>
-              </div>
-            )}
           </div>
-        )}
+
+          {/* Registry Contract Card */}
+          <div className="bg-white/[0.05] border border-white/15 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+              <span className="text-xs font-mono uppercase tracking-wider text-white/50">Pramaan Registry</span>
+              <Database className="w-3.5 h-3.5 text-white/50" />
+            </div>
+            <div className="text-xs space-y-1.5 font-mono">
+              <div className="text-white/60 truncate" title={registryAddress}>
+                {registryAddress.slice(0, 10)}...{registryAddress.slice(-8)}
+              </div>
+              <a
+                href={explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] text-white/60 hover:text-white underline pt-1"
+              >
+                <span>View on Explorer</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+
+          {/* Current Flow Summary */}
+          <div className="bg-white/[0.05] border border-white/15 rounded-2xl p-4 space-y-3">
+            <div className="text-xs font-mono uppercase tracking-wider text-white/50 border-b border-white/10 pb-2.5">
+              Proof Status
+            </div>
+            <div className="text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-white/60">Credential:</span>
+                <span className="font-medium text-white capitalize">{selectedPreset}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-white/60">Proof State:</span>
+                <span className="font-mono text-white/80">
+                  {onChainTxResult ? "Mined" : proofResult ? "Ready" : isProving ? `Proving ${progressPercent}%` : "Pending"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-white/60">Privacy:</span>
+                <span className="text-emerald-400 font-mono text-[11px]">Zero-PII Egress</span>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
-    </AppShell>
+    </PageShell>
   );
 };
+
+export default ProvePage;
