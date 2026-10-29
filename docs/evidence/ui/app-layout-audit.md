@@ -43,3 +43,42 @@ Across all functional pages under `/app/*`, the baseline implementation suffers 
 7. `ProgressSteps`: 4-step progressive disclosure indicator.
 8. `EmptyState`: Clean placeholder for uninitialized states.
 9. `Field` / `Input`: Octagonal or rounded-xl inputs with visible label, helper text, error message, and inset focus ring.
+
+
+---
+
+## 4. Post-Refinement Verification & Audit Results (Step E)
+
+### A. Automated Layout Audit (`docs/evidence/ui/layout-checks.json`)
+The automated layout suite was executed across all 6 application routes across all 3 viewports (1440px, 768px, 375px) using headless Chrome CDP.
+
+- **Total Verification Checks:** 18
+- **Passed:** 18
+- **Failed:** 0
+- **Overall Status:** `PASS`
+- **Horizontal Scroll Overflow:** 0px document overflow and 0px inner stage overflow across all viewports.
+- **Element Intersections / Overlaps:** 0 detected.
+- **Mobile Touch Targets (375px):** 100% compliant with WCAG 2.2 AA (min 44px height and width on standalone interactive elements).
+- **Console Exceptions:** 0 JavaScript runtime errors across all tested pages.
+
+### B. Before vs After Screenshot Comparison Matrix
+
+| Route | Viewport | Baseline (Before) | Refined (After) | Improvement Details |
+|---|---|---|---|---|
+| `/app/prove` | 1440px | `app-before/app-prove-1440px.png` | `app-after/app-prove-1440px.png` | Transformed from flat continuous vertical column to 8-col progressive disclosure card + 4-col sticky status summary. |
+| `/app/prove` | 768px | `app-before/app-prove-768px.png` | `app-after/app-prove-768px.png` | Tablet view now cleanly stacks progress stepper, active step card, and summary without clipping. |
+| `/app/prove` | 375px | `app-before/app-prove-375px.png` | `app-after/app-prove-375px.png` | Compact mobile progress stepper with 44px minimum touch targets and zero horizontal scroll. |
+| `/app/verify` | 1440px | `app-before/app-verify-1440px.png` | `app-after/app-verify-1440px.png` | Dedicated top lookup Card added above visual gate; structured DataList for receipt attributes. |
+| `/app/verify` | 768px | `app-before/app-verify-768px.png` | `app-after/app-verify-768px.png` | Clean responsive layout with centered gate canvas and explorer links. |
+| `/app/verify` | 375px | `app-before/app-verify-375px.png` | `app-after/app-verify-375px.png` | Mobile viewport preserves full gate readability, touch-compliant refresh/verify buttons. |
+| `/app/dapp` | 1440px | `app-before/app-dapp-1440px.png` | `app-after/app-dapp-1440px.png` | 12-col layout (7 cols query card, 5 cols PramaanRegistry contract metadata & explorer). |
+| `/app/dapp` | 768px | `app-before/app-dapp-768px.png` | `app-after/app-dapp-768px.png` | Distinct visual banners for ACCESS GRANTED vs NULLIFIER UNSPENT. |
+| `/app/dapp` | 375px | `app-before/app-dapp-375px.png` | `app-after/app-dapp-375px.png` | Full-width inputs and buttons with 44px min height. |
+| `/app/relying-party` | 1440px | `app-before/app-relying-party-1440px.png` | `app-after/app-relying-party-1440px.png` | Side-by-side 2-col layout: Age-gated storefront on left, OIDC claims / JWT viewer on right. |
+| `/app/relying-party` | 768px | `app-before/app-relying-party-768px.png` | `app-after/app-relying-party-768px.png` | Prominent demo-grade gateway notice and scrollable CodeBlock. |
+| `/app/relying-party` | 375px | `app-before/app-relying-party-375px.png` | `app-after/app-relying-party-375px.png` | Stacked mobile view with easy one-tap OIDC login flow. |
+
+### C. Cryptographic & Contract Verification Status
+- **Test Suite Results:** 46/46 tests passing (`hardhat test tests/*.test.ts`).
+- **Zero Network Egress:** Confirmed. SnarkJS Groth16 witness computation runs strictly client-side in browser Web Worker. Zero private fields (dobDays, secret, Aadhaar fields) leak to network requests.
+- **Truthful Status Labels:** Strict adherence to `DEMO / SYNTHETIC`, `OFF-CHAIN VERIFIED`, `LOCAL VERIFIED`, `TESTNET TX CONFIRMED`, and `ZK VERIFIED ON-CHAIN`.

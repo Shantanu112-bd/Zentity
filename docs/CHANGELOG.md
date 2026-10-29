@@ -5,6 +5,32 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-30
+### Added - Application Layout & Progressive Disclosure Refinement
+- **Governing Prompt Implementation:** Implemented `docs/reference/ui/ANTIGRAVITY_APP_UI_REFINEMENT_PROMPT.md` across all functional pages under `/app/*`.
+- **Layout Primitives System (`frontend/src/components/layout/`):**
+  - `PageShell`: Fixed stage navbar, scrollable inner stage body (`overflow-y:auto`, `overscroll-behavior:contain`), 0 horizontal scroll, and static background mode isolating CPU for client-side Groth16 proving.
+  - `PageHeader`: Standardized eyebrow (`tracking-[0.2em]`), page title (`text-3xl md:text-5xl`), description, and status chip slots.
+  - `Card`: Reusable glass container with header, subtitle, optional divider, body, and right-aligned footer actions.
+  - `DataList`: Responsive key-value data list supporting middle-truncation with tooltip preview and one-click clipboard copying.
+  - `CodeBlock`: Bordered monospace JSON/code display with max height, horizontal scroll, and copy feedback.
+  - `StatusBanner`: Semantic feedback banner (info, warning, error, success) with plain-English summaries and expandable technical details.
+  - `ProgressSteps`: 4-step progressive disclosure indicator (1 Credential · 2 Proof · 3 Submit · 4 Result) with mobile and desktop responsive states.
+  - `EmptyState`: Clean empty/uninitialized placeholder container with action buttons.
+  - `Field`: Accessible form inputs with visible labels, helper text, error alerts, minimum 44px touch targets, and inset focus rings.
+- **Page Implementations:**
+  - `/app/prove`: Progressive disclosure layout displaying only the active step's card in an 8-col main area, accompanied by a 4-col sticky status summary (Network, Wallet, Registry contract, active credential, and proof status). Added client-side cancel button and structured receipt.
+  - `/app/verify/:tx`: Dedicated top search card for querying any transaction hash on MST Coral or local network, followed by receipt attributes in `DataList` and state-accurate `ProofGateCanvas` (opens strictly when `status == 1`).
+  - `/app/dapp`: 2-card 12-col grid (7 cols query card, 5 cols PramaanRegistry contract metadata and MST Explorer links), with clear distinction between `ACCESS GRANTED` and `NULLIFIER UNSPENT`.
+  - `/app/relying-party`: Side-by-side 2-col layout with age-gated storefront on left and OIDC-Lite claims and signed ID token viewer on right.
+  - `/app/simulation`: Government Simulation Stub portal with prominent "SIMULATION — NOT A GOVERNMENT INTEGRATION" notice and HMAC webhook inspector.
+  - `NotFoundPage`: Aligned 404 error page using `PageShell` and `EmptyState`.
+- **Automated Verification:**
+  - Headless Chrome CDP layout assertions script (`scripts/check-app-layout.js`) verifying 18/18 checks passed (0 horizontal scroll, 0 overlaps, WCAG 2.2 AA 44px touch targets, 0 console errors across 1440px, 768px, 375px). Report saved to `docs/evidence/ui/layout-checks.json`.
+  - Captured 12 before-screenshots (`docs/evidence/ui/app-before/`) and 12 after-screenshots (`docs/evidence/ui/app-after/`).
+  - Baseline audit and comparison matrix documented in `docs/evidence/ui/app-layout-audit.md`.
+  - All 46 tests in `tests/*.test.ts` passing. Zero private witness egress verified.
+
 ### Added - MST Coral Testnet Deployment & Gate 0 Closure
 - **On-Chain Deployment on MST Coral Testnet (`54635`):** Deployed `PrecompileProbe` (`0x94b9b520b975e20e82ce5862c523bfe389c12ed3`), `PramaanVerifier` (`0xed8fe30962b3df64accdf867a355c68addedbf28`), and `PramaanRegistry` (`0x8c182a53fca78fe237734239bdb1256bc2658c5b`). Registered Demo Issuer key hash on-chain (tx `0x2011b9a1191b865ff39443a6c200b399976bd1ec5735006c384848d675992e1c`). Bytecode verified via `eth_getCode`.
 - **Live On-Chain Gas Benchmarks:** Measured native precompiles and verification on Coral Testnet: 0x06 `ecAdd` (552 gas), 0x07 `ecMul` (6,396 gas), 0x08 `ecPairing` (113,447 gas), `verifyProof` (259,184 gas), and `verifyAndRecord` (288,882 gas in mined tx `0xa41c72a21eee292173d37ca957dee958610117b29156f80418b6020d7f3ff472`). Earlier Hardhat numbers relabeled `LOCAL`.
@@ -59,20 +85,3 @@ The format is based on Keep a Changelog.
 - Isolated CPU for Groth16 SnarkJS Web Worker: BackgroundStage operates in `staticMode` on `/app/*` routes, running 0 continuous rAF animation loops during proving.
 - Zero external CDN hotlinks: All media and icons are locally hosted or drawn procedurally.
 - All 46 tests passing with zero regressions.
-
-
-## [0.4.0] - 2026-10-29
-### Added
-- Complete "Apogee" Design System UI Overhaul:
-  - Base canvas `#080A19` with optical glassmorphism tokens (`backdrop-blur-[17px]`, `backdrop-blur-[20px]`, `backdrop-blur-[30px]`).
-  - Suisse Intl typography with font weight `font-[450]` and `font-normal` headings.
-  - Staggered entrance animations: `fade-up`, `fade-down`, `fade-left`, `fade-right`, `fade-scale`, and `bar-grow`.
-  - Global `Nav` with center pill navigation, right wallet/auth pill, and animated cross-fading mobile menu.
-  - Dynamic `RevenueCard` with 32-bar synchronized sequence, time axis, and live protocol telemetry.
-  - Full-screen `Hero` section holding background video and CTA buttons (`#E9E9E9` solid and border pills).
-  - Unified `AppShell` with telemetry footer and sub-page styling across `/app/prove`, `/app/verify`, `/app/dapp`, and `/app/relying-party`.
-  - 15 multi-viewport screenshots in `docs/evidence/ui/apogee/`.
-### Performance
-- DOMContentLoaded: 1,389 ms; Heap: 67 MB (desktop unthrottled).
-- 0 running animation loops on prover routes.
-- Full 46-test test suite passing with zero regressions.

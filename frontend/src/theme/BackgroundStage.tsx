@@ -179,8 +179,17 @@ export const BackgroundStage: React.FC<BackgroundStageProps> = ({
         loop
         muted
         playsInline
-        className={`absolute inset-0 w-full h-full object-cover anim-fade ${className}`}
-        style={{ animationDelay: "0.2s", ...style }}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          animationDelay: "0.2s",
+          ...style,
+        }}
+        className={`anim-fade ${className}`}
       />
     );
   }
@@ -188,8 +197,18 @@ export const BackgroundStage: React.FC<BackgroundStageProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      className={`absolute inset-0 w-full h-full object-cover anim-fade ${className}`}
-      style={{ animationDelay: "0.2s", pointerEvents: "none", ...style }}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        pointerEvents: "none",
+        animationDelay: "0.2s",
+        ...style,
+      }}
+      className={`anim-fade ${className}`}
     />
   );
 };

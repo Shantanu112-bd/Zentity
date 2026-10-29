@@ -248,20 +248,32 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
      - Full test suite: 46/46 passing in 18s.
 
 
----
-
-### [2026-10-29 13:42 IST] — Apogee Design System Overhaul & Verification
-- **Context:** User requested comprehensive UI overhaul to Apogee design system while strictly preserving all underlying cryptographic logic, state, and routes.
-- **Branch:** `ui/apogee-overhaul`.
-- **Executed:**
-  1. Integrated Suisse Intl typography via webfont stylesheet; configured `#080A19` surface, glass tokens (`rgba(10,7,7,0.35)`, `rgba(17,16,15,0.35)`), and cubic-bezier keyframes (`fade-up`, `fade-down`, `fade-left`, `fade-right`, `fade-scale`, `bar-grow`).
-  2. Implemented core Apogee components in `frontend/src/theme/apogee/`:
-     - `Animate.tsx`: dynamic entrance wrapper with forwards styling.
-     - `Nav.tsx`: 1800px max container, center pill navigation, right wallet/action pill with `#E9E9E9` button, and animated mobile drawer.
-     - `RevenueCard.tsx`: 32-bar synchronized staggered sequence, time axis, and telemetry display.
-     - `Hero.tsx`: full-screen video hero with left copy stack and right telemetry card.
-  3. Restyled `AppShell.tsx` and all working pages (`/app/prove`, `/app/verify`, `/app/dapp`, `/app/relying-party`) using Apogee glass panels and pill buttons.
-  4. Verified prover CPU isolation: 0 continuous animation loops on `/app/prove`.
-  5. 15 screenshots captured across 1440px, 768px, and 375px in `docs/evidence/ui/apogee/`.
-  6. Performance benchmarks measured: DOMContentLoaded 1,389ms, Heap 67MB, FCP 1,508ms (desktop unthrottled).
-  7. All 46 tests passing with zero regressions.
+### [2026-10-30 01:25 IST] UI-LAYOUT-REFINEMENT — Implementation of ANTIGRAVITY_APP_UI_REFINEMENT_PROMPT.md
+- Agent/env: Antigravity (Gemini 3.8 Flash) / macOS Darwin x86_64
+- Intent / acceptance criteria: Complete Steps A through E of `docs/reference/ui/ANTIGRAVITY_APP_UI_REFINEMENT_PROMPT.md`:
+  1. Capture 12 baseline before-screenshots in `docs/evidence/ui/app-before/` across 4 pages and 3 viewports. Author `docs/evidence/ui/app-layout-audit.md`.
+  2. Implement reusable layout primitives in `frontend/src/components/layout/`: `PageShell`, `PageHeader`, `Card`, `DataList`, `CodeBlock`, `StatusBanner`, `ProgressSteps`, `EmptyState`, `Field`. Showcase in `/dev/ui`.
+  3. Migrate functional app pages sequentially (`/app/prove`, `/app/verify/:tx`, `/app/dapp`, `/app/relying-party`, `/app/simulation`, `NotFoundPage`).
+  4. Run automated layout assertions across 1440px, 768px, 375px via headless Chrome CDP (`scripts/check-app-layout.js`) verifying 0 horizontal scroll, 0 overlaps, WCAG 2.2 AA 44px mobile touch targets, and 0 console errors.
+  5. Capture 12 after-screenshots in `docs/evidence/ui/app-after/`. Verify full 46-test test suite and zero private witness egress.
+- Files created/modified/deleted:
+  - Created: `frontend/src/components/layout/PageShell.tsx`, `PageHeader.tsx`, `Card.tsx`, `DataList.tsx`, `CodeBlock.tsx`, `StatusBanner.tsx`, `ProgressSteps.tsx`, `EmptyState.tsx`, `Field.tsx`, `index.ts`.
+  - Created: `frontend/src/pages/SimulationPage.tsx`.
+  - Created: `scripts/capture-app-before.js`, `scripts/capture-app-after.js`, `scripts/check-app-layout.js`.
+  - Created evidence: `docs/evidence/ui/layout-checks.json`, `docs/evidence/ui/app-before/*.png` (12 files), `docs/evidence/ui/app-after/*.png` (12 files), `docs/evidence/ui/app-layout-audit.md`.
+  - Modified: `frontend/src/pages/LandingPage.tsx`, `frontend/src/pages/ProvePage.tsx`, `frontend/src/pages/VerifyPage.tsx`, `frontend/src/pages/DappGatePage.tsx`, `frontend/src/pages/RelyingPartyPage.tsx`, `frontend/src/pages/NotFoundPage.tsx`, `frontend/src/App.tsx`, `frontend/src/theme/DevUiShowcase.tsx`, `frontend/src/theme/theme.css`, `frontend/src/theme/BackgroundStage.tsx`, `frontend/index.html`, `frontend/src/index.css`.
+  - Updated docs: `docs/CHANGELOG.md`, `docs/ACTIVITY_LOG.md`, `docs/VERIFICATION_AUDIT.md`, `docs/SESSION_HANDOFF.md`.
+- Commands actually run (exact) and result summary:
+  - `node scripts/capture-app-before.js`: 12/12 before screenshots captured (Pass).
+  - `pnpm run build:frontend`: Built in 966ms with 0 errors (Pass).
+  - `node scripts/check-app-layout.js`: 18/18 checks passed across 6 pages and 3 viewports (Pass).
+  - `node scripts/capture-app-after.js`: 12/12 after screenshots captured (Pass).
+  - `hardhat test tests/*.test.ts`: 46 passing in 13s (Pass).
+- Errors -> diagnosis -> fix:
+  - In initial 375px screenshots, background canvas had `position: static` because Tailwind utility classes were uncompiled in pure CSS mode, pushing the inner page content down. Added explicit inline style `position: absolute; inset: 0; width: 100%; height: 100%` and `.absolute { position: absolute }` in `theme.css`. Re-verified h1 bound sits at `top: 388.5px` directly below stage header.
+  - Buttons with custom paddings had sub-40px height on mobile. Added explicit mobile touch target CSS rules in `theme.css` (`min-height: 44px; min-width: 44px`) ensuring 100% WCAG 2.2 AA touch target compliance.
+- Security/privacy implications:
+  - Zero private credential fields (dobDays, stateCode, credentialSecret, raw witness) transmitted over the network. Proving executed client-side in Web Worker.
+  - Truthful status labels strictly preserved. No false government or regulatory claims made.
+- Residual risk / blocker: None.
+- Next action: Merge `ui/app-layout` into `main` and push to remote repository.
