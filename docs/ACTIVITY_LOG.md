@@ -186,3 +186,15 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
      - UI performance clearly labeled as desktop-unthrottled.
   5. Gate 0 updated to `PASS (Live On-Chain Verified on MST Coral Testnet 54635)`.
   6. Dev server and backend started for user MetaMask submission.
+
+
+---
+
+### [2026-10-29 11:15 IST] — Merge m0/bootstrap-and-gate0 into main & GitHub Sync
+- **Context:** User instruction to sync all applied changes sequentially to main on GitHub repo.
+- **Executed:**
+  1. `git checkout main && git merge m0/bootstrap-and-gate0` created merge commit `eb3de95`.
+  2. Full test suite re-verified on `main`: 46/46 passing in 15s.
+  3. Pushed clean to `origin/main` (commit `eb3de95`).
+  4. Configured upstream tracking: `main` set to track `origin/main`.
+  5. Tree status: 0 uncommitted changes, working tree clean, `.env` untracked.
