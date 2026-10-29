@@ -92,7 +92,7 @@ export const DevUiShowcase: React.FC = () => {
               type="button"
               onClick={() => setActiveStep((prev) => Math.max(0, prev - 1))}
               disabled={activeStep === 0}
-              className="px-3 py-1.5 text-xs rounded bg-white/10 hover:bg-white/20 text-white disabled:opacity-30"
+              className="px-4 py-2.5 min-h-[44px] text-xs rounded-xl bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 inline-flex items-center"
             >
               Previous Step
             </button>
@@ -100,7 +100,7 @@ export const DevUiShowcase: React.FC = () => {
               type="button"
               onClick={() => setActiveStep((prev) => Math.min(steps.length - 1, prev + 1))}
               disabled={activeStep === steps.length - 1}
-              className="px-3 py-1.5 text-xs rounded bg-white text-black font-medium hover:bg-white/90 disabled:opacity-30"
+              className="px-4 py-2.5 min-h-[44px] text-xs rounded-xl bg-white text-black font-medium hover:bg-white/90 disabled:opacity-30 inline-flex items-center"
             >
               Next Step
             </button>
@@ -166,8 +166,9 @@ export const DevUiShowcase: React.FC = () => {
                 rightElement={
                   <button
                     type="button"
+                    style={{ minWidth: 44, width: 44, minHeight: 44, height: 44 }}
                     onClick={() => setInputValue("0x89abf10329048329480194830294823094820938402938402938402938402938")}
-                    className="p-1 text-white/40 hover:text-white"
+                    className="flex items-center justify-center text-white/40 hover:text-white"
                     title="Paste mock hash"
                   >
                     <Search className="w-4 h-4" />

@@ -773,7 +773,7 @@ export const ProvePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={connect}
-                  className="w-full mt-2 py-2 text-xs bg-white text-black font-medium rounded-lg hover:bg-white/90"
+                  className="w-full mt-2 py-2.5 min-h-[44px] text-xs bg-white text-black font-medium rounded-lg hover:bg-white/90 flex items-center justify-center"
                 >
                   Connect MetaMask
                 </button>

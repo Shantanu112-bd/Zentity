@@ -1,0 +1,347 @@
+{
+  "timestamp": "2026-10-29T19:50:33.243Z",
+  "overallStatus": "PASS",
+  "summary": {
+    "totalChecks": 18,
+    "passed": 18,
+    "failed": 0
+  },
+  "pages": {
+    "app-prove": {
+      "1440px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 1434,
+          "innerWidth": 1440,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "768px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 762,
+          "innerWidth": 768,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "375px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      }
+    },
+    "app-verify": {
+      "1440px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 1434,
+          "innerWidth": 1440,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "768px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 762,
+          "innerWidth": 768,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "375px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      }
+    },
+    "app-dapp": {
+      "1440px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 1434,
+          "innerWidth": 1440,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "768px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 762,
+          "innerWidth": 768,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "375px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      }
+    },
+    "app-relying-party": {
+      "1440px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 1434,
+          "innerWidth": 1440,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "768px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 762,
+          "innerWidth": 768,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "375px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      }
+    },
+    "app-simulation": {
+      "1440px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 1434,
+          "innerWidth": 1440,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "768px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 762,
+          "innerWidth": 768,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "375px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      }
+    },
+    "dev-ui": {
+      "1440px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 1434,
+          "innerWidth": 1440,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "768px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 762,
+          "innerWidth": 768,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      },
+      "375px": {
+        "status": "PASS",
+        "noHorizontalScroll": true,
+        "noElementOverlaps": true,
+        "noConsoleErrors": true,
+        "touchTargetsValid": true,
+        "details": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "hasDocHorizScroll": false,
+          "stageOverflow": false,
+          "interactiveCount": 0,
+          "overlapCount": 0,
+          "smallTouchTargets": 0,
+          "smallElements": [],
+          "consoleErrors": []
+        }
+      }
+    }
+  }
+}

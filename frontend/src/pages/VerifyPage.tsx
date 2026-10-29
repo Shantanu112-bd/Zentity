@@ -153,14 +153,14 @@ export const VerifyPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <Link
               to="/app/prove"
-              className="text-xs text-white/60 hover:text-white inline-flex items-center gap-1 font-mono px-3 py-1.5 rounded-lg border border-white/10 bg-white/5"
+              className="text-xs text-white/60 hover:text-white inline-flex items-center gap-1 font-mono px-3 py-1.5 min-h-[44px] rounded-lg border border-white/10 bg-white/5"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Prover
             </Link>
             <button
               type="button"
               onClick={fetchLiveState}
-              className="p-2 text-white/60 hover:text-white rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-white/60 hover:text-white rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
               title="Refresh RPC state"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? "animate-spin" : ""}`} />
