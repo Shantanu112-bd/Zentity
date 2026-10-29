@@ -7,6 +7,7 @@
  * - Zero horizontal scroll at any screen width
  * - Content column centered with max-width ~1152px (max-w-6xl)
  * - BackgroundStage with staticMode={true} (0 rAF loops on prover)
+ * - Minimum 44px touch targets on mobile interactions
  */
 
 import React, { useState } from "react";
@@ -41,6 +42,7 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
     { label: "Verify", to: "/app/verify" },
     { label: "Registry", to: "/app/dapp" },
     { label: "Relying Party", to: "/app/relying-party" },
+    { label: "Simulation", to: "/app/simulation" },
   ];
 
   const shortAddress = address
@@ -60,10 +62,13 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
         <BackgroundStage staticMode={true} />
 
         {/* Fixed Top Navbar */}
-        <header className="relative z-30 flex-shrink-0 flex items-center justify-between px-6 md:px-10 py-4 border-b border-white/10 backdrop-blur-xl bg-black/60">
+        <header className="relative z-30 flex-shrink-0 flex items-center justify-between px-6 md:px-10 py-3.5 border-b border-white/10 backdrop-blur-xl bg-black/60">
           {/* Logo & Brand */}
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link
+              to="/"
+              className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded py-1 min-h-[44px]"
+            >
               <img
                 src="/brand/logo.svg"
                 alt="Pramaan-ZK Logo"
@@ -77,10 +82,10 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
               </div>
             </Link>
 
-            <span className="hidden sm:inline-block h-4 w-px bg-white/20 mx-2" />
+            <span className="hidden sm:inline-block h-4 w-px bg-white/20 mx-1 sm:mx-2" />
 
             {/* Network Chip */}
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
               <span
                 data-testid="network-chip"
                 className="px-2.5 py-1 text-[11px] font-mono tracking-wider rounded border border-white/20 bg-white/5 text-white/80"
@@ -91,7 +96,7 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
                 <button
                   type="button"
                   onClick={() => switchNetwork()}
-                  className="px-2 py-0.5 text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded hover:bg-rose-500/30 transition-colors"
+                  className="px-2.5 py-1 text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded hover:bg-rose-500/30 transition-colors"
                 >
                   Switch Network
                 </button>
@@ -107,7 +112,7 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`px-3.5 py-1.5 text-xs font-medium tracking-tight transition-all rounded ${
+                  className={`px-3.5 py-2 min-h-[38px] flex items-center text-xs font-medium tracking-tight transition-all rounded ${
                     isActive
                       ? "text-white bg-white/15 border border-white/30"
                       : "text-white/60 hover:text-white hover:bg-white/5"
@@ -120,7 +125,7 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
           </nav>
 
           {/* Right Action: Status Badge + Wallet Connect */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <StatusChip type="DEMO / SYNTHETIC" size="sm" className="hidden sm:inline-flex" />
 
             {isConnected && address ? (
@@ -128,7 +133,7 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
                 type="button"
                 onClick={disconnect}
                 data-testid="wallet-connect-btn"
-                className="btn-cut px-4 py-2 text-xs font-mono font-medium hover:bg-white/90"
+                className="btn-cut px-4 min-h-[44px] flex items-center justify-center text-xs font-mono font-medium hover:bg-white/90"
                 title="Click to disconnect"
               >
                 {shortAddress}
@@ -139,17 +144,17 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
                 onClick={connect}
                 disabled={isConnecting}
                 data-testid="wallet-connect-btn"
-                className="btn-cut px-4 py-2 text-xs font-medium hover:bg-white/90"
+                className="btn-cut px-4 min-h-[44px] flex items-center justify-center text-xs font-medium hover:bg-white/90"
               >
                 {isConnecting ? "Connecting..." : "Connect Wallet"}
               </button>
             )}
 
-            {/* Mobile Hamburger Toggle */}
+            {/* Mobile Hamburger Toggle (Minimum 44x44px touch target) */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-white/70 hover:text-white rounded border border-white/10 bg-white/5"
+              className="lg:hidden w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-white/70 hover:text-white rounded-lg border border-white/10 bg-white/5 focus:outline-none focus:ring-1 focus:ring-white"
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -173,7 +178,7 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
                   key={link.to}
                   to={link.to}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2 text-sm font-medium rounded ${
+                  className={`px-3 min-h-[44px] flex items-center text-sm font-medium rounded ${
                     isActive ? "text-white bg-white/15" : "text-white/70 hover:text-white"
                   }`}
                 >
@@ -186,7 +191,7 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
               <Link
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-xs text-white/60 hover:text-white inline-flex items-center gap-1"
+                className="min-h-[44px] flex items-center text-xs text-white/60 hover:text-white gap-1"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Landing Home
               </Link>
@@ -210,7 +215,7 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
                 href={explorerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white inline-flex items-center gap-1 transition-colors"
+                className="min-h-[44px] sm:min-h-0 flex items-center hover:text-white gap-1 transition-colors"
               >
                 <span>Explorer</span>
                 <ExternalLink className="w-3 h-3" />
@@ -219,11 +224,14 @@ export const PageShell: React.FC<PageShellProps> = ({ children }) => {
                 href="https://github.com/Shantanu112-bd/Zentity"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
+                className="min-h-[44px] sm:min-h-0 flex items-center hover:text-white transition-colors"
               >
                 GitHub
               </a>
-              <Link to="/" className="hover:text-white transition-colors">
+              <Link
+                to="/"
+                className="min-h-[44px] sm:min-h-0 flex items-center hover:text-white transition-colors"
+              >
                 Landing
               </Link>
             </div>
