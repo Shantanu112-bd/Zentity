@@ -1,7 +1,33 @@
+/**
+ * frontend/src/pages/RelyingPartyPage.tsx
+ * 
+ * Web2 Relying Party & OIDC-Lite Gateway Portal
+ * Strictly adheres to ANTIGRAVITY_APP_UI_REFINEMENT_PROMPT.md §2 & §3 Step C:
+ * - 2-Column Responsive Layout:
+ *   - Left: Relying Party Demo Storefront & OIDC Login Trigger
+ *   - Right: Claims & JWT Token Viewer (CodeBlock + DataList)
+ * - Transparent disclosure: Demo-grade OIDC-Lite gateway with pairwise sub
+ */
+
 import React, { useState, useEffect } from "react";
-import { Shield, Lock, CheckCircle2, UserCheck, ExternalLink, ArrowRight, Sparkles } from "lucide-react";
+import {
+  Lock,
+  Sparkles,
+  ArrowRight,
+  ExternalLink,
+  ShieldCheck,
+  CheckCircle2,
+  Key,
+} from "lucide-react";
 import { StatusChip } from "../components/StatusChip";
-import { AppShell } from "../components/AppShell";
+import {
+  PageShell,
+  PageHeader,
+  Card,
+  DataList,
+  CodeBlock,
+  StatusBanner,
+} from "../components/layout";
 
 export const RelyingPartyPage: React.FC = () => {
   const [session, setSession] = useState<{
@@ -9,6 +35,7 @@ export const RelyingPartyPage: React.FC = () => {
     ageOver18: boolean;
     idToken: string;
     clientId: string;
+    claims?: any;
   } | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -51,11 +78,21 @@ export const RelyingPartyPage: React.FC = () => {
 
       const data = await res.json();
       if (data.id_token) {
+        // Parse JWT payload safely for demo display
+        let parsedClaims: any = null;
+        try {
+          const parts = data.id_token.split(".");
+          if (parts.length === 3) {
+            parsedClaims = JSON.parse(atob(parts[1]));
+          }
+        } catch {}
+
         setSession({
-          sub: "pairwise-sub-" + code.slice(0, 8),
+          sub: parsedClaims?.sub || "pairwise-sub-" + code.slice(0, 8),
           ageOver18: true,
           idToken: data.id_token,
           clientId: "demo-relying-party",
+          claims: parsedClaims,
         });
       }
     } catch (err) {
@@ -66,84 +103,176 @@ export const RelyingPartyPage: React.FC = () => {
   };
 
   return (
-    <AppShell
-      title="RELYING PARTY"
-      activeStepId={session ? "session" : "login"}
-      steps={[
-        { id: "login", label: "OIDC Login" },
-        { id: "pkce", label: "PKCE Verify" },
-        { id: "session", label: "Pairwise ID" },
-      ]}
-      facts={[
-        ["Protocol:", "OIDC-Lite (PKCE + Pairwise sub)"],
-        ["Tenant:", "demo-relying-party"],
-        ["Privacy:", "Zero raw PII disclosed"],
-        ["Notice:", "Demo-grade gateway; not certified OIDC"],
-      ]}
-    >
-      <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-6 sm:p-8 space-y-6">
-        {/* Notice Banner */}
-        <div className="p-4 rounded-[14px] bg-purple-500/15 border border-purple-500/30 text-purple-200 text-xs flex items-center justify-between">
+    <PageShell>
+      <PageHeader
+        eyebrow="Web2 Enterprise Gateway"
+        title="Relying Party Portal"
+        description="Verify age ≥ 18 via OpenID Connect (OIDC-Lite) with PKCE. Web2 consumer apps verify age qualifications without ingesting or storing raw Aadhaar data."
+        rightSlot={
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span>
-              <strong>OIDC-Lite Gateway:</strong> Pairwise pseudonymous JWT with PKCE.
+            <StatusChip type="SIMULATED" size="sm" />
+            <span className="hidden sm:inline-block px-2.5 py-1 text-xs font-mono rounded border border-white/20 bg-white/5 text-white/70">
+              PKCE · Pairwise Sub
             </span>
           </div>
-          <StatusChip type="SIMULATED" />
-        </div>
+        }
+      />
 
-        <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">
-            Web2 Relying Party Portal
-          </h2>
-          <p className="text-xs text-neutral-300 mt-1">
-            Consumer apps verify age &ge; 18 through OpenID Connect without handling identity documents or raw Aadhaar data.
-          </p>
-        </div>
+      <div className="space-y-6 pb-12">
+        <StatusBanner
+          variant="info"
+          title="OIDC-Lite Gateway Notice"
+          description="Demo-grade OIDC implementation with PKCE and pairwise pseudonymous subject tokens. Not an officially certified OpenID provider."
+        />
 
-        {!session ? (
-          <div className="p-6 rounded-[20px] bg-black/40 border border-white/10 text-center space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center mx-auto">
-              <Lock className="w-6 h-6 text-white" />
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white text-base">
-                Age-Restricted Storefront
-              </h3>
-              <p className="text-xs text-neutral-400 mt-1 max-w-sm mx-auto">
-                Requires zero-knowledge proof of age &ge; 18 before granting access.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              disabled={isLoading}
-              onClick={initiateOidcLogin}
-              className="h-[48px] px-8 bg-[#E9E9E9] rounded-[12px] text-[#0A0707] font-[450] text-sm hover:bg-white transition-opacity font-medium"
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column (6 cols): Storefront / Login Card */}
+          <div className="lg:col-span-6 space-y-6">
+            <Card
+              title="Age-Gated Web2 Storefront"
+              subtitle="Demonstration client relying on zero-knowledge attribute verification"
+              headerAction={<Lock className="w-4 h-4 text-white/50" />}
+              divider
             >
-              {isLoading ? "Redirecting..." : "Sign in with Pramaan-ZK"}
-            </button>
-          </div>
-        ) : (
-          <div className="p-5 rounded-[18px] bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono space-y-3">
-            <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
-              <span className="font-semibold text-emerald-300">
-                OIDC Session Authenticated
-              </span>
-              <StatusChip type="OFF-CHAIN VERIFIED" />
-            </div>
+              <div className="p-6 rounded-2xl bg-black/40 border border-white/10 text-center space-y-4 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center mx-auto text-white">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
 
-            <div className="space-y-1.5 text-neutral-300 text-[11px]">
-              <div>Pairwise Subject: <span className="text-white font-bold">{session.sub}</span></div>
-              <div>Age Claim: <span className="text-emerald-400 font-bold">&ge; 18 VERIFIED</span></div>
-              <div>Client ID: <span className="text-white">{session.clientId}</span></div>
-              <div className="truncate text-neutral-400">ID Token: {session.idToken.slice(0, 32)}...</div>
-            </div>
+                <div>
+                  <h3 className="text-base font-medium text-white">
+                    Age-Restricted Digital Goods
+                  </h3>
+                  <p className="text-xs text-white/60 mt-1 max-w-sm mx-auto leading-relaxed">
+                    Access is strictly granted to accounts with a verified age &ge; 18 zero-knowledge credential. No identity document is uploaded or logged.
+                  </p>
+                </div>
+
+                {!session ? (
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={initiateOidcLogin}
+                    className="btn-cut px-8 py-3 text-xs text-black font-medium inline-flex items-center justify-center gap-2 hover:bg-white/90 disabled:opacity-50"
+                  >
+                    <span>{isLoading ? "Redirecting..." : "Sign in with Pramaan-ZK"}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Storefront Unlocked (Age &ge; 18)</span>
+                  </div>
+                )}
+              </div>
+
+              <DataList
+                density="compact"
+                items={[
+                  {
+                    label: "Client ID",
+                    value: "demo-relying-party",
+                    isMono: true,
+                  },
+                  {
+                    label: "Grant Type",
+                    value: "authorization_code + PKCE (S256/plain)",
+                    isMono: true,
+                  },
+                  {
+                    label: "Pairwise Scoping",
+                    value: "Isolated per client_id",
+                  },
+                  {
+                    label: "Target Scope",
+                    value: "age_over_18",
+                    isMono: true,
+                  },
+                ]}
+              />
+            </Card>
           </div>
-        )}
+
+          {/* Right Column (6 cols): Token / Claims Inspection */}
+          <div className="lg:col-span-6 space-y-6">
+            <Card
+              title="OIDC Session & Claims Viewer"
+              subtitle="Inspect the authenticated session claims and signed ID token"
+              headerAction={
+                session ? (
+                  <StatusChip type="OFF-CHAIN VERIFIED" size="sm" />
+                ) : (
+                  <span className="text-xs font-mono text-white/40">Awaiting Auth</span>
+                )
+              }
+              divider
+            >
+              {session ? (
+                <div className="space-y-4">
+                  <DataList
+                    density="compact"
+                    items={[
+                      {
+                        label: "Pairwise Subject (sub)",
+                        value: session.sub,
+                        isMono: true,
+                        truncateMiddle: true,
+                        copyable: true,
+                      },
+                      {
+                        label: "Age Claim",
+                        value: "age_over_18 = true",
+                        isMono: true,
+                      },
+                      {
+                        label: "Issuer (iss)",
+                        value: window.location.origin,
+                        isMono: true,
+                      },
+                      {
+                        label: "Audience (aud)",
+                        value: session.clientId,
+                        isMono: true,
+                      },
+                    ]}
+                    className="mb-4"
+                  />
+
+                  <h4 className="text-xs uppercase font-mono tracking-wider text-white/50">
+                    Raw Signed ID Token (JWT)
+                  </h4>
+                  <CodeBlock
+                    title="id_token (JWS)"
+                    code={session.idToken}
+                  />
+
+                  {session.claims && (
+                    <>
+                      <h4 className="text-xs uppercase font-mono tracking-wider text-white/50 pt-2">
+                        Decoded Claims Payload
+                      </h4>
+                      <CodeBlock
+                        title="JWT Payload"
+                        code={session.claims}
+                      />
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="py-12 text-center text-white/40 text-xs font-mono space-y-2">
+                  <Key className="w-8 h-8 mx-auto text-white/20" />
+                  <p>No active OIDC session.</p>
+                  <p className="text-[11px] text-white/30">
+                    Click "Sign in with Pramaan-ZK" to trigger the authorization flow.
+                  </p>
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
       </div>
-    </AppShell>
+    </PageShell>
   );
 };
+
+export default RelyingPartyPage;
