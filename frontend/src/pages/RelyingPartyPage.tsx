@@ -81,9 +81,9 @@ export const RelyingPartyPage: React.FC = () => {
         ["Notice:", "Demo-grade gateway; not certified OIDC"],
       ]}
     >
-      <div className="space-y-6">
+      <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-6 sm:p-8 space-y-6">
         {/* Notice Banner */}
-        <div className="p-3.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-200 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-[14px] bg-purple-500/15 border border-purple-500/30 text-purple-200 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-400" />
             <span>
@@ -103,7 +103,7 @@ export const RelyingPartyPage: React.FC = () => {
         </div>
 
         {!session ? (
-          <div className="p-6 rounded-2xl bg-black/40 border border-white/15 text-center space-y-4">
+          <div className="p-6 rounded-[20px] bg-black/40 border border-white/10 text-center space-y-4">
             <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center mx-auto">
               <Lock className="w-6 h-6 text-white" />
             </div>
@@ -121,13 +121,13 @@ export const RelyingPartyPage: React.FC = () => {
               type="button"
               disabled={isLoading}
               onClick={initiateOidcLogin}
-              className="btn-cut px-6 py-3 bg-white text-black text-xs font-semibold hover:bg-white/90 transition-colors"
+              className="h-[48px] px-8 bg-[#E9E9E9] rounded-[12px] text-[#0A0707] font-[450] text-sm hover:bg-white transition-opacity font-medium"
             >
               {isLoading ? "Redirecting..." : "Sign in with Pramaan-ZK"}
             </button>
           </div>
         ) : (
-          <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono space-y-3">
+          <div className="p-5 rounded-[18px] bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono space-y-3">
             <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
               <span className="font-semibold text-emerald-300">
                 OIDC Session Authenticated

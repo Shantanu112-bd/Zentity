@@ -1,16 +1,16 @@
 {
-  "timestamp": "2026-10-29T07:12:05.127Z",
+  "timestamp": "2026-10-29T08:11:56.856Z",
   "label": "Desktop Unthrottled",
   "landing": {
-    "domContentLoadedMs": 1623,
-    "loadCompleteMs": 1626,
-    "fcpMs": null,
-    "jsHeapUsedBytes": 70040720,
+    "domContentLoadedMs": 1389,
+    "loadCompleteMs": 1392,
+    "fcpMs": 1508,
+    "jsHeapUsedBytes": 67333889,
     "environment": "Desktop (Unthrottled, M-series Mac)"
   },
   "proveRouteIsolation": {
     "route": "/app/prove",
-    "canvasCount": 1,
+    "canvasCount": 0,
     "staticModeActive": true,
     "runningAnimationLoops": 0
   },

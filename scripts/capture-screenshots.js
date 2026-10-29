@@ -9,19 +9,16 @@ const viewports = [
 ];
 
 const targets = [
-  { slug: "landing", url: "http://127.0.0.1:5173/", delay: 1500 },
-  { slug: "app-prove-idle", url: "http://127.0.0.1:5173/app/prove", delay: 1500 },
+  { slug: "landing-apogee", url: "http://127.0.0.1:5173/", delay: 1800 },
+  { slug: "app-prove", url: "http://127.0.0.1:5173/app/prove", delay: 1500 },
   { slug: "app-verify", url: "http://127.0.0.1:5173/app/verify", delay: 1500 },
-  { slug: "app-verify-tx", url: "http://127.0.0.1:5173/app/verify/0x9b46ee740c0a9694ff24ec64152504b8686fdb2e5d99aa56b176d6ec5a64ceea", delay: 1500 },
   { slug: "app-dapp", url: "http://127.0.0.1:5173/app/dapp", delay: 1500 },
   { slug: "app-relying-party", url: "http://127.0.0.1:5173/app/relying-party", delay: 1500 },
-  { slug: "dev-ui", url: "http://127.0.0.1:5173/dev/ui", delay: 1500 },
-  { slug: "not-found", url: "http://127.0.0.1:5173/404-test", delay: 1200 },
 ];
 
 async function run() {
-  console.log("=== Capturing High-Fidelity UI Redesign Screenshots ===");
-  const outDir = path.join(__dirname, "..", "docs", "evidence", "ui", "redesign");
+  console.log("=== Capturing Apogee Design System UI Screenshots ===");
+  const outDir = path.join(__dirname, "..", "docs", "evidence", "ui", "apogee");
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir, { recursive: true });
   }
@@ -90,7 +87,7 @@ async function run() {
   } finally {
     chrome.kill();
   }
-  console.log("=== All Redesign Screenshots Successfully Captured ===");
+  console.log("=== All Apogee Screenshots Successfully Captured ===");
 }
 
 run().catch((err) => {

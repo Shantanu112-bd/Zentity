@@ -1,36 +1,31 @@
 # docs/SESSION_HANDOFF.md — Session Handoff & Next Action
 
-**Updated:** 2026-10-29 12:45 IST · **Session:** UI Redesign Implementation & Full Verification
+**Updated:** 2026-10-29 13:42 IST · **Session:** Apogee Design System Overhaul & Complete Verification
 
 ---
 
 ## 1. Last Completed Task
-- **Full UI Redesign (`ANTIGRAVITY_UI_REDESIGN_PROMPT.md` & `bDmADrNPj4BiT_qYsfvm-neWDol26SLv6udUYv7W0sE.md`):**
-  1. **Theme Design System (`frontend/src/theme/`):**
-     - Procedural, looping, dark particle vortex `BackgroundStage` (24–30 FPS cap, bottom darkening gradient, `staticMode` for CPU isolation, `prefers-reduced-motion` compliance).
-     - Octagonal cut-corner buttons: `.btn-cut` (12px cut) and `.btn-cut-border` (1px outline), `.btn-cut-sm` (8px cut) with inset focus-visible outline clipping survival.
-     - Inter typography (weights 300–900) loaded via Google Fonts preconnect.
-     - Custom 256×256 geometric vector brand logo with "P R A M A A N" tracking wordmark.
-     - Dev-only visual QA showcase route at `/dev/ui`.
-  2. **Landing Page (`/`):**
-     - Full-screen black outer frame (`p-3 md:p-4`) with rounded-2xl inner stage.
-     - Staggered entrances (`.anim-stagger`) matching exact spec delay table: 0.1s (logo), 0.2s (nav buttons), 0.4s (left col), 0.5s (3-line heading), 0.7s (col 1), 0.85s (col 2), 1.0s (col 3).
-     - 3-column responsive bottom row with active network badge and white cut "Launch App" button.
+- **Apogee Design System Overhaul:**
+  1. **Styling & Fonts:** Loaded Suisse Intl webfont stylesheet, configured `#080A19` surface, glass tokens (`rgba(10,7,7,0.35)`, `rgba(17,16,15,0.35)`), and cubic-bezier keyframes (`fade-up`, `fade-down`, `fade-left`, `fade-right`, `fade-scale`, `bar-grow`).
+  2. **Core Components (`frontend/src/theme/apogee/`):**
+     - `Animate.tsx`: dynamic entrance wrapper with forwards animations.
+     - `Nav.tsx`: 1800px max container, center pill navigation, right wallet/action pill with `#E9E9E9` button, and animated mobile drawer.
+     - `RevenueCard.tsx`: 32-bar synchronized staggered sequence, time axis, and telemetry display.
+     - `Hero.tsx`: full-screen video hero with left copy stack and right telemetry card.
   3. **Universal AppShell & Working Pages (`/app/*`):**
-     - Preserved all IDs, handlers, inputs, and test criteria across `/app/prove`, `/app/verify/:tx`, `/app/dapp`, and `/app/relying-party`.
-     - Static background mode active on app routes ensuring 0 continuous rAF loops and 100% CPU isolated for SnarkJS Groth16.
-     - Dedicated 404 page in redesign style.
-  4. **Verification & Benchmarks:**
-     - 24 screenshots captured at 1440px, 768px, and 375px in `docs/evidence/ui/redesign/`.
-     - DOMContentLoaded: 1,623 ms; JS Heap: 70 MB (desktop unthrottled); 0 running animation loops on `/app/prove`.
-     - 0 forbidden string matches in frontend src (`vortx|cloudfront|ubernatural|planet jumping`).
-     - Test suite: 46/46 passing in 18s.
+     - Restyled `AppShell.tsx`, `ProvePage.tsx`, `VerifyPage.tsx`, `DappGatePage.tsx`, and `RelyingPartyPage.tsx` using Apogee glass panels and pill buttons.
+     - Preserved 100% of underlying cryptographic logic, state, and routes.
+     - Maintained zero running animation loops on prover routes.
+  4. **Evidence & Verification:**
+     - 15 screenshots captured across 1440px, 768px, and 375px in `docs/evidence/ui/apogee/`.
+     - Performance benchmarks measured: DOMContentLoaded 1,389ms, Heap 67MB, FCP 1,508ms (desktop unthrottled).
+     - Test suite: 46/46 passing in 20s.
 
 ---
 
 ## 2. Last Real Test Results
 ```
-  46 passing (18s)
+  46 passing (20s)
   - Milestone MVP Step 2: Pramaan Age Credential Circuit (Groth16) (5 tests)
   - Milestone MVP Step 5: Client Proving SDK & Zero-Network-Egress Guarantee (3 tests)
   - Gate 0: PrecompileProbe.sol on Local EVM (7 tests)
@@ -49,13 +44,13 @@
 ---
 
 ## 4. Files to Read First Next Session
-1. `docs/evidence/ui/redesign-map.md`
-2. `docs/evidence/ui-perf-benchmarks.json`
-3. `frontend/src/theme/components/AppShell.tsx`
-4. `frontend/src/pages/LandingPage.tsx`
-5. `docs/VERIFICATION_AUDIT.md`
+1. `frontend/src/theme/apogee/Hero.tsx`
+2. `frontend/src/theme/apogee/Nav.tsx`
+3. `frontend/src/theme/apogee/RevenueCard.tsx`
+4. `frontend/src/components/AppShell.tsx`
+5. `docs/evidence/ui-perf-benchmarks.json`
 
 ---
 
 ## 5. Exactly One Next Action
-- **Next Action:** Merge branch `ui/redesign` into `main` and sync with GitHub remote `origin/main`.
+- **Next Action:** Open `http://localhost:5173/` in the browser to interact with the Apogee interface and execute a live Groth16 proof on `/app/prove`.

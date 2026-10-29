@@ -59,7 +59,7 @@ export const DappGatePage: React.FC = () => {
         ["Scope Check:", `Domain ${scopeInput}`],
       ]}
     >
-      <div className="space-y-6">
+      <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-6 sm:p-8 space-y-6">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight">
@@ -81,7 +81,7 @@ export const DappGatePage: React.FC = () => {
               type="text"
               value={scopeInput}
               onChange={(e) => setScopeInput(e.target.value)}
-              className="w-full bg-black/50 border border-white/20 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white"
+              className="w-full bg-black/40 border border-white/20 rounded-[12px] px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-white/50"
             />
           </div>
 
@@ -93,14 +93,14 @@ export const DappGatePage: React.FC = () => {
               type="text"
               value={nullifierInput}
               onChange={(e) => setNullifierInput(e.target.value)}
-              className="w-full bg-black/50 border border-white/20 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white"
+              className="w-full bg-black/40 border border-white/20 rounded-[12px] px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-white/50"
             />
           </div>
 
           <button
             type="button"
             onClick={checkRegistryState}
-            className="btn-cut w-full py-3 bg-white text-black text-xs font-semibold hover:bg-white/90 transition-colors"
+            className="w-full h-[48px] bg-[#E9E9E9] rounded-[12px] text-[#0A0707] font-[450] text-sm hover:bg-white transition-opacity font-medium"
           >
             Check Nullifier On-Chain
           </button>

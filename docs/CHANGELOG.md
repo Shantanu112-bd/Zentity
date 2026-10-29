@@ -59,3 +59,20 @@ The format is based on Keep a Changelog.
 - Isolated CPU for Groth16 SnarkJS Web Worker: BackgroundStage operates in `staticMode` on `/app/*` routes, running 0 continuous rAF animation loops during proving.
 - Zero external CDN hotlinks: All media and icons are locally hosted or drawn procedurally.
 - All 46 tests passing with zero regressions.
+
+
+## [0.4.0] - 2026-10-29
+### Added
+- Complete "Apogee" Design System UI Overhaul:
+  - Base canvas `#080A19` with optical glassmorphism tokens (`backdrop-blur-[17px]`, `backdrop-blur-[20px]`, `backdrop-blur-[30px]`).
+  - Suisse Intl typography with font weight `font-[450]` and `font-normal` headings.
+  - Staggered entrance animations: `fade-up`, `fade-down`, `fade-left`, `fade-right`, `fade-scale`, and `bar-grow`.
+  - Global `Nav` with center pill navigation, right wallet/auth pill, and animated cross-fading mobile menu.
+  - Dynamic `RevenueCard` with 32-bar synchronized sequence, time axis, and live protocol telemetry.
+  - Full-screen `Hero` section holding background video and CTA buttons (`#E9E9E9` solid and border pills).
+  - Unified `AppShell` with telemetry footer and sub-page styling across `/app/prove`, `/app/verify`, `/app/dapp`, and `/app/relying-party`.
+  - 15 multi-viewport screenshots in `docs/evidence/ui/apogee/`.
+### Performance
+- DOMContentLoaded: 1,389 ms; Heap: 67 MB (desktop unthrottled).
+- 0 running animation loops on prover routes.
+- Full 46-test test suite passing with zero regressions.

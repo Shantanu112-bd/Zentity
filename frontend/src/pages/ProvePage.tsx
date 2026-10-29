@@ -268,119 +268,119 @@ export const ProvePage: React.FC = () => {
         </div>
 
         {/* Step 1: Synthetic Credential Selection */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/20">
-          <div className="flex items-center justify-between mb-3">
-            <span className="font-semibold text-white text-xs sm:text-sm">
+        <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-5 sm:p-7">
+          <div className="flex items-center justify-between mb-4">
+            <span className="font-[450] text-white text-sm sm:text-base">
               1. Choose Synthetic Credential
             </span>
-            <span className="text-[11px] font-mono text-neutral-300">DEMO ISSUER (EdDSA)</span>
+            <span className="text-[11px] font-mono text-white/50">DEMO ISSUER (EdDSA)</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <button
               type="button"
               onClick={() => handleSelectPreset("adult")}
-              className={`p-3.5 rounded-xl border text-left transition-all ${
+              className={`p-4 rounded-[14px] border text-left transition-all ${
                 selectedPreset === "adult"
-                  ? "border-white bg-white/20 text-white"
-                  : "border-white/10 bg-black/30 text-neutral-400 hover:border-white/25"
+                  ? "border-white bg-white/10 text-white shadow-lg"
+                  : "border-white/[0.08] bg-black/30 text-white/60 hover:border-white/20"
               }`}
             >
-              <div className="font-semibold text-xs mb-1 text-white">
+              <div className="font-[450] text-sm mb-1 text-white">
                 Adult (Age 25)
               </div>
-              <div className="text-[11px] text-neutral-300">DOB: ~1999 &bull; State: 27</div>
-              <div className="text-[10px] font-mono text-emerald-400 mt-1.5">&ge; 18 PASSES</div>
+              <div className="text-[11px] text-white/60">DOB: ~1999 &bull; State: 27</div>
+              <div className="text-[10px] font-mono text-emerald-400 mt-2">&ge; 18 PASSES</div>
             </button>
 
             <button
               type="button"
               onClick={() => handleSelectPreset("minor")}
-              className={`p-3.5 rounded-xl border text-left transition-all ${
+              className={`p-4 rounded-[14px] border text-left transition-all ${
                 selectedPreset === "minor"
-                  ? "border-rose-400 bg-rose-500/20 text-white"
-                  : "border-white/10 bg-black/30 text-neutral-400 hover:border-white/25"
+                  ? "border-rose-400 bg-rose-500/15 text-white shadow-lg"
+                  : "border-white/[0.08] bg-black/30 text-white/60 hover:border-white/20"
               }`}
             >
-              <div className="font-semibold text-xs mb-1 text-rose-300">
+              <div className="font-[450] text-sm mb-1 text-rose-300">
                 Minor (Age 16)
               </div>
-              <div className="text-[11px] text-neutral-300">DOB: ~2008 &bull; State: 27</div>
-              <div className="text-[10px] font-mono text-rose-400 mt-1.5">&lt; 18 REVERTS</div>
+              <div className="text-[11px] text-white/60">DOB: ~2008 &bull; State: 27</div>
+              <div className="text-[10px] font-mono text-rose-400 mt-2">&lt; 18 REVERTS</div>
             </button>
 
             <button
               type="button"
               onClick={handleIssueCustom}
-              className={`p-3.5 rounded-xl border text-left transition-all ${
+              className={`p-4 rounded-[14px] border text-left transition-all ${
                 selectedPreset === "custom"
-                  ? "border-white bg-white/20 text-white"
-                  : "border-white/10 bg-black/30 text-neutral-400 hover:border-white/25"
+                  ? "border-white bg-white/10 text-white shadow-lg"
+                  : "border-white/[0.08] bg-black/30 text-white/60 hover:border-white/20"
               }`}
             >
-              <div className="font-semibold text-xs mb-1 text-amber-300">
+              <div className="font-[450] text-sm mb-1 text-amber-300">
                 Custom API Issue
               </div>
-              <div className="text-[11px] text-neutral-300">POST /api/demo/issue</div>
-              <div className="text-[10px] font-mono text-amber-400 mt-1.5">Zero-PII Filter</div>
+              <div className="text-[11px] text-white/60">POST /api/demo/issue</div>
+              <div className="text-[10px] font-mono text-amber-400 mt-2">Zero-PII Filter</div>
             </button>
           </div>
 
           {credential && (
-            <div className="mt-3 p-3 bg-black/50 rounded-xl border border-white/15 font-mono text-[11px] text-neutral-300">
-              <div className="flex items-center justify-between text-neutral-400 mb-1.5 border-b border-white/10 pb-1">
+            <div className="mt-3 p-3.5 bg-black/50 rounded-[14px] border border-white/[0.08] font-mono text-[11px] text-white/70">
+              <div className="flex items-center justify-between text-white/50 mb-2 border-b border-white/[0.06] pb-1.5">
                 <span>Signed Credential Fields</span>
-                <span className="text-[10px] text-amber-300">Memory only</span>
+                <span className="text-[10px] text-amber-300">Client Memory Only</span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-[10px]">
                 <div>dobDays: <span className="text-white">{credential.dobDays}</span></div>
                 <div>stateCode: <span className="text-white">{credential.stateCode}</span></div>
-                <div className="col-span-2 truncate">credentialSecret: <span className="text-neutral-500">{credential.credentialSecret}</span></div>
+                <div className="col-span-2 truncate">credentialSecret: <span className="text-white/40">{credential.credentialSecret}</span></div>
               </div>
             </div>
           )}
         </div>
 
         {/* Step 2: Context Binding Configuration */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/20">
-          <span className="font-semibold text-white text-xs sm:text-sm block mb-3">
+        <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-5 sm:p-7">
+          <span className="font-[450] text-white text-sm sm:text-base block mb-4">
             2. Bind Context (Scope, Recipient, Chain)
           </span>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs font-mono">
             <div>
-              <label className="text-neutral-400 block mb-1">Scope ID</label>
+              <label className="text-white/50 block mb-1.5">Scope ID</label>
               <input
                 type="text"
                 value={scopeId}
                 onChange={(e) => setScopeId(e.target.value)}
-                className="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white"
+                className="w-full px-3.5 py-2.5 bg-black/40 border border-white/20 rounded-[11px] text-white focus:outline-none focus:border-white/50"
               />
             </div>
 
             <div>
-              <label className="text-neutral-400 block mb-1">Recipient Address</label>
+              <label className="text-white/50 block mb-1.5">Recipient Address</label>
               <input
                 type="text"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                className="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white truncate"
+                className="w-full px-3.5 py-2.5 bg-black/40 border border-white/20 rounded-[11px] text-white focus:outline-none focus:border-white/50 truncate"
               />
             </div>
 
             <div>
-              <label className="text-neutral-400 block mb-1">Target Chain</label>
+              <label className="text-white/50 block mb-1.5">Target Chain</label>
               <input
                 type="text"
                 readOnly
                 value={`${targetNetwork.chainId} (${targetNetwork.name})`}
-                className="w-full px-3 py-2 bg-black/60 border border-white/15 rounded-lg text-neutral-400 focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-black/60 border border-white/10 rounded-[11px] text-white/50 focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
-            <span className="text-xs text-neutral-400">
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
+            <span className="text-xs text-white/60 font-[450]">
               Epoch date: <strong className="text-white">20,000 days</strong> (~2024)
             </span>
 
@@ -388,7 +388,7 @@ export const ProvePage: React.FC = () => {
               type="button"
               disabled={isProving || !credential}
               onClick={handleGenerateProof}
-              className="btn-cut px-5 py-2.5 text-xs text-black font-medium inline-flex items-center gap-2 hover:bg-white/90"
+              className="h-[46px] px-6 bg-[#E9E9E9] rounded-[12px] text-[#0A0707] text-[14px] font-[450] hover:bg-white transition-opacity disabled:opacity-50 inline-flex items-center gap-2 font-medium"
             >
               {isProving ? (
                 <>
@@ -407,7 +407,7 @@ export const ProvePage: React.FC = () => {
           {/* Progress Bar */}
           {isProving && (
             <div className="mt-4 pt-3 border-t border-white/10">
-              <div className="flex items-center justify-between text-xs font-mono text-neutral-300 mb-1.5">
+              <div className="flex items-center justify-between text-xs font-mono text-white/70 mb-1.5">
                 <span>{progressStage.replace(/_/g, " ")}</span>
                 <span>{progressPercent}%</span>
               </div>
@@ -422,7 +422,7 @@ export const ProvePage: React.FC = () => {
 
           {/* Error Alert */}
           {provingError && (
-            <div className="mt-4 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5">
+            <div className="mt-4 p-4 rounded-[14px] bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
               <div>
                 <span className="font-semibold block mb-0.5">Circuit Constraint Rejection</span>
@@ -434,19 +434,19 @@ export const ProvePage: React.FC = () => {
 
         {/* Step 3: Proof Result & Submission */}
         {proofResult && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-white/10 border border-white/30 space-y-4">
+          <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-5 sm:p-7 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span className="font-semibold text-white text-xs sm:text-sm">
+                <span className="font-[450] text-white text-sm sm:text-base">
                   Proof Generated Successfully
                 </span>
               </div>
               <StatusChip type="OFF-CHAIN VERIFIED" />
             </div>
 
-            <div className="p-3 bg-black/60 rounded-xl border border-white/15 text-[11px] font-mono space-y-1">
-              <div className="text-neutral-400">Derived Nullifier:</div>
+            <div className="p-3.5 bg-black/60 rounded-[14px] border border-white/[0.08] text-[11px] font-mono space-y-1">
+              <div className="text-white/50">Derived Nullifier:</div>
               <div className="text-white font-bold break-all">{proofResult.nullifier}</div>
             </div>
 
@@ -456,9 +456,9 @@ export const ProvePage: React.FC = () => {
                 type="button"
                 disabled={isVerifying}
                 onClick={handleVerifyOffChain}
-                className="btn-cut-border px-4 py-2.5 text-xs text-white font-medium inline-flex items-center gap-1.5 hover:bg-white/10"
+                className="h-[46px] px-5 rounded-[12px] border border-white/30 text-white text-[13.5px] font-[450] hover:bg-white/5 transition-colors inline-flex items-center gap-2"
               >
-                {isVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+                {isVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                 <span>Verify Off-Chain</span>
               </button>
 
@@ -466,16 +466,16 @@ export const ProvePage: React.FC = () => {
                 type="button"
                 disabled={isSubmittingOnChain}
                 onClick={handleSubmitOnChain}
-                className="btn-cut px-5 py-2.5 text-xs text-black font-medium inline-flex items-center gap-1.5 hover:bg-white/90"
+                className="h-[46px] px-6 bg-[#E9E9E9] rounded-[12px] text-[#0A0707] text-[14px] font-[450] hover:bg-white transition-opacity disabled:opacity-50 inline-flex items-center gap-2 font-medium"
               >
                 {isSubmittingOnChain ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>Submitting on MST...</span>
                   </>
                 ) : (
                   <>
-                    <Send className="w-3.5 h-3.5 mr-1.5" />
+                    <Send className="w-3.5 h-3.5" />
                     <span>Submit to MST ({targetNetwork.name})</span>
                   </>
                 )}
@@ -484,7 +484,7 @@ export const ProvePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate(`/app/verify/${onChainTxResult?.txHash || proofResult.nullifier}`)}
-                className="ml-auto text-xs text-neutral-300 hover:text-white inline-flex items-center gap-1 font-semibold"
+                className="ml-auto text-xs text-white/70 hover:text-white inline-flex items-center gap-1 font-[450]"
               >
                 <span>View Verification Gate</span>
                 <ArrowRight className="w-3.5 h-3.5" />

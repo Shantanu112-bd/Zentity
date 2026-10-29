@@ -123,12 +123,12 @@ export const VerifyPage: React.FC = () => {
         ],
       ]}
     >
-      <div className="space-y-6 text-center sm:text-left">
+      <div className="bg-[rgba(17,16,15,0.35)] backdrop-blur-[20px] rounded-[24px] border border-white/[0.06] p-6 sm:p-8 space-y-6 text-center sm:text-left">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
           <div className="flex items-center gap-2">
             <Link
               to="/app/prove"
-              className="text-xs text-neutral-400 hover:text-white inline-flex items-center gap-1 font-mono"
+              className="text-xs text-white/60 hover:text-white inline-flex items-center gap-1 font-mono"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Prover</span>
@@ -144,7 +144,7 @@ export const VerifyPage: React.FC = () => {
             <button
               type="button"
               onClick={fetchLiveState}
-              className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              className="p-1.5 text-white/50 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
               title="Refresh status"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? "animate-spin" : ""}`} />

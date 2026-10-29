@@ -246,3 +246,22 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
      - Measured UI performance: DOMContentLoaded 1,623 ms, Heap 70 MB, `/app/prove` running animation loops = 0.
      - Grep test for forbidden strings (`vortx|cloudfront|ubernatural|planet jumping`) returned 0 matches in frontend src.
      - Full test suite: 46/46 passing in 18s.
+
+
+---
+
+### [2026-10-29 13:42 IST] — Apogee Design System Overhaul & Verification
+- **Context:** User requested comprehensive UI overhaul to Apogee design system while strictly preserving all underlying cryptographic logic, state, and routes.
+- **Branch:** `ui/apogee-overhaul`.
+- **Executed:**
+  1. Integrated Suisse Intl typography via webfont stylesheet; configured `#080A19` surface, glass tokens (`rgba(10,7,7,0.35)`, `rgba(17,16,15,0.35)`), and cubic-bezier keyframes (`fade-up`, `fade-down`, `fade-left`, `fade-right`, `fade-scale`, `bar-grow`).
+  2. Implemented core Apogee components in `frontend/src/theme/apogee/`:
+     - `Animate.tsx`: dynamic entrance wrapper with forwards styling.
+     - `Nav.tsx`: 1800px max container, center pill navigation, right wallet/action pill with `#E9E9E9` button, and animated mobile drawer.
+     - `RevenueCard.tsx`: 32-bar synchronized staggered sequence, time axis, and telemetry display.
+     - `Hero.tsx`: full-screen video hero with left copy stack and right telemetry card.
+  3. Restyled `AppShell.tsx` and all working pages (`/app/prove`, `/app/verify`, `/app/dapp`, `/app/relying-party`) using Apogee glass panels and pill buttons.
+  4. Verified prover CPU isolation: 0 continuous animation loops on `/app/prove`.
+  5. 15 screenshots captured across 1440px, 768px, and 375px in `docs/evidence/ui/apogee/`.
+  6. Performance benchmarks measured: DOMContentLoaded 1,389ms, Heap 67MB, FCP 1,508ms (desktop unthrottled).
+  7. All 46 tests passing with zero regressions.

@@ -1,9 +1,9 @@
 :root {
-  --font-heading: 'Inter', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Suisse Intl', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Suisse Intl', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --bg-primary: #000000;
-  --bg-card: rgba(255, 255, 255, 0.08);
+  --bg-primary: #080A19;
+  --bg-card: rgba(17, 16, 15, 0.35);
 }
 
 * {
@@ -13,12 +13,13 @@
 }
 
 body {
-  font-family: var(--font-body);
-  background-color: #000000;
+  font-family: 'Suisse Intl', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #080A19;
   color: #ffffff;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, .font-heading {
@@ -27,6 +28,51 @@ h1, h2, h3, h4, .font-heading {
 
 code, pre, .font-mono {
   font-family: var(--font-mono);
+}
+
+/* ========================================================================= */
+/* Apogee Design System Keyframe Animations & Transitions                     */
+/* ========================================================================= */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-scale {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bar-grow {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+
+.animate-fade-up    { animation: fade-up    0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-down  { animation: fade-down  0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-left  { animation: fade-left  0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-right { animation: fade-right 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-scale { animation: fade-scale 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+.animate-bar-grow {
+  animation: bar-grow 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
 }
 
 /* Custom Scrollbar */
