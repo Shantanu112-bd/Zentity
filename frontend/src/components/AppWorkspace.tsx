@@ -198,7 +198,7 @@ export function AppWorkspace({ onBackToLanding }: AppWorkspaceProps) {
 /* PROVER TAB                                                                 */
 /* -------------------------------------------------------------------------- */
 
-function ProverTab({
+export function ProverTab({
   address,
   isConnected,
   isCorrectNetwork,
@@ -514,7 +514,7 @@ function ProverTab({
 /* VERIFIER TAB                                                               */
 /* -------------------------------------------------------------------------- */
 
-function VerifierTab({ targetNetwork }: any) {
+export function VerifierTab({ targetNetwork }: any) {
   const [txHash, setTxHash] = useState("");
   const { fetchReceipt, isLoading, error, txResult, reset } = useTxResult();
 
@@ -628,7 +628,7 @@ function VerifierTab({ targetNetwork }: any) {
 /* REGISTRY & SYBIL EXPLORER                                                  */
 /* -------------------------------------------------------------------------- */
 
-function RegistryTab({ targetNetwork }: any) {
+export function RegistryTab({ targetNetwork }: any) {
   const { isNullifierSpent, isIssuerRegistered, isRegistryPaused, isLoading } = useRegistry(targetNetwork);
 
   const [scopeId, setScopeId] = useState("1");
@@ -794,3 +794,4 @@ function RegistryTab({ targetNetwork }: any) {
     </div>
   );
 }
+
