@@ -89,3 +89,4 @@ export async function probeRpcEndpoint(url: string): Promise<RpcEndpointHealth> 
 export function getRpcHealthSnapshot(): RpcEndpointHealth[] {
   return Array.from(endpointHealthMap.values());
 }
+

@@ -1,0 +1,45 @@
+services:
+  # 1. Pramaan-ZK Fastify API & OIDC Provider
+  - type: web
+    name: pramaan-zk-api
+    env: node
+    plan: starter
+    region: frankfurt # or oregon, ohio, singapore
+    buildCommand: pnpm install
+    startCommand: pnpm run server
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        sync: false # Set securely in Render dashboard
+      - key: ISSUER_MASTER_KEY
+        sync: false # Set securely in Render dashboard (64-char hex)
+      - key: FRONTEND_ORIGIN
+        sync: false # Set to your Vercel URL (e.g. https://pramaan-zk.vercel.app)
+      - key: MST_CORAL_TESTNET_RPC
+        value: https://coralrpc.mstblockchain.com
+      - key: LOG_LEVEL
+        value: info
+
+  # 2. Pramaan-ZK Background Indexer Worker
+  - type: worker
+    name: pramaan-zk-indexer
+    env: node
+    plan: starter
+    region: frankfurt
+    buildCommand: pnpm install
+    startCommand: npx tsx scripts/pramaan/audit-indexer-events.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # Set securely in Render dashboard
+      - key: MST_CORAL_TESTNET_RPC
+        value: https://coralrpc.mstblockchain.com
+      - key: LOG_LEVEL
+        value: info

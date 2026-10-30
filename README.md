@@ -54,13 +54,13 @@ flowchart TD
 | **On-Chain Gas Consumption** | `REAL & MEASURED` | `PramaanVerifier.verifyProof`: 259,208 gas; `PramaanRegistry.verifyAndRecord`: 288,906 gas on MST Coral Testnet. |
 | **Circuit & Prover** | `REAL & VERIFIED` | `AgeCredential.circom` compiles to 5,014 constraints; snarkjs generates valid Groth16 proofs client-side in ~636ms (desktop unthrottled). Artifact hashes in `circuits/hashes.json`. |
 | **On-Chain Negative Paths** | `REAL & TESTED` | 7/7 negative paths verified on Coral testnet: tampered proof, unregistered issuer, chain mismatch, recipient mismatch, nullifier spent (replay), contract paused, tampered public signal. |
-| **Fastify API & OIDC-Lite** | `REAL & TESTED` | Fastify + `jose` issuing ES256 signed ID tokens with PKCE code verification, backed by PostgreSQL migrations and multi-tenant hashing. |
+| **Fastify API & OIDC-Lite** | `REAL & TESTED` | Fastify + `jose` issuing ES256 signed ID tokens with PKCE code verification, backed by PostgreSQL migrations, multi-tenant hashing, and envelope encryption. |
 | **Credential Container** | `SYNTHETIC (DEMO)` | EdDSA-Poseidon signature over BabyJubjub curve issued by persisted authority key. Real Aadhaar RSA-in-circuit is milestone M2. |
 | **Nullifier Formula** | `UNREVIEWED (DEMO)` | `nullifier = Poseidon(credentialSecret, scopeId)`. Unreviewed primitive; not formally audited. |
 | **Ceremony** | `DEV-ONLY` | Regenerated with runtime 64-byte random entropy (DEV-ONLY). Production multi-party ceremony required before release. |
-| **Database & Fail-Closed Storage** | `REAL & FAIL-CLOSED` | PostgreSQL database with SQL migrations. Server strictly fails closed outside `NODE_ENV=test` if `DATABASE_URL` is missing. |
+| **Database & Fail-Closed Storage** | `REAL & FAIL-CLOSED` | PostgreSQL database with SQL migrations and Row-Level Security (RLS). Server strictly fails closed outside `NODE_ENV=test` if `DATABASE_URL` is missing. |
 | **Government Channel** | `SIMULATED STUB` | Signed webhook simulation stub. Not a live government integration. |
-| **Contract Source on Explorer** | `UNVERIFIED` | Bytecode deployed and live on Coral Blockscout, but source code is not yet formally verified via explorer API. |
+| **Contract Source on Explorer** | `100% VERIFIED` | Source code 100% verified with green checkmarks on Coral Blockscout (`coral.mstscan.com`). |
 | **Contract Ownership** | `EOA SINGLE KEY` | Deployed and owned by single developer EOA (`0xded55a728b4ef6e91643ea947699c36e49cffefa`); multisig/timelock not yet configured. |
 
 ---
@@ -99,8 +99,14 @@ pnpm install
 
 ### Run Full Test Suite
 ```bash
-# Runs 58 automated unit, circuit, smart contract, and zero-egress tests
+# Runs 74 automated unit, circuit, smart contract, fail-closed, and zero-egress tests
 pnpm test
+```
+
+### Build Frontend
+```bash
+# Compiles Vite production bundle into frontend/dist
+pnpm run build:frontend
 ```
 
 ### Preflight Live Network Check
@@ -120,6 +126,12 @@ docker compose up -d
 echo 'DATABASE_URL="postgres://postgres:postgres@localhost:5432/pramaan"' >> .env
 ```
 
+### Run Migrations & RLS Verification
+```bash
+# Runs 001_initial_schema.sql and 002_enable_rls.sql, audits RLS status, and saves docs/evidence/
+pnpm run migrate:db
+```
+
 ### Start Development Server
 ```bash
 # Runs backend gateway (:3001) and Vite React app (:5173) concurrently
@@ -135,16 +147,55 @@ pnpm verify:tx <TRANSACTION_HASH>
 
 ---
 
-## 6. Known Limitations & Residual Risks
+## 6. Live Deployments & Environment Variables
 
-1. **Synthetic Credential:** This MVP uses EdDSA-Poseidon signatures over BabyJubjub. Real Aadhaar QR code verification (requiring 2048-bit RSA-SHA256 signature verification in Circom) is deferred to Milestone M2.
-2. **Unreviewed Nullifier Derivation:** The demo formula `nullifier = Poseidon(credentialSecret, scopeId)` has not undergone formal cryptanalytic audit.
-3. **DEV-ONLY Trusted Setup:** The Powers of Tau (pot13) ceremony was conducted locally for development and is not secure for production value transfer.
-4. **Stolen-QR Threat:** Without hardware secure-enclave device binding, a stolen QR credential can be proven by an unauthorized holder.
-5. **Contract Custody:** Contracts are currently owned by a single deployer EOA rather than a multi-sig / timelock.
-6. **In-Memory Volatile Persistence:** Backend OIDC auth codes, nonces, and challenge tokens are held in in-memory Maps and reset on process restart.
+### Verified Smart Contracts (MST Coral Testnet - Chain 54635)
+* **PramaanRegistry:** [`0x39f842043b7de6421ae21d5e4c955dd6cbaa415b`](https://coral.mstscan.com/address/0x39f842043b7de6421ae21d5e4c955dd6cbaa415b) (Blockscout Verified)
+* **PramaanVerifier:** [`0x1ad0bfee242e7ecae55bc4246352329555a3f91e`](https://coral.mstscan.com/address/0x1ad0bfee242e7ecae55bc4246352329555a3f91e) (Blockscout Verified)
+* **PrecompileProbe:** [`0x41219ca55d4ad3566ec4b85d74145be021f8455b`](https://coral.mstscan.com/address/0x41219ca55d4ad3566ec4b85d74145be021f8455b) (Blockscout Verified)
+* *Old Deprecated Registry:* `0x8c182a53fca78fe237734239bdb1256bc2658c5b` (Permanently paused in block `406441`, tx `0x247f7ae1...`)
+
+### Production Hosting Configuration
+
+#### Frontend: Vercel / Cloudflare Pages
+* **Root Directory:** `./` (or `frontend`)
+* **Build Command:** `pnpm run build:frontend` (or `pnpm run build` if root is `frontend`)
+* **Output Directory:** `frontend/dist` (or `dist` if root is `frontend`)
+* **Framework:** Vite
+* **Environment Variables:**
+  | Variable | Type | Description |
+  |---|---|---|
+  | `VITE_API_URL` | Public | URL of deployed Fastify backend (e.g. `https://pramaan-api.onrender.com`) |
+  *(Note: Never prefix database URLs, master keys, or private keys with `VITE_`)*
+
+#### Backend API & Indexer Worker: Render / Railway / Fly.io
+* **Health Check Path:** `/healthz`
+* **Docker:** Multi-stage `Dockerfile` (Node 22 Alpine, port `3001`)
+* **Render Manifest:** `render.yaml` (includes `pramaan-zk-api` web service and `pramaan-zk-indexer` worker)
+* **Environment Variables:**
+  | Variable | Type | Description |
+  |---|---|---|
+  | `DATABASE_URL` | **SECRET** | Managed PostgreSQL connection string (Supabase pooler on port 6543/5432) |
+  | `ISSUER_MASTER_KEY` | **SECRET** | 64-character hex master key for AES-256-GCM envelope encryption of issuer keys |
+  | `FRONTEND_ORIGIN` | Config | Allowed origin for strict CORS (e.g. `https://pramaan-zk.vercel.app`) |
+  | `MST_CORAL_TESTNET_RPC` | Config | `https://coralrpc.mstblockchain.com` |
+  | `PORT` | Config | `3001` |
+  | `NODE_ENV` | Config | `production` |
 
 ---
 
-## 7. License
+## 7. Limits & Explicit Boundary Conditions
+
+> [!CAUTION]
+> **Strict Operational Limits (Production Gates Blocked):**
+> 1. **Synthetic Testnet Issuer Only:** The current issuer signs self-entered dates of birth using an in-protocol BabyJubjub key. It does **not** consume or verify real Aadhaar XML, QR data, or government identity records. No UIDAI relationship or regulatory authorization exists.
+> 2. **DEV-ONLY Trusted Setup:** Circuit proving keys were generated using a local single-party ceremony with runtime entropy. A production deployment strictly requires an open multi-party trusted setup (MPC) before high-value deployment.
+> 3. **Unreviewed Nullifier Formula:** The nullifier derivation `Poseidon(credentialSecret, scopeId)` is an MVP construction and has **not** undergone peer-reviewed cryptanalytic publication or formal auditing.
+> 4. **No Smart Contract or Security Audit:** Smart contracts and circuits have been verified against 7/7 automated on-chain negative cases, but have **not** received an external third-party security audit.
+> 5. **No Legal or Regulatory Approval:** This software is an engineering proof-of-concept for Zero-Knowledge attribute proofs and carries no legal, regulatory, or governmental compliance certification.
+> 6. **Single EOA Admin Key:** Contract ownership on MST Coral Testnet currently belongs to a single developer EOA; ownership has not yet been transferred to a multisig or timelock contract.
+
+---
+
+## 8. License
 GPL-3.0 / MIT.

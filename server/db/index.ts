@@ -142,10 +142,16 @@ export class DatabaseService {
         );
       }
 
-      const migrationFile = path.resolve(__dirname, "migrations/001_initial_schema.sql");
-      if (fs.existsSync(migrationFile)) {
-        const sql = fs.readFileSync(migrationFile, "utf-8");
-        await this.pool.query(sql);
+      const migrationsDir = path.resolve(__dirname, "migrations");
+      if (fs.existsSync(migrationsDir)) {
+        const sqlFiles = fs
+          .readdirSync(migrationsDir)
+          .filter((f) => f.endsWith(".sql"))
+          .sort();
+        for (const file of sqlFiles) {
+          const sql = fs.readFileSync(path.join(migrationsDir, file), "utf-8");
+          await this.pool.query(sql);
+        }
       }
     }
   }

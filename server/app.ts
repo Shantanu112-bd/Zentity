@@ -63,10 +63,24 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
     disableRequestLogging: true,
   });
 
-  // CORS
+  // CORS (Strict Origin allowlist via FRONTEND_ORIGIN)
+  const frontendOrigin = process.env.FRONTEND_ORIGIN;
+  let corsOrigin: any = true;
+  if (frontendOrigin) {
+    const allowed = frontendOrigin.split(",").map((o) => o.trim()).filter(Boolean);
+    corsOrigin = (origin: string, cb: (err: Error | null, allow: boolean) => void) => {
+      if (!origin) return cb(null, true);
+      if (allowed.includes(origin) || (process.env.NODE_ENV !== "production" && (origin.includes("localhost") || origin.includes("127.0.0.1")))) {
+        return cb(null, true);
+      }
+      return cb(new Error(`CORS_NOT_ALLOWED: Origin '${origin}' is not permitted by FRONTEND_ORIGIN.`), false);
+    };
+  }
+
   await app.register(cors, {
-    origin: true,
+    origin: corsOrigin,
     methods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
   });
 
   // Rate Limiting (per-IP in memory without persisting or logging IPs)

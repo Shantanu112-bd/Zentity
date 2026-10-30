@@ -18,7 +18,9 @@
     "build:frontend": "vite build frontend",
     "server": "tsx server/index.ts",
     "test": "cross-env NODE_ENV=test hardhat test tests/*.test.ts",
-    "verify:tx": "cross-env NODE_ENV=test tsx scripts/pramaan/verify-tx.ts"
+    "verify:tx": "cross-env NODE_ENV=test tsx scripts/pramaan/verify-tx.ts",
+    "migrate:db": "tsx scripts/pramaan/migrate-and-verify-db.ts",
+    "test:smoke": "tsx scripts/pramaan/smoke-test-live.ts"
   },
   "devDependencies": {
     "@noble/curves": "^2.4.0",

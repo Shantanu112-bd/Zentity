@@ -145,3 +145,4 @@ pnpm verify:tx <TRANSACTION_HASH>
 3. [ ] Click **"REQUEST TESTNET CREDENTIAL"** &rarr; **"SYNTHESIZE ZK PROOF"**.
 4. [ ] Confirm the newly derived Nullifier is completely different from the Scope 1 Nullifier (zero linkability across scopes).
 5. [ ] Click **"SUBMIT TO PRAMAANREGISTRY"** &rarr; confirm settlement succeeds on Coral testnet.
+

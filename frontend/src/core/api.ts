@@ -32,8 +32,8 @@ export interface IssueCredentialResponse {
 export class ApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = "") {
-    this.baseUrl = baseUrl;
+  constructor(baseUrl: string = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_URL) || "") {
+    this.baseUrl = baseUrl.replace(/\/+$/, "");
   }
 
   async getRegistryInfo(): Promise<RegistryInfoResponse> {
