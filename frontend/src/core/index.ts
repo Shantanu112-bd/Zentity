@@ -11,6 +11,13 @@ export * from "./contracts.ts";
 export * from "./prover.ts";
 export * from "./api.ts";
 
+// Canonical Services
+export * from "./services/types.ts";
+export * from "./services/protocolService.ts";
+
+// Reactive State Context
+export * from "./context/DappContext.tsx";
+
 // Hooks
 export * from "./hooks/useWallet.ts";
 export * from "./hooks/useNetwork.ts";
