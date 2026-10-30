@@ -42,4 +42,19 @@ module.exports = {
       accounts,
     },
   },
+  etherscan: {
+    apiKey: {
+      mstCoralTestnet: "empty",
+    },
+    customChains: [
+      {
+        network: "mstCoralTestnet",
+        chainId: 54635,
+        urls: {
+          apiURL: "https://coral.mstscan.com/api",
+          browserURL: "https://coral.mstscan.com",
+        },
+      },
+    ],
+  },
 };

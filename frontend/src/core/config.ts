@@ -16,9 +16,9 @@ export const DEFAULT_CORAL: NetworkInfo = {
   symbol: "tMSTC",
   explorerUrl: "https://coral.mstscan.com",
   label: "CORAL TESTNET",
-  registryAddress: "0x8c182a53fca78fe237734239bdb1256bc2658c5b",
-  verifierAddress: "0xed8fe30962b3df64accdf867a355c68addedbf28",
-  probeAddress: "0x94b9b520b975e20e82ce5862c523bfe389c12ed3",
+  registryAddress: "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b",
+  verifierAddress: "0x1ad0bfee242e7ecae55bc4246352329555a3f91e",
+  probeAddress: "0x41219ca55d4ad3566ec4b85d74145be021f8455b",
 };
 
 export const DEFAULT_LEGACY: NetworkInfo = {

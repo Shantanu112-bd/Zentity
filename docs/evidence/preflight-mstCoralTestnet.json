@@ -1,0 +1,96 @@
+{
+  "network": "mstCoralTestnet",
+  "name": "MST Coral Testnet",
+  "rpcUrl": "https://coralrpc.mstblockchain.com",
+  "expectedChainId": 54635,
+  "timestamp": "2026-10-30T19:38:42.546Z",
+  "calls": {
+    "eth_chainId": {
+      "result": "0xd56b",
+      "latencyMs": 1256
+    },
+    "net_version": {
+      "result": "54635",
+      "latencyMs": 311
+    },
+    "web3_clientVersion": {
+      "result": "Geth/v1.7.8-cdb7548b-20260811/linux-amd64/go1.25.0",
+      "latencyMs": 304
+    },
+    "eth_gasPrice": {
+      "result": "0x3b9aca00",
+      "latencyMs": 307
+    },
+    "eth_getBalance": {
+      "result": "0x0",
+      "latencyMs": 307
+    },
+    "eth_getBlockByNumber": {
+      "result": {
+        "baseFeePerGas": "0x0",
+        "blobGasUsed": "0x0",
+        "difficulty": "0x2",
+        "excessBlobGas": "0x0",
+        "extraData": "0xda8301070888636462373534386288676f312e32352e30836c696e002f0e5b9bf8b007b860aabd21a829faa4cd66e29a73d5e582910e100cb5a9f9443bf7b0ae3f9e8ac165d6e67066abeeff39c3968e44157254f70b4fab860aa0dfbaea768dbc39e6c816636321f2642af9157e7f125043bdab91974b5fa9d2566ee6ed889bd3953147f7f84a83063131a03c469e2110ba26edc7fe9ea3010045eaa8d80534e179d632c4bde37e5247e1e383063132a0393b328256f442d94cd7bdc86dd5bb16b0f5146d66f593f42eff6f5e937b1293800d28b9dd709edce303d8ad21940262386c1ad6e6a7d9de281ec0265b09f84db20502b985c4e8fc4006aabce72e885a0996aa81198d0787011bf3f5e81f683e7a00",
+        "gasLimit": "0x1c9c380",
+        "gasUsed": "0x0",
+        "hash": "0x03bc4df8cf3778283b28556ccd06d04884687fdf4af71d32b987052d2c205202",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "milliTimestamp": "0x1a18e525afe",
+        "miner": "0x615b191377a7b8e3e3ceeaa4ee8340a3b49ff1aa",
+        "mixHash": "0x000000000000000000000000000000000000000000000000000000000000015e",
+        "nonce": "0x0000000000000000",
+        "number": "0x63133",
+        "parentBeaconBlockRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "parentHash": "0x393b328256f442d94cd7bdc86dd5bb16b0f5146d66f593f42eff6f5e937b1293",
+        "receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "requestsHash": "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha3Uncles": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+        "size": "0x37c",
+        "stateRoot": "0xb86b98e1f32b42f2541ee6aaf87939c3ac90ac659a2a427be8ab60110c67c1af",
+        "timestamp": "0x6ae4f244",
+        "totalDifficulty": "0xc620a",
+        "transactions": [],
+        "transactionsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "uncles": [],
+        "withdrawals": [],
+        "withdrawalsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+      },
+      "latencyMs": 309
+    },
+    "eth_estimateGas": {
+      "error": {
+        "code": -32000,
+        "message": "failed with 16777216 gas: insufficient funds for gas * price + value: address 0x0000000000000000000000000000000000000001 have 0 want 1"
+      },
+      "latencyMs": 311
+    }
+  },
+  "blockSummary": {
+    "blockNum": 405811,
+    "gasLimit": 30000000,
+    "blockTime": 1793389124,
+    "hash": "0x03bc4df8cf3778283b28556ccd06d04884687fdf4af71d32b987052d2c205202"
+  },
+  "blockSamples": [
+    {
+      "index": 1,
+      "blockNumber": 405811,
+      "timestamp": 1793389125968,
+      "latencyMs": 304
+    },
+    {
+      "index": 2,
+      "blockNumber": 405815,
+      "timestamp": 1793389136909,
+      "latencyMs": 942
+    },
+    {
+      "index": 3,
+      "blockNumber": 405818,
+      "timestamp": 1793389149358,
+      "latencyMs": 2449
+    }
+  ],
+  "observedBlockTimeSec": "3.34"
+}

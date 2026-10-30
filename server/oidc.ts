@@ -1,23 +1,14 @@
 import crypto from "crypto";
 import * as jose from "jose";
+import { db } from "./db/index.ts";
+import type { OidcSessionRecord, TenantRecord } from "./db/index.ts";
 
 export interface OidcTenant {
   clientId: string;
-  clientSecret: string;
+  clientSecretHash: string;
   redirectUris: string[];
   name: string;
 }
-
-export const SEEDED_TENANT: OidcTenant = {
-  clientId: "demo-relying-party",
-  clientSecret: "demo-client-secret-not-for-production",
-  redirectUris: [
-    "http://localhost:5173/relying-party",
-    "http://127.0.0.1:5173/relying-party",
-    "http://localhost:3000/relying-party",
-  ],
-  name: "Demo Age-Gated Relying Party",
-};
 
 export interface AuthSession {
   code: string;
@@ -27,11 +18,11 @@ export interface AuthSession {
   codeChallengeMethod: string;
   state: string;
   nullifier?: string;
-  createdAt: number;
+  scopeId?: string;
+  expiresAt: Date;
 }
 
-const authSessions = new Map<string, AuthSession>();
-const HMAC_SECRET = "pramaan-zk-demo-pairwise-sub-hmac-secret-2026";
+const HMAC_SECRET = process.env.PAIRWISE_HMAC_SECRET || "pramaan-zk-pairwise-sub-hmac-secret-2026";
 
 let keyPair: jose.GenerateKeyPairResult | null = null;
 let publicJwks: any = null;
@@ -40,7 +31,7 @@ export async function getSigningKey() {
   if (!keyPair) {
     keyPair = await jose.generateKeyPair("ES256", { extractable: true });
     const jwk = await jose.exportJWK(keyPair.publicKey);
-    jwk.kid = "pramaan-demo-key-1";
+    jwk.kid = "pramaan-signing-key-1";
     jwk.use = "sig";
     jwk.alg = "ES256";
     publicJwks = { keys: [jwk] };
@@ -63,45 +54,53 @@ export function verifyPkce(verifier: string, challenge: string, method: string):
       .digest("base64url");
     return computed === challenge;
   }
-  if (method === "plain") {
-    return verifier === challenge;
-  }
-  return false;
+  return verifier === challenge;
 }
 
-export function storeAuthSession(session: AuthSession) {
-  authSessions.set(session.code, session);
+export async function storeAuthSession(session: AuthSession): Promise<void> {
+  await db.storeOidcSession({
+    code: session.code,
+    clientId: session.clientId,
+    redirectUri: session.redirectUri,
+    codeChallenge: session.codeChallenge,
+    codeChallengeMethod: session.codeChallengeMethod,
+    state: session.state,
+    nullifier: session.nullifier,
+    scopeId: session.scopeId,
+    expiresAt: session.expiresAt,
+  });
 }
 
-export function getAuthSession(code: string): AuthSession | undefined {
-  return authSessions.get(code);
+export async function consumeAuthSession(code: string): Promise<OidcSessionRecord | null> {
+  return await db.consumeOidcSession(code);
 }
 
-export function consumeAuthSession(code: string): AuthSession | undefined {
-  const session = authSessions.get(code);
-  if (session) {
-    authSessions.delete(code);
-  }
-  return session;
+export async function getTenant(clientId: string): Promise<TenantRecord | null> {
+  return await db.getTenantByClientId(clientId);
 }
 
 export async function createIdToken(params: {
   sub: string;
   clientId: string;
   issuerUrl: string;
+  scopeId?: string;
 }): Promise<string> {
   const { privateKey } = await getSigningKey();
-  return await new jose.SignJWT({
+
+  const jwt = await new jose.SignJWT({
     sub: params.sub,
     aud: params.clientId,
     iss: params.issuerUrl,
     age_over_18: true,
+    scope_id: params.scopeId || "1",
     attribute_proven: "AGE_GE_18",
-    credential_type: "SYNTHETIC_DEMO",
-    notice: "demo-grade; not a conformance-tested OIDC provider",
+    credential_type: "SYNTHETIC_ATTESTATION",
+    notice: "zero-pii attribute attestation; pairwise pseudonymous sub",
   })
-    .setProtectedHeader({ alg: "ES256", kid: "pramaan-demo-key-1" })
+    .setProtectedHeader({ alg: "ES256", kid: "pramaan-signing-key-1" })
     .setIssuedAt()
     .setExpirationTime("1h")
     .sign(privateKey);
+
+  return jwt;
 }

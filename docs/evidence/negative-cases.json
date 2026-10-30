@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-28T22:54:29.289Z",
+  "timestamp": "2026-10-30T20:03:25.692Z",
   "network": "mstCoralTestnet",
   "chainId": 54635,
   "environment": "MST Live Testnet (MST Coral Testnet)",
-  "registryAddress": "0x8c182a53fca78fe237734239bdb1256bc2658c5b",
-  "verifierAddress": "0xed8fe30962b3df64accdf867a355c68addedbf28",
+  "registryAddress": "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b",
+  "verifierAddress": "0x1ad0bfee242e7ecae55bc4246352329555a3f91e",
   "cases": {
     "TamperedProof": {
       "expected": "REVERT(InvalidProof)",

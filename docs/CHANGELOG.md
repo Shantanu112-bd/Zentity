@@ -5,6 +5,37 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-31
+### Added - Mainnet Parity Foundation (Priority 1) & On-Chain Blockscout Verification
+- **Database Persistence Layer (`server/db/`):**
+  - Supabase/PostgreSQL schema (`001_initial_schema.sql`) with tables for `tenants`, `oidc_sessions`, `wallet_nonces`, `indexer_cursor`, `verified_events`, `webhooks`, and `issuer_keys`.
+  - Database service (`server/db/index.ts`) supporting live PostgreSQL via `pg.Pool` with an exact-parity in-memory relational adapter when `DATABASE_URL` is unconfigured.
+  - Replaced in-memory OIDC auth sessions and wallet nonces with database storage and atomic consumption.
+- **Multi-Tenant Relying Party System (`server/db/seed-tenants.ts`):**
+  - Tenant admin seeding script with timing-safe SHA256 hashed client secret verification.
+  - Dynamically validates client IDs and exact redirect URIs against registered tenants in the database.
+- **Persistent Blockchain Indexer (`server/services/indexerService.ts`):**
+  - Resumable cursor tracking `ProofVerifiedAndRecorded` events on MST Coral Testnet.
+  - Block continuity parent hash validation with automated rollback up to 6 blocks on reorg detection.
+  - Idempotent event ingestion storing zero-PII records into `verified_events`.
+- **Stable Persisted Issuer Key (`server/services/issuerKeyService.ts`):**
+  - Automatically loads or creates the BabyJubjub issuer key, persisting metadata in the `issuer_keys` table.
+- **Generic Signed Webhook Worker (`server/services/webhookService.ts`):**
+  - Generic signed webhook delivery queue with HMAC-SHA256 signatures, `X-Pramaan-Signature`, `X-Pramaan-Timestamp`, retry backoff (3 attempts), and Dead Letter Queue (DLQ) status tracking.
+- **Proving Key Regeneration with Runtime Random Entropy:**
+  - Deleted static committed seed string from `scripts/pramaan/build-circuit.ts`. Proving key now contributed using `crypto.randomBytes(64)` generated in-memory at runtime.
+  - Labeled `verification_key.json` and `PramaanVerifier.sol` explicitly as DEV-ONLY.
+- **Redeployment & 100% Explorer Verification on MST Coral Testnet (`54635`):**
+  - Deployed newly generated verifier and registry to Coral:
+    - `PrecompileProbe`: [`0x41219ca55d4ad3566ec4b85d74145be021f8455b`](https://coral.mstscan.com/address/0x41219ca55d4ad3566ec4b85d74145be021f8455b#code) (Verified on Blockscout)
+    - `PramaanVerifier`: [`0x1ad0bfee242e7ecae55bc4246352329555a3f91e`](https://coral.mstscan.com/address/0x1ad0bfee242e7ecae55bc4246352329555a3f91e#code) (Verified on Blockscout)
+    - `PramaanRegistry`: [`0x39f842043b7de6421ae21d5e4c955dd6cbaa415b`](https://coral.mstscan.com/address/0x39f842043b7de6421ae21d5e4c955dd6cbaa415b#code) (Verified on Blockscout)
+  - Demo Issuer registered on-chain in tx `0xd9fe8ee9587eff249dc9e753f1cf3b95c20182f758d9cc751c8dda5013f26407`.
+  - Re-measured gas on-chain: `PramaanRegistry.verifyAndRecord` = 288,906 gas (tx `0xa1851b443b6490e8a21384e83c1c649616f6679010bce72a196575407f88582d`).
+  - 7/7 on-chain simulated negative paths verified on Coral testnet.
+- **Automated Test Suite Expansion:**
+  - Added `tests/database-and-tenants.test.ts` with 6 dedicated test suites covering tenant secret verification, OIDC session consumption, issuer key persistence, indexer reorg rollback, and webhook HMAC signature tolerance. Total test suite expanded to **64 passing tests**.
+
 ## [0.5.0] - 2026-10-31
 ### Added - Web3 dApp System Integration & Cinematic Liquid-Glass UI
 - **Decoupled Canonical Service Layer (`frontend/src/core/services/`):**

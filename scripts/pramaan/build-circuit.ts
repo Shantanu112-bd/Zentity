@@ -1,6 +1,7 @@
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 
 async function main() {
   console.log("=== Building Pramaan-ZK Age Credential Circuit ===");
@@ -26,9 +27,14 @@ async function main() {
 
   execSync(`npx snarkjs groth16 setup "${r1csFile}" "${ptauFile}" "${zkey0}"`, { stdio: "inherit" });
 
-  // 3. Contribute to zkey
-  console.log("[3/5] Contributing randomness to zkey (DEV-ONLY)...");
-  execSync(`npx snarkjs zkey contribute "${zkey0}" "${zkeyFinal}" --name="DEV-ONLY Ceremony" -v -e="pramaan-zk-dev-only-seed-entropy"`, { stdio: "inherit" });
+  // 3. Contribute Random Runtime Entropy (Never Committed, In-Memory Only)
+  console.log("[3/5] Contributing fresh runtime random entropy to zkey (DEV-ONLY)...");
+  // Generated at runtime, never logged, never committed
+  const runtimeRandomEntropy = crypto.randomBytes(64).toString("hex");
+  execSync(
+    `npx snarkjs zkey contribute "${zkey0}" "${zkeyFinal}" --name="DEV-ONLY Prototype Ceremony" -v -e="${runtimeRandomEntropy}"`,
+    { stdio: "pipe" } // piped to prevent printing runtime entropy to stdout
+  );
 
   // 4. Export Verification Key
   console.log("[4/5] Exporting verification key...");
@@ -47,7 +53,10 @@ async function main() {
 
   // Rename contract Groth16Verifier to PramaanVerifier to avoid name collisions
   let verifierCode = fs.readFileSync(verifierSol, "utf-8");
-  verifierCode = verifierCode.replace("contract Groth16Verifier {", "contract PramaanVerifier {\n    // DEV-ONLY: Generated for Pramaan-ZK MVP Prototype\n");
+  verifierCode = verifierCode.replace(
+    "contract Groth16Verifier {",
+    "contract PramaanVerifier {\n    // DEV-ONLY: Generated for Pramaan-ZK MVP Prototype with runtime random entropy\n"
+  );
   fs.writeFileSync(verifierSol, verifierCode);
 
   // Clean up intermediate zkey0
@@ -55,7 +64,7 @@ async function main() {
     fs.unlinkSync(zkey0);
   }
 
-  console.log("[SUCCESS] Pramaan-ZK circuit and verifier built successfully!");
+  console.log("[SUCCESS] Pramaan-ZK circuit, proving key, and verifier regenerated with runtime entropy!");
 }
 
 main().catch((err) => {

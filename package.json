@@ -23,6 +23,7 @@
     "@noble/curves": "^2.4.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
     "@types/node": "^22.10.1",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
@@ -47,6 +48,7 @@
     "fastify": "^5.12.7",
     "jose": "^6.2.13",
     "lucide-react": "^1.62.0",
+    "pg": "^8.23.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5"

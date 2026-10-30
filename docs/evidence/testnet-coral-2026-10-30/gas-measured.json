@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-10-30T20:02:37.733Z",
+  "network": "mstCoralTestnet",
+  "chainId": 54635,
+  "environment": "MST Live Testnet (MST Coral Testnet)",
+  "contracts": {
+    "PrecompileProbe": "0x41219ca55d4ad3566ec4b85d74145be021f8455b",
+    "PramaanVerifier": "0x1ad0bfee242e7ecae55bc4246352329555a3f91e",
+    "PramaanRegistry": "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b"
+  },
+  "measuredOnChain": {
+    "0x06_ecAdd": {
+      "measuredGas": 552,
+      "targetBudget": "<= 1,000 gas",
+      "status": "MEASURED (MST_CORAL_TESTNET)",
+      "description": "BN254 curve point addition via native precompile staticcall"
+    },
+    "0x07_ecMul": {
+      "measuredGas": 6396,
+      "targetBudget": "<= 10,000 gas",
+      "status": "MEASURED (MST_CORAL_TESTNET)",
+      "description": "BN254 curve scalar multiplication via native precompile staticcall"
+    },
+    "0x08_ecPairing": {
+      "measuredGas": 113447,
+      "targetBudget": "<= 150,000 gas",
+      "status": "MEASURED (MST_CORAL_TESTNET)",
+      "description": "BN254 curve bilinear pairing check via native precompile staticcall"
+    },
+    "PramaanVerifier_verifyProof": {
+      "measuredGas": 259208,
+      "targetBudget": "<= 300,000 gas",
+      "status": "MEASURED (MST_CORAL_TESTNET)"
+    },
+    "PramaanRegistry_verifyAndRecord": {
+      "measuredGas": 288906,
+      "targetBudget": "<= 350,000 gas",
+      "txHash": "0xa1851b443b6490e8a21384e83c1c649616f6679010bce72a196575407f88582d",
+      "explorerUrl": "https://coral.mstscan.com/tx/0xa1851b443b6490e8a21384e83c1c649616f6679010bce72a196575407f88582d",
+      "status": "MEASURED (MST_CORAL_TESTNET)"
+    }
+  },
+  "earlierLocalBenchmarks": {
+    "note": "Relabeled as LOCAL figures from Hardhat Node (Chain 31337) prior to Coral testnet deployment",
+    "local_0x06_ecAdd": 552,
+    "local_0x07_ecMul": 6396,
+    "local_0x08_ecPairing": 113447,
+    "local_verifyProof": 255949,
+    "local_verifyAndRecord": 288846
+  },
+  "blockGasLimitComparison": {
+    "officialDocumentationClaim": "15,000,000 / 30,000,000",
+    "measuredCoralTestnetLive": 30000000,
+    "measuredLegacyTestnetLive": 55000000,
+    "measuredMainnetLive": 30000000,
+    "discrepancyNote": "Official MST docs claim 15M/30M. Live Coral RPC reports 30M (0x1c9c380). Live Legacy testnet reports 55M (0x3473bc0). Live Mainnet reports 30M (0x1c9c380). Recorded as-is per Prime Directive 1 & 2."
+  }
+}

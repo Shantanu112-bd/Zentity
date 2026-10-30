@@ -301,3 +301,32 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
   - Step 03 Viem Errors: Parameter swap in `simulateVerifyAndRecord` caused `undefined.0` lookup; missing `chain` in `createWalletClient` caused Viem "No chain was provided to the request". Fixed by correcting parameter order and binding `getViemChain(network)`.
 - Security/privacy implications: Strict zero-PII and zero-egress policies enforced. No private credential data leaves client memory.
 - Next action: Push branch `reset/ui-and-onchain` to origin.
+
+### [2026-10-31 01:35 IST] MAINNET-PARITY — P0 Real Backbone & Contract Verification
+- Agent/env: Antigravity / macOS Darwin arm64
+- Intent / acceptance criteria: Complete Priority 1 backlog items, verify contracts on Blockscout, regenerate proving key with runtime random entropy, and redeploy to MST Coral Testnet:
+  1. Replace in-memory OIDC codes/PKCE/nonces/sessions with database persistence (`server/db/`).
+  2. Implement multi-tenant relying party admin seeding (`server/db/seed-tenants.ts`) with timing-safe hashed client secrets.
+  3. Build persistent blockchain indexer (`server/services/indexerService.ts`) with cursor tracking, idempotent event ingestion, and parent-hash reorg rollback (6-block safety buffer).
+  4. Make BabyJubjub issuer key stable and persisted in database (`server/services/issuerKeyService.ts`).
+  5. Convert government stub to generic signed webhook feature (`server/services/webhookService.ts`) with HMAC-SHA256 signatures and DLQ tracking.
+  6. Regenerate proving key using runtime random entropy (`crypto.randomBytes(64)`), deleting static seed strings from git history, and labeling DEV-ONLY.
+  7. Redeploy verifier and registry to MST Coral Testnet (`54635`) and verify 100% of contract source codes on Blockscout (`coral.mstscan.com`).
+- Files created/modified:
+  - Created: `server/db/migrations/001_initial_schema.sql`, `server/db/index.ts`, `server/db/seed-tenants.ts`.
+  - Created: `server/services/issuerKeyService.ts`, `server/services/indexerService.ts`, `server/services/webhookService.ts`.
+  - Created: `tests/database-and-tenants.test.ts`.
+  - Modified: `scripts/pramaan/build-circuit.ts`, `server/app.ts`, `server/oidc.ts`, `frontend/src/core/config.ts`, `contracts/PramaanVerifier.sol`, `contracts/deployed-addresses.json`, `hardhat.config.cjs`, `README.md`.
+- Commands actually run (exact) and result summary:
+  - `pnpm test`: 64/64 tests passing across all suites (Pass).
+  - `pnpm run build:circuit`: Successfully regenerated proving key and verifier with fresh runtime random entropy (Pass).
+  - `pnpm run deploy:coral`: Deployed `PrecompileProbe` (`0x41219ca...`), `PramaanVerifier` (`0x1ad0bfe...`), and `PramaanRegistry` (`0x39f842...`) to MST Coral Testnet (Pass).
+  - `npx hardhat verify --network mstCoralTestnet <addresses>`: 3/3 contracts successfully verified with green source code on Blockscout (Pass).
+  - `npx hardhat run scripts/pramaan/measure-gas.ts --network mstCoralTestnet`: verifyAndRecord gas = 288,906 gas, tx `0xa1851b443b6490e8a21384e83c1c649616f6679010bce72a196575407f88582d` (Pass).
+  - `npx hardhat run scripts/pramaan/run-negative-cases.ts --network mstCoralTestnet`: 7/7 on-chain negative cases reverted as expected (Pass).
+  - `pnpm run build:frontend`: Built Vite bundle in 1.80s (Pass).
+- Security/privacy implications:
+  - Private entropy is generated at runtime and never committed to git.
+  - Client secret verification uses timing-safe equality (`crypto.timingSafeEqual`).
+  - Zero PII stored in database or emitted in indexer events.
+- Next action: Report Priority 1-4 completion to user.

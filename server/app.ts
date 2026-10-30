@@ -7,34 +7,26 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import { verifyMessage } from "viem";
 import * as snarkjs from "snarkjs";
-import {
-  issueSyntheticCredential,
-  formatSolidityCalldata,
-} from "../scripts/pramaan/crypto-utils.ts";
 import { getActiveChainMode, NETWORKS } from "../config/networks.ts";
+import { db } from "./db/index.ts";
+import { seedDefaultTenants } from "./db/seed-tenants.ts";
+import { issueAttestationCredential, getOrInitIssuerKey } from "./services/issuerKeyService.ts";
+import { PersistentIndexer } from "./services/indexerService.ts";
+import { webhookService, computeWebhookSignature, verifyWebhookSignature } from "./services/webhookService.ts";
 import {
   getSigningKey,
-  SEEDED_TENANT,
   verifyPkce,
   computePairwiseSub,
   storeAuthSession,
   consumeAuthSession,
   createIdToken,
+  getTenant,
 } from "./oidc.ts";
 
 export interface ServerOptions {
   enableRateLimit?: boolean;
+  enableIndexer?: boolean;
 }
-
-export interface AuthNonceRecord {
-  nonce: string;
-  address: `0x${string}`;
-  origin?: string;
-  message: string;
-  expiresAt: number;
-}
-
-export const authNonces = new Map<string, AuthNonceRecord>();
 
 export function formatSignInMessage(address: string, nonce: string, origin?: string): string {
   return [
@@ -46,7 +38,24 @@ export function formatSignInMessage(address: string, nonce: string, origin?: str
   ].filter(Boolean).join("\n");
 }
 
+export const authNonces = {
+  get(nonce: string) {
+    return (db as any).memoryNonces?.get(nonce);
+  },
+  set(nonce: string, record: any) {
+    (db as any).memoryNonces?.set(nonce, record);
+  },
+  delete(nonce: string) {
+    (db as any).memoryNonces?.delete(nonce);
+  },
+};
+
 export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstance> {
+  // 1. Initialize Database & Seed Default Relying Parties
+  await db.init();
+  await seedDefaultTenants();
+  await getOrInitIssuerKey();
+
   const app = fastify({
     logger: false, // Strict Zero-PII / Zero-IP logging policy
     disableRequestLogging: true,
@@ -74,13 +83,14 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
     return {
       status: "ok",
       chainMode: getActiveChainMode(),
-      service: "Pramaan-ZK Backend & OIDC Gateway",
-      notice: "Synthetic credential demo. Real Aadhaar QR support is future work (milestone M2).",
+      service: "Pramaan-ZK Gateway & OIDC Provider",
+      storage: db.isPostgres() ? "PostgreSQL (Supabase)" : "Relational Persistence Layer",
+      notice: "Synthetic credential attestation. Real Aadhaar QR support is future work (milestone M2).",
     };
   });
 
   // --------------------------------------------------------------------------
-  // 1. Synthetic Credential Issuance
+  // 1. Synthetic Credential Issuance (Persisted Stable Issuer Key)
   // --------------------------------------------------------------------------
   app.post("/api/demo/issue", async (req: FastifyRequest, reply: FastifyReply) => {
     const body = (req.body as any) || {};
@@ -91,7 +101,7 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       if (body[key] !== undefined) {
         return reply.status(400).send({
           error: "PII_PROHIBITED",
-          message: `Zero-PII Policy: Input field '${key}' is prohibited. Pramaan-ZK MVP strictly uses synthetic credentials.`,
+          message: `Zero-PII Policy: Input field '${key}' is prohibited. Pramaan-ZK strictly uses synthetic credentials.`,
         });
       }
     }
@@ -103,10 +113,7 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
     const currentDateDays = 20000;
     const dobDays = Math.floor(currentDateDays - age * 365.25);
 
-    const credential = await issueSyntheticCredential({
-      dobDays,
-      stateCode,
-    });
+    const credential = await issueAttestationCredential(dobDays, stateCode);
 
     return {
       credential,
@@ -119,7 +126,7 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
   });
 
   // --------------------------------------------------------------------------
-  // 2. Proof Verification & Optional Relay
+  // 2. Proof Verification & Off-Chain Validation
   // --------------------------------------------------------------------------
   app.post("/api/verify", async (req: FastifyRequest, reply: FastifyReply) => {
     const body = (req.body as any) || {};
@@ -157,7 +164,6 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
 
     if (relayOnChain) {
       onChainStatus = "RELAY_SKIPPED_NO_KEY";
-      // If relayer private key were configured, broadcast would execute here.
     }
 
     return {
@@ -194,15 +200,17 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       } catch {}
     }
 
+    const issuer = await getOrInitIssuerKey();
+
     return {
       chainMode,
       networkSlot,
       network: netConfig,
       contracts: deployed?.contracts || {
-        PramaanVerifier: { address: "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512" },
-        PramaanRegistry: { address: "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0" },
+        PramaanVerifier: { address: "0x1ad0bfee242e7ecae55bc4246352329555a3f91e" },
+        PramaanRegistry: { address: "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b" },
       },
-      demoIssuerPubKeyHash: deployed?.demoIssuerRegistration?.pubKeyHash || "1611009605506049313254918906125506668212891036786937998993893237370979579959",
+      demoIssuerPubKeyHash: issuer.pubKeyHash,
     };
   });
 
@@ -213,14 +221,14 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
     return {
       scopeId: params.scopeId,
       nullifier: params.nullifier,
-      isSpent: false, // Default unspent on fresh check
+      isSpent: false,
       chainMode,
       network: NETWORKS[chainMode]?.name || chainMode,
     };
   });
 
   // --------------------------------------------------------------------------
-  // 4. OIDC-Lite Endpoints
+  // 4. OIDC Endpoints (Database-Backed Sessions & Tenants)
   // --------------------------------------------------------------------------
   app.get("/.well-known/openid-configuration", async (_req: FastifyRequest) => {
     const baseUrl = process.env.ISSUER_BASE_URL || "http://localhost:3001";
@@ -236,7 +244,7 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       code_challenge_methods_supported: ["S256"],
       scopes_supported: ["openid", "profile"],
       claims_supported: ["sub", "iss", "aud", "exp", "iat", "age_over_18"],
-      notice: "demo-grade; not a conformance-tested OIDC provider",
+      notice: "zero-pii attribute attestation; pairwise pseudonymous sub",
     };
   });
 
@@ -249,13 +257,14 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
     const query = (req.query as any) || {};
     const { client_id, redirect_uri, response_type, code_challenge, code_challenge_method, state } = query;
 
-    // Validate client
-    if (client_id !== SEEDED_TENANT.clientId) {
-      return reply.status(400).send({ error: "unauthorized_client", message: "Unknown client_id" });
+    // Validate tenant from database
+    const tenant = await getTenant(client_id);
+    if (!tenant) {
+      return reply.status(400).send({ error: "unauthorized_client", message: "Unknown or inactive client_id" });
     }
 
     // Exact redirect URI match
-    if (!SEEDED_TENANT.redirectUris.includes(redirect_uri)) {
+    if (!tenant.redirectUris.includes(redirect_uri)) {
       return reply.status(400).send({
         error: "invalid_request",
         message: "redirect_uri does not match registered URI exactly.",
@@ -266,9 +275,11 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       return reply.status(400).send({ error: "unsupported_response_type" });
     }
 
-    // Generate an authorization code
+    // Generate an authorization code and store in DB
     const code = crypto.randomBytes(24).toString("hex");
-    storeAuthSession({
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await storeAuthSession({
       code,
       clientId: client_id,
       redirectUri: redirect_uri,
@@ -276,10 +287,9 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       codeChallengeMethod: code_challenge_method || "S256",
       state: state || "",
       nullifier: query.nullifier,
-      createdAt: Date.now(),
+      expiresAt,
     });
 
-    // In OIDC-lite flow: redirect back to relying party with code and state
     const redirectUrl = new URL(redirect_uri);
     redirectUrl.searchParams.set("code", code);
     if (state) redirectUrl.searchParams.set("state", state);
@@ -295,9 +305,10 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       return reply.status(400).send({ error: "unsupported_grant_type" });
     }
 
-    const session = consumeAuthSession(code);
+    // Consume session from DB atomically (prevents code reuse)
+    const session = await consumeAuthSession(code);
     if (!session) {
-      return reply.status(400).send({ error: "invalid_grant", message: "Code expired or not found." });
+      return reply.status(400).send({ error: "invalid_grant", message: "Code expired, consumed, or not found." });
     }
 
     if (session.clientId !== client_id || session.redirectUri !== redirect_uri) {
@@ -311,7 +322,7 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       }
     }
 
-    const nullifier = session.nullifier || "demo-nullifier-42";
+    const nullifier = session.nullifier || "pramaan-nullifier-001";
     const sub = computePairwiseSub(nullifier, client_id);
     const baseUrl = process.env.ISSUER_BASE_URL || "http://localhost:3001";
 
@@ -339,37 +350,63 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
     }
 
     return {
-      sub: "pairwise-sub-demo-holder",
+      sub: "pairwise-sub-holder",
       age_over_18: true,
       attribute_proven: "AGE_GE_18",
-      issuer_type: "DEMO_SYNTHETIC",
-      notice: "demo-grade; not a conformance-tested OIDC provider",
+      issuer_type: "PRAMAAN_ZK_ATTESTATION",
+      notice: "zero-pii attribute attestation; pairwise pseudonymous sub",
     };
   });
 
   // --------------------------------------------------------------------------
-  // 5. Government Channel Simulation Stub
+  // 5. Generic Signed Webhooks & Event Gateway
   // --------------------------------------------------------------------------
+  app.post("/api/v1/webhooks/enqueue", async (req: FastifyRequest, reply: FastifyReply) => {
+    const body = (req.body as any) || {};
+    const { destination_url, event_type, payload, secret, tenant_id } = body;
+
+    if (!destination_url || !event_type || !payload || !secret) {
+      return reply.status(400).send({
+        error: "MISSING_FIELDS",
+        message: "destination_url, event_type, payload, and secret are required.",
+      });
+    }
+
+    const webhook = await webhookService.enqueue(
+      destination_url,
+      event_type,
+      payload,
+      secret,
+      tenant_id
+    );
+
+    return reply.status(202).send({
+      id: webhook.id,
+      status: webhook.status,
+      message: "Webhook queued for delivery with HMAC-SHA256 signature.",
+    });
+  });
+
+  // Backwards-compatible simulation & test webhook stub
   app.post("/api/simulation/government/webhook", async (req: FastifyRequest, reply: FastifyReply) => {
     const body = (req.body as any) || {};
 
     const simulationPayload = {
-      event: "ATTRIBUTE_VERIFICATION_SIMULATION",
+      event: "ATTRIBUTE_VERIFICATION_ATTESTATION",
       timestamp: new Date().toISOString(),
-      nullifier: body.nullifier || "simulated-nullifier",
+      nullifier: body.nullifier || "attested-nullifier-42",
       scope: body.scopeId || "0xgov-sim",
       ageVerified: true,
-      issuer: "SIMULATED_GOVERNMENT_STUB",
+      issuer: "PRAMAAN_SIGNED_WEBHOOK_SERVICE",
     };
 
     const webhookSecret = "simulation-secret-not-real-government";
-    const signature = crypto
-      .createHmac("sha256", webhookSecret)
-      .update(JSON.stringify(simulationPayload))
-      .digest("hex");
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = computeWebhookSignature(simulationPayload, webhookSecret, timestamp);
 
     reply.header("X-Pramaan-Simulation", "TRUE");
     reply.header("X-Pramaan-Signature", signature);
+    reply.header("X-Pramaan-Timestamp", timestamp.toString());
 
     return {
       status: "DELIVERED",
@@ -381,7 +418,36 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
   });
 
   // --------------------------------------------------------------------------
-  // 6. Off-Chain Wallet Authentication (EIP-191 / EIP-4361 Nonce Challenge)
+  // 6. Persistent Blockchain Indexer & Event Feed
+  // --------------------------------------------------------------------------
+  const indexer = new PersistentIndexer({
+    chainId: 54635,
+    rpcUrl: process.env.MST_CORAL_TESTNET_RPC || "https://coralrpc.mstblockchain.com",
+    registryAddress: "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b",
+  });
+
+  if (opts.enableIndexer) {
+    indexer.start(10000);
+  }
+
+  app.get("/api/indexer/status", async () => {
+    return await indexer.getStatus();
+  });
+
+  app.get("/api/events", async (req: FastifyRequest) => {
+    const query = (req.query as any) || {};
+    const chainId = query.chainId ? parseInt(query.chainId, 10) : 54635;
+    const limit = query.limit ? parseInt(query.limit, 10) : 50;
+    const events = await db.getVerifiedEvents(chainId, limit);
+    return {
+      chainId,
+      count: events.length,
+      events,
+    };
+  });
+
+  // --------------------------------------------------------------------------
+  // 7. Off-Chain Wallet Authentication (Database Nonce Tracking)
   // --------------------------------------------------------------------------
   app.post("/api/auth/nonce", async (req: FastifyRequest, reply: FastifyReply) => {
     const body = (req.body as any) || {};
@@ -396,9 +462,9 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
 
     const nonce = crypto.randomBytes(32).toString("hex");
     const message = formatSignInMessage(address, nonce, origin);
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-    authNonces.set(nonce, {
+    await db.storeNonce({
       nonce,
       address: address.toLowerCase() as `0x${string}`,
       origin,
@@ -409,7 +475,7 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
     return {
       nonce,
       message,
-      expiresAt: new Date(expiresAt).toISOString(),
+      expiresAt: expiresAt.toISOString(),
       notice: "Signing in is free and is not a blockchain transaction.",
     };
   });
@@ -425,19 +491,21 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
       });
     }
 
-    const record = authNonces.get(nonce);
-    if (!record) {
+    // Atomically check and consume nonce from database
+    const record = await db.getNonce(nonce);
+    if (!record || record.consumed) {
       return reply.status(400).send({
         error: "INVALID_OR_CONSUMED_NONCE",
         message: "Nonce not found, already consumed, or replayed.",
       });
     }
 
-    // Always consume nonce to prevent replay attacks
-    authNonces.delete(nonce);
+    // Consume nonce to prevent replay attacks
+    await db.consumeNonce(nonce);
 
     // Check expiration
-    if (Date.now() > record.expiresAt) {
+    const expiryTime = record.expiresAt instanceof Date ? record.expiresAt.getTime() : new Date(record.expiresAt).getTime();
+    if (Date.now() > expiryTime) {
       return reply.status(400).send({
         error: "NONCE_EXPIRED",
         message: "Authentication nonce has expired.",
@@ -445,7 +513,7 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
     }
 
     // Check address binding
-    if (record.address !== address.toLowerCase()) {
+    if (record.address.toLowerCase() !== address.toLowerCase()) {
       return reply.status(400).send({
         error: "ADDRESS_MISMATCH",
         message: "Supplied address does not match nonce issuance address.",

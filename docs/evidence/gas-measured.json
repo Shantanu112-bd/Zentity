@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-10-28T22:54:04.861Z",
+  "timestamp": "2026-10-30T20:02:37.733Z",
   "network": "mstCoralTestnet",
   "chainId": 54635,
   "environment": "MST Live Testnet (MST Coral Testnet)",
   "contracts": {
-    "PrecompileProbe": "0x94b9b520b975e20e82ce5862c523bfe389c12ed3",
-    "PramaanVerifier": "0xed8fe30962b3df64accdf867a355c68addedbf28",
-    "PramaanRegistry": "0x8c182a53fca78fe237734239bdb1256bc2658c5b"
+    "PrecompileProbe": "0x41219ca55d4ad3566ec4b85d74145be021f8455b",
+    "PramaanVerifier": "0x1ad0bfee242e7ecae55bc4246352329555a3f91e",
+    "PramaanRegistry": "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b"
   },
   "measuredOnChain": {
     "0x06_ecAdd": {
@@ -28,15 +28,15 @@
       "description": "BN254 curve bilinear pairing check via native precompile staticcall"
     },
     "PramaanVerifier_verifyProof": {
-      "measuredGas": 259184,
+      "measuredGas": 259208,
       "targetBudget": "<= 300,000 gas",
       "status": "MEASURED (MST_CORAL_TESTNET)"
     },
     "PramaanRegistry_verifyAndRecord": {
-      "measuredGas": 288882,
+      "measuredGas": 288906,
       "targetBudget": "<= 350,000 gas",
-      "txHash": "0xa41c72a21eee292173d37ca957dee958610117b29156f80418b6020d7f3ff472",
-      "explorerUrl": "https://coral.mstscan.com/tx/0xa41c72a21eee292173d37ca957dee958610117b29156f80418b6020d7f3ff472",
+      "txHash": "0xa1851b443b6490e8a21384e83c1c649616f6679010bce72a196575407f88582d",
+      "explorerUrl": "https://coral.mstscan.com/tx/0xa1851b443b6490e8a21384e83c1c649616f6679010bce72a196575407f88582d",
       "status": "MEASURED (MST_CORAL_TESTNET)"
     }
   },

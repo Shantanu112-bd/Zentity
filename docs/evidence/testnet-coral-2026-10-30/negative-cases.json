@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-10-30T20:03:25.692Z",
+  "network": "mstCoralTestnet",
+  "chainId": 54635,
+  "environment": "MST Live Testnet (MST Coral Testnet)",
+  "registryAddress": "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b",
+  "verifierAddress": "0x1ad0bfee242e7ecae55bc4246352329555a3f91e",
+  "cases": {
+    "TamperedProof": {
+      "expected": "REVERT(InvalidProof)",
+      "actualRevert": "execution reverted: 0x09bde339",
+      "pass": true
+    },
+    "UnregisteredIssuer": {
+      "expected": "REVERT(UnregisteredIssuer)",
+      "actualRevert": "execution reverted: 0x7371cf38",
+      "pass": true
+    },
+    "ChainIdMismatch": {
+      "expected": "REVERT(ChainIdMismatch)",
+      "actualRevert": "execution reverted: 0xa179f8c9",
+      "pass": true
+    },
+    "RecipientMismatch": {
+      "expected": "REVERT(RecipientMismatch)",
+      "actualRevert": "execution reverted: 0xc0ee95bb",
+      "pass": true
+    },
+    "NullifierAlreadySpent": {
+      "expected": "REVERT(NullifierAlreadySpent)",
+      "actualRevert": "execution reverted: 0xb115d857",
+      "pass": true
+    },
+    "ContractPaused": {
+      "expected": "REVERT(EnforcedPause)",
+      "actualRevert": "execution reverted: 0xab35696f",
+      "pass": true
+    },
+    "TamperedPublicSignal": {
+      "expected": "REVERT(InvalidProof)",
+      "actualRevert": "execution reverted: 0x09bde339",
+      "pass": true
+    }
+  }
+}
