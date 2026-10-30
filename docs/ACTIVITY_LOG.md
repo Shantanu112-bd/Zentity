@@ -277,3 +277,27 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
   - Truthful status labels strictly preserved. No false government or regulatory claims made.
 - Residual risk / blocker: None.
 - Next action: Merge `ui/app-layout` into `main` and push to remote repository.
+
+### [2026-10-31 01:00 IST] UI-RESET-AND-ONCHAIN — Complete Web3 dApp System Integration & Cinematic Liquid-Glass Wiring
+- Agent/env: Antigravity / macOS Darwin x86_64
+- Intent / acceptance criteria: Complete full presentation reset, headless core extraction, and full-lifecycle Web3 integration:
+  1. Purge all mock movie text, IMDB ratings, and placeholder navigation links.
+  2. Implement canonical decoupled service layer (`frontend/src/core/services/types.ts`, `protocolService.ts`) and global reactive state (`DappContext.tsx`).
+  3. Rebuild complete functional UI using the Cinematic Liquid-Glass design system: `Nav.tsx`, `OverviewView.tsx`, `ProverView.tsx`, `RegistryView.tsx`, `AuditView.tsx`, and `App.tsx`.
+  4. Fix Coral Scan 422 error by populating deployed contract addresses on `DEFAULT_CORAL`.
+  5. Fix Step 02 BigInt conversion error by preserving all synthetic credential cryptographic scalars.
+  6. Fix Step 03 simulation argument order and attach `getViemChain` to `createWalletClient` to enable transaction signing on MST Coral Testnet (`54635`).
+- Files created/modified:
+  - Created: `frontend/src/core/services/types.ts`, `frontend/src/core/services/protocolService.ts`, `frontend/src/core/context/DappContext.tsx`.
+  - Created: `frontend/src/components/Nav.tsx`, `OverviewView.tsx`, `ProverView.tsx`, `RegistryView.tsx`, `AuditView.tsx`.
+  - Modified: `frontend/src/core/contracts.ts`, `frontend/src/core/config.ts`, `frontend/src/core/types.ts`, `frontend/src/core/hooks/useSubmitProof.ts`, `frontend/src/App.tsx`, `frontend/src/index.css`.
+- Commands actually run (exact) and result summary:
+  - `pnpm run build:frontend`: Built in 1.72s with 0 errors (Pass).
+  - `pnpm hardhat test tests/core-services.test.ts tests/client-zero-egress.test.ts`: 15/15 passing (Pass).
+  - `curl -sI https://coral.mstscan.com/address/0x8c182a53fca78fe237734239bdb1256bc2658c5b`: HTTP 200 OK (Pass).
+- Errors -> diagnosis -> fix:
+  - Coral Scan 422 Error: `DEFAULT_CORAL` lacked `registryAddress`, resulting in `coral.mstscan.com/address/undefined`. Fixed by populating verified addresses from `deployed-addresses.json`.
+  - Step 02 BigInt Error: `requestCredential` stripped `credentialSecret`, causing `BigInt(undefined)` in `computeNullifier`. Fixed by preserving all cryptographic fields in `AttestationCredential` and adding auto-healing logic in `ProverView.tsx`.
+  - Step 03 Viem Errors: Parameter swap in `simulateVerifyAndRecord` caused `undefined.0` lookup; missing `chain` in `createWalletClient` caused Viem "No chain was provided to the request". Fixed by correcting parameter order and binding `getViemChain(network)`.
+- Security/privacy implications: Strict zero-PII and zero-egress policies enforced. No private credential data leaves client memory.
+- Next action: Push branch `reset/ui-and-onchain` to origin.

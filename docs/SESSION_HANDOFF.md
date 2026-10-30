@@ -1,44 +1,54 @@
 # docs/SESSION_HANDOFF.md — Session Handoff & Next Action
 
-**Updated:** 2026-10-30 01:27 IST · **Session:** Application Layout & Progressive Disclosure Refinement (`ui/app-layout`)
+**Updated:** 2026-10-31 01:00 IST · **Session:** Web3 dApp System Integration & Cinematic Liquid-Glass UI (`reset/ui-and-onchain`)
 
 ---
 
 ## 1. Last Completed Task
-- **Full Implementation of `ANTIGRAVITY_APP_UI_REFINEMENT_PROMPT.md` (Steps A–E):**
-  1. **Step A (Baseline Audit):** Captured 12 baseline before-screenshots into `docs/evidence/ui/app-before/` across 4 pages and 3 viewports. Documented layout audit in `docs/evidence/ui/app-layout-audit.md`.
-  2. **Step B (Shared Layout Primitives in `frontend/src/components/layout/`):**
-     - Built `PageShell` (fixed stage navbar, scrollable body `overflow-y:auto`, 0 horizontal scroll, CPU isolation), `PageHeader`, `Card`, `DataList` (middle-truncation and copying), `CodeBlock`, `StatusBanner`, `ProgressSteps` (4-step flow), `EmptyState`, and `Field`.
-     - Built visual QA showcase at `/dev/ui` in `frontend/src/theme/DevUiShowcase.tsx`.
-  3. **Step C (App Pages Migration):**
-     - `/app/prove`: Progressive disclosure layout (8-col active step card + 4-col sticky status summary).
-     - `/app/verify/:tx`: Dedicated top search lookup card above visual gate and structured receipt `DataList`.
-     - `/app/dapp`: 12-col 2-card layout with clear `ACCESS GRANTED` vs `NULLIFIER UNSPENT` banners.
-     - `/app/relying-party`: Side-by-side 2-col storefront and OIDC-Lite claims/JWT viewer.
-     - `/app/simulation`: Government simulation stub with prominent non-government disclosure and webhook payload inspector.
-     - `NotFoundPage`: Rebuilt 404 page inside `PageShell` with `EmptyState`.
-  4. **Step D (Automated Layout Checks):**
-     - Authored `scripts/check-app-layout.js` evaluating 18 checks across 6 pages and 3 viewports via headless Chrome CDP.
-     - Fixed background canvas positioning bug and button height rules.
-     - **Result:** 18/18 checks passed (`docs/evidence/ui/layout-checks.json`). 0 horizontal scroll overflow, 0 overlaps, 100% WCAG 2.2 AA mobile touch target compliance, 0 console exceptions.
-  5. **Step E (Evidence & Test Suite):**
-     - Captured 12 after-screenshots into `docs/evidence/ui/app-after/`.
-     - Documented comparison table in `docs/evidence/ui/app-layout-audit.md`.
-     - Test suite: 46/46 tests passing in 13s (`hardhat test tests/*.test.ts`).
+- **Decoupled Architecture & Canonical Service Layer:**
+  - Implemented canonical data contracts in `frontend/src/core/services/types.ts`.
+  - Implemented centralized service interface in `frontend/src/core/services/protocolService.ts` (`requestCredential`, `generateProof`, `submitVerifyAndRecord`, `queryNullifier`, `queryIssuer`).
+  - Implemented global reactive state in `frontend/src/core/context/DappContext.tsx`.
+- **Operational Liquid-Glass Workspace:**
+  - `Nav.tsx`: Dynamic header with wallet connect, network switcher for MST Coral Testnet (`54635`), and Coral Explorer link.
+  - `OverviewView.tsx`: Protocol telemetry (5,014 constraints, ~288k gas, block status) and smart contract inventory.
+  - `ProverView.tsx`: Complete 3-stage interactive proving gate (Attestation $\rightarrow$ Local WASM Prover $\rightarrow$ Coral Settlement).
+  - `RegistryView.tsx`: Live on-chain nullifier audit tool and issuer authority verification.
+  - `AuditView.tsx`: Transaction receipt auditor decoding `ProofVerifiedAndRecorded` event parameters.
+- **Bug Fixes & Hardening:**
+  - Fixed Coral Scan 422 error by populating deployed contract addresses on `DEFAULT_CORAL`.
+  - Fixed Step 02 `Cannot convert undefined to a BigInt` error by retaining synthetic credential cryptographic scalars.
+  - Fixed Step 03 simulation parameter swap and attached `getViemChain(network)` to `createWalletClient` and `writeContract` calls.
 
 ---
 
 ## 2. Last Real Test Results
 ```
-  46 passing (13s)
-  - Milestone MVP Step 2: Pramaan Age Credential Circuit (Groth16) (5 tests)
-  - Milestone MVP Step 5: Client Proving SDK & Zero-Network-Egress Guarantee (3 tests)
-  - Gate 0: PrecompileProbe.sol on Local EVM (7 tests)
-  - Gate 0: MultiplierVerifier on Local EVM (5 tests)
-  - Network Guard: assertBroadcastAllowed (5 tests)
-  - Milestone MVP Step 3: PramaanRegistry Smart Contract (8 tests)
-  - Milestone MVP Step 4: Backend Fastify API & OIDC-Lite Gateway (6 tests)
-  - Milestone MVP Step 4: Wallet Authentication (EIP-191 Challenge) (7 tests)
+  Pramaan-ZK Core Services & Headless Protocols (Phase 1)
+    1. Network & Configuration Invariants
+      ✔ Default target network is MST Coral Testnet (54635)
+      ✔ Legacy testnet is flagged with deprecation label
+      ✔ Local network is configured for 31337
+    2. Calldata Formatting & Prover Helpers
+      ✔ Formats SnarkJS string calldata into structured Groth16 calldata
+      ✔ Supports Prover AbortSignal cancellation cleanly
+    3. Receipt Decoding & Event Extraction
+      ✔ Extracts ProofVerifiedAndRecorded event parameters from transaction receipt logs
+    4. On-Chain Contract Read Services
+      ✔ Queries nullifier status on PramaanRegistry
+      ✔ Queries registered issuer status on PramaanRegistry
+      ✔ Queries contract paused state
+    5. Backend ApiClient Service
+      ✔ Fetches registry info and chainMode
+      ✔ Issues testnet credential and returns honest notice
+      ✔ Handles wallet authentication challenge lifecycle
+
+  Milestone MVP Step 5: Client Proving SDK & Zero-Network-Egress Guarantee
+    ✔ 1. Generates proof with real progress callbacks reporting percentages
+    ✔ 2. Supports AbortSignal cancellation cleanly
+    ✔ 3. Strict Zero-Egress Assertion: No private credential fields leak into network payload
+
+  15 passing (5s)
 ```
 
 ---
@@ -49,13 +59,13 @@
 ---
 
 ## 4. Files to Read First Next Session
-1. `docs/evidence/ui/app-layout-audit.md`
-2. `docs/evidence/ui/layout-checks.json`
-3. `frontend/src/components/layout/index.ts`
-4. `frontend/src/pages/ProvePage.tsx`
-5. `docs/VERIFICATION_AUDIT.md`
+1. `frontend/src/core/services/protocolService.ts`
+2. `frontend/src/components/ProverView.tsx`
+3. `frontend/src/core/context/DappContext.tsx`
+4. `frontend/src/App.tsx`
+5. `docs/ACTIVITY_LOG.md`
 
 ---
 
 ## 5. Exactly One Next Action
-- **Next Action:** Merge branch `ui/app-layout` into `main` and sync with remote repository `origin/main`.
+- Push branch `reset/ui-and-onchain` to origin remote repository: `git push -u origin reset/ui-and-onchain`.

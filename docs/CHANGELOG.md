@@ -5,6 +5,25 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-31
+### Added - Web3 dApp System Integration & Cinematic Liquid-Glass UI
+- **Decoupled Canonical Service Layer (`frontend/src/core/services/`):**
+  - Canonical data contracts (`types.ts`) for `AttestationRequest`, `AttestationCredential`, `Groth16ProofPayload`, `VerificationTransactionResult`, `RegistryQueryResult`, and `IssuerRecord`.
+  - Service implementation (`protocolService.ts`) providing unified methods: `requestCredential`, `generateProof`, `submitVerifyAndRecord`, `queryNullifier`, and `queryIssuer`.
+- **Global Reactive Pipeline Context (`frontend/src/core/context/DappContext.tsx`):**
+  - Reactive state provider managing `credential`, `proof`, `latestTx`, and a persistent session `registryCache`.
+- **Operational Liquid-Glass Workspace Modules:**
+  - `Nav`: Dynamic header with EIP-1193 wallet connect, network switcher for MST Coral Testnet (`54635`), mobile menu drawer, and direct explorer link.
+  - `OverviewView`: Protocol telemetry stats (5,014 constraints, ~288k gas, block status) and deployed smart contract directory.
+  - `ProverView`: 3-stage interactive proving gate (Attestation $\rightarrow$ Local WASM Groth16 Prover $\rightarrow$ Coral Settlement).
+  - `RegistryView`: Live on-chain nullifier audit tool (`isNullifierSpent`) and issuer authority query tool.
+  - `AuditView`: Transaction receipt auditor decoding `ProofVerifiedAndRecorded` event parameters.
+- **Bug Fixes & Hardening:**
+  - Fixed Coral Scan 422 undefined contract URL by wiring deployed contract addresses into `DEFAULT_CORAL` in `config.ts`.
+  - Fixed Step 02 `Cannot convert undefined to a BigInt` error by preserving synthetic credential cryptographic scalars (`credentialSecret`, `dobDays`, `sigR8`, `sigS`).
+  - Fixed Step 03 simulation parameter swap and attached `getViemChain(network)` to `createWalletClient` and `writeContract` calls.
+
+
 ## [0.4.0] - 2026-10-30
 ### Added - Application Layout & Progressive Disclosure Refinement
 - **Governing Prompt Implementation:** Implemented `docs/reference/ui/ANTIGRAVITY_APP_UI_REFINEMENT_PROMPT.md` across all functional pages under `/app/*`.
