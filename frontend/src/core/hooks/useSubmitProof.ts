@@ -11,6 +11,7 @@ import { NetworkInfo, TxResult, Groth16ProofCalldata } from "../types.ts";
 import { PRAMAAN_REGISTRY_ABI } from "../config.ts";
 import {
   getPublicClient,
+  getViemChain,
   simulateVerifyAndRecord,
   decodeRegistryReceipt,
 } from "../contracts.ts";
@@ -73,7 +74,9 @@ export function useSubmitProof(): UseSubmitProofReturn {
       }
 
       try {
+        const chain = getViemChain(network);
         const walletClient = createWalletClient({
+          chain,
           account: userAddress,
           transport: custom((window as any).ethereum),
         });
@@ -95,6 +98,7 @@ export function useSubmitProof(): UseSubmitProofReturn {
         ];
 
         const txHash = await walletClient.writeContract({
+          chain,
           address: registryAddress,
           abi: PRAMAAN_REGISTRY_ABI,
           functionName: "verifyAndRecord",

@@ -16,8 +16,8 @@ import {
 import type { NetworkInfo, TxResult, Groth16ProofCalldata } from "./types.ts";
 import { PRAMAAN_REGISTRY_ABI } from "./config.ts";
 
-export function getPublicClient(network: NetworkInfo, customTransport?: any) {
-  const chain = defineChain({
+export function getViemChain(network: NetworkInfo) {
+  return defineChain({
     id: network.chainId,
     name: network.name,
     nativeCurrency: {
@@ -29,7 +29,19 @@ export function getPublicClient(network: NetworkInfo, customTransport?: any) {
       default: { http: [network.rpcUrl] },
       public: { http: [network.rpcUrl] },
     },
+    blockExplorers: network.explorerUrl
+      ? {
+          default: {
+            name: "MST Coral Scan",
+            url: network.explorerUrl,
+          },
+        }
+      : undefined,
   });
+}
+
+export function getPublicClient(network: NetworkInfo, customTransport?: any) {
+  const chain = getViemChain(network);
 
   return createPublicClient({
     chain,

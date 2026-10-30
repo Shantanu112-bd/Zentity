@@ -17,6 +17,7 @@ import { DEFAULT_CORAL, PRAMAAN_REGISTRY_ABI } from "../config.ts";
 import { NetworkInfo, Groth16ProofCalldata } from "../types.ts";
 import {
   getPublicClient,
+  getViemChain,
   checkNullifierSpent,
   checkRegisteredIssuer,
   decodeRegistryReceipt,
@@ -144,7 +145,10 @@ export class ProtocolService {
       throw new Error("No Web3 wallet extension detected.");
     }
 
+    const chain = getViemChain(network);
+
     const walletClient = createWalletClient({
+      chain,
       transport: custom(window.ethereum),
     });
 
@@ -174,6 +178,7 @@ export class ProtocolService {
       address: registryAddress,
       abi: PRAMAAN_REGISTRY_ABI,
       functionName: "verifyAndRecord",
+      chain,
       args: [
         [BigInt(a[0]), BigInt(a[1])],
         [
