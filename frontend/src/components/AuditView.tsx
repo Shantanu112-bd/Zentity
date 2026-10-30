@@ -164,12 +164,12 @@ export function AuditView() {
           </div>
 
           {/* Decoded Event Log */}
-          {txResult.event ? (
+          {(txResult.eventDecoded || (txResult as any).event) ? (
             <div className="p-5 rounded-xl bg-white/5 border border-white/10 space-y-3 font-mono text-xs">
               <div className="flex items-center justify-between border-b border-white/10 pb-2">
                 <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                   <FileText size={14} />
-                  <span>Decoded Event: {txResult.event.eventName}</span>
+                  <span>Decoded Event: ProofVerifiedAndRecorded</span>
                 </span>
                 <span className="text-[10px] text-white/40">PramaanRegistry.sol</span>
               </div>
@@ -177,15 +177,21 @@ export function AuditView() {
               <div className="space-y-2 text-white/80">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-1 border-b border-white/5 gap-1">
                   <span className="text-white/40">Scope ID:</span>
-                  <span className="text-white font-bold">{txResult.event.args.scopeId}</span>
+                  <span className="text-white font-bold">
+                    {String(txResult.eventDecoded?.scopeId ?? (txResult as any).event?.args?.scopeId)}
+                  </span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-1 border-b border-white/5 gap-1">
                   <span className="text-white/40">Nullifier:</span>
-                  <span className="text-white truncate max-w-sm">{txResult.event.args.nullifier}</span>
+                  <span className="text-white truncate max-w-sm">
+                    {String(txResult.eventDecoded?.nullifier ?? (txResult as any).event?.args?.nullifier)}
+                  </span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-1 gap-1">
                   <span className="text-white/40">Recipient Address:</span>
-                  <span className="text-white truncate max-w-sm">{txResult.event.args.recipient}</span>
+                  <span className="text-white truncate max-w-sm">
+                    {String(txResult.eventDecoded?.recipient ?? (txResult as any).event?.args?.recipient)}
+                  </span>
                 </div>
               </div>
             </div>

@@ -144,10 +144,6 @@ export class ProtocolService {
       throw new Error("No Web3 wallet extension detected.");
     }
 
-    // 1. Preflight Simulation
-    await simulateVerifyAndRecord(registryAddress, network, proof.calldata, window.ethereum);
-
-    // 2. Broadcast via WalletClient
     const walletClient = createWalletClient({
       transport: custom(window.ethereum),
     });
@@ -157,6 +153,21 @@ export class ProtocolService {
       throw new Error("Wallet is not connected.");
     }
 
+    const callerAddress = account as `0x${string}`;
+
+    // 1. Preflight Simulation
+    const simResult = await simulateVerifyAndRecord(
+      registryAddress,
+      network,
+      callerAddress,
+      proof.calldata
+    );
+
+    if (!simResult.success) {
+      throw new Error(`Simulation failed: ${simResult.error}`);
+    }
+
+    // 2. Broadcast via WalletClient
     const { a, b, c, pubSignals } = proof.calldata;
 
     const txHash = await walletClient.writeContract({
@@ -186,11 +197,7 @@ export class ProtocolService {
       gasUsed: decoded.gasUsed,
       status: decoded.status,
       explorerUrl: decoded.explorerUrl || `${network.explorerUrl}/tx/${decoded.txHash}`,
-      eventDecoded: decoded.event ? {
-        scopeId: BigInt(decoded.event.args.scopeId),
-        nullifier: BigInt(decoded.event.args.nullifier),
-        recipient: decoded.event.args.recipient,
-      } : undefined,
+      eventDecoded: decoded.eventDecoded,
     };
   }
 
