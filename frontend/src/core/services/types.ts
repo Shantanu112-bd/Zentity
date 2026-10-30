@@ -57,3 +57,4 @@ export interface IssuerRecord {
   isRegistered: boolean;
   active: boolean;
 }
+

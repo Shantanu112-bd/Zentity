@@ -194,3 +194,4 @@ export function OverviewView({ onLaunchProver, onViewAudit }: OverviewViewProps)
     </div>
   );
 }
+

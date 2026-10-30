@@ -199,3 +199,4 @@ export function Nav({ currentView, onSelectView }: NavProps) {
     </header>
   );
 }
+
