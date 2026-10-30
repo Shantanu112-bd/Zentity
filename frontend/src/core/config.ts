@@ -16,6 +16,9 @@ export const DEFAULT_CORAL: NetworkInfo = {
   symbol: "tMSTC",
   explorerUrl: "https://coral.mstscan.com",
   label: "CORAL TESTNET",
+  registryAddress: "0x8c182a53fca78fe237734239bdb1256bc2658c5b",
+  verifierAddress: "0xed8fe30962b3df64accdf867a355c68addedbf28",
+  probeAddress: "0x94b9b520b975e20e82ce5862c523bfe389c12ed3",
 };
 
 export const DEFAULT_LEGACY: NetworkInfo = {
@@ -26,6 +29,9 @@ export const DEFAULT_LEGACY: NetworkInfo = {
   symbol: "tMSTC",
   explorerUrl: "https://testnet.mstscan.com",
   label: "LEGACY TESTNET (SHUTDOWN 2027)",
+  registryAddress: "0x8c182a53fca78fe237734239bdb1256bc2658c5b",
+  verifierAddress: "0xed8fe30962b3df64accdf867a355c68addedbf28",
+  probeAddress: "0x94b9b520b975e20e82ce5862c523bfe389c12ed3",
 };
 
 export const DEFAULT_LOCAL: NetworkInfo = {
@@ -35,6 +41,9 @@ export const DEFAULT_LOCAL: NetworkInfo = {
   rpcUrl: "http://127.0.0.1:8545",
   symbol: "ETH",
   label: "LOCAL / TEST",
+  registryAddress: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  verifierAddress: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  probeAddress: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
 };
 
 export const PRAMAAN_REGISTRY_ABI = parseAbi([

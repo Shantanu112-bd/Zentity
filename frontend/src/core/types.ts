@@ -13,6 +13,9 @@ export interface NetworkInfo {
   symbol: string;
   explorerUrl?: string;
   label?: string;
+  registryAddress: `0x${string}`;
+  verifierAddress?: `0x${string}`;
+  probeAddress?: `0x${string}`;
 }
 
 export interface ContractInfo {
