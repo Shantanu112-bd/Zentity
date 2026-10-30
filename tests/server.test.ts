@@ -32,6 +32,30 @@ describe("Milestone MVP Step 4: Backend Fastify API & OIDC-Lite Gateway", functi
     assert(body.chainMode);
   });
 
+  it("1b. Observability: GET /healthz, /readyz, and /metrics return valid formats", async function () {
+    // Liveness
+    const healthz = await app.inject({ method: "GET", url: "/healthz" });
+    assert.strictEqual(healthz.statusCode, 200);
+    const hzBody = JSON.parse(healthz.payload);
+    assert.strictEqual(hzBody.status, "ok");
+
+    // Readiness
+    const readyz = await app.inject({ method: "GET", url: "/readyz" });
+    assert.ok(readyz.statusCode === 200 || readyz.statusCode === 503);
+    const rzBody = JSON.parse(readyz.payload);
+    assert.ok(rzBody.status);
+    assert.ok("database" in rzBody.checks);
+    assert.ok("rpc" in rzBody.checks);
+
+    // Prometheus Metrics
+    const metrics = await app.inject({ method: "GET", url: "/metrics" });
+    assert.strictEqual(metrics.statusCode, 200);
+    assert.ok(metrics.headers["content-type"].includes("text/plain"));
+    assert.ok(metrics.payload.includes("pramaan_uptime_seconds"));
+    assert.ok(metrics.payload.includes("pramaan_requests_total"));
+    assert.ok(metrics.payload.includes("pramaan_database_connected"));
+  });
+
   it("2. POST /api/demo/issue issues synthetic credential and rejects real PII", async function () {
     // Prohibited PII check
     const badRes = await app.inject({

@@ -76,20 +76,15 @@ export function ProverView() {
     abortControllerRef.current = controller;
 
     try {
-      let activeCred = credential;
-      if (!activeCred.credentialSecret) {
-        setProofStage("Refreshing attestation credential...");
-        activeCred = await protocolService.requestCredential(
-          address || "0x0000000000000000000000000000000000000000",
-          BigInt(scopeId || "1"),
-          dob
+      if (!credential || !credential.credentialSecret) {
+        throw new Error(
+          "Credential secret is missing from session state. Please request a new attestation in Step 1 before synthesizing a proof. (Nullifiers must never be mutated silently)."
         );
-        setCredential(activeCred);
       }
 
       const recipient = (address as `0x${string}`) || "0x0000000000000000000000000000000000000001";
       const proofPayload = await protocolService.generateProof(
-        activeCred,
+        credential,
         recipient,
         targetNetwork.chainId,
         {

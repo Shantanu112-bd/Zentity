@@ -73,6 +73,10 @@ export class ProtocolService {
     });
     const cred = res.credential as any;
 
+    if (!cred || !cred.credentialSecret) {
+      throw new Error("Issuer response is missing required cryptographic field 'credentialSecret'. Cannot attest.");
+    }
+
     return {
       ...cred,
       issuer: "Testnet Issuer Authority",
@@ -80,13 +84,13 @@ export class ProtocolService {
       dob: dateOfBirth,
       dobDays: cred.dobDays ?? dobDays,
       stateCode: cred.stateCode ?? 27,
-      credentialSecret: cred.credentialSecret ? String(cred.credentialSecret) : "12345678901234567890",
-      issuerPubKeyAx: cred.issuerPubKeyAx ? String(cred.issuerPubKeyAx) : "0",
-      issuerPubKeyAy: cred.issuerPubKeyAy ? String(cred.issuerPubKeyAy) : "0",
-      issuerPubKeyHash: cred.issuerPubKeyHash ? String(cred.issuerPubKeyHash) : "0",
-      sigR8x: cred.sigR8x ? String(cred.sigR8x) : "0",
-      sigR8y: cred.sigR8y ? String(cred.sigR8y) : "0",
-      sigS: cred.sigS ? String(cred.sigS) : "0",
+      credentialSecret: String(cred.credentialSecret),
+      issuerPubKeyAx: String(cred.issuerPubKeyAx || "0"),
+      issuerPubKeyAy: String(cred.issuerPubKeyAy || "0"),
+      issuerPubKeyHash: String(cred.issuerPubKeyHash || "0"),
+      sigR8x: String(cred.sigR8x || "0"),
+      sigR8y: String(cred.sigR8y || "0"),
+      sigS: String(cred.sigS || "0"),
       issuanceTimestamp: Math.floor(Date.now() / 1000),
       honestNotice:
         res.notice ||

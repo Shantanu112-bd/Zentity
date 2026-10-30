@@ -13,6 +13,8 @@ import { seedDefaultTenants } from "./db/seed-tenants.ts";
 import { issueAttestationCredential, getOrInitIssuerKey } from "./services/issuerKeyService.ts";
 import { PersistentIndexer } from "./services/indexerService.ts";
 import { webhookService, computeWebhookSignature, verifyWebhookSignature } from "./services/webhookService.ts";
+import { logger } from "./services/logger.ts";
+import { createResilientPublicClient, probeRpcEndpoint, getCoralRpcEndpoints } from "./services/resilientRpc.ts";
 import {
   getSigningKey,
   verifyPkce,
@@ -78,7 +80,99 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
   const vkPath = path.resolve(process.cwd(), "circuits/pramaan/verification_key.json");
   const vKey = JSON.parse(fs.readFileSync(vkPath, "utf-8"));
 
-  // Health
+  const startTime = Date.now();
+  let totalRequests = 0;
+
+  app.addHook("onRequest", async () => {
+    totalRequests++;
+  });
+
+  // --------------------------------------------------------------------------
+  // Observability & Readiness Probes (P0 Backbone)
+  // --------------------------------------------------------------------------
+
+  // Liveness Probe
+  app.get("/healthz", async () => {
+    return { status: "ok", timestamp: new Date().toISOString() };
+  });
+
+  // Readiness Probe
+  app.get("/readyz", async (_req: FastifyRequest, reply: FastifyReply) => {
+    const checks: Record<string, boolean> = {
+      database: true,
+      rpc: false,
+    };
+
+    // Check database
+    try {
+      if (db.isPostgres()) {
+        await (db as any).pool.query("SELECT 1");
+      }
+    } catch {
+      checks.database = false;
+    }
+
+    // Check RPC endpoint
+    try {
+      const endpoints = getCoralRpcEndpoints();
+      const probe = await probeRpcEndpoint(endpoints[0]);
+      checks.rpc = probe.isHealthy;
+    } catch {
+      checks.rpc = false;
+    }
+
+    const isReady = Object.values(checks).every(Boolean);
+    const statusCode = isReady ? 200 : 503;
+
+    return reply.status(statusCode).send({
+      status: isReady ? "ready" : "unhealthy",
+      checks,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // Prometheus Metrics Exposition
+  app.get("/metrics", async (_req: FastifyRequest, reply: FastifyReply) => {
+    const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
+    const cursor = await db.getIndexerCursor(54635);
+    const lastIndexedBlock = cursor ? Number(cursor.lastProcessedBlock) : 0;
+
+    let rpcLatencyMs = 0;
+    try {
+      const endpoints = getCoralRpcEndpoints();
+      const probe = await probeRpcEndpoint(endpoints[0]);
+      rpcLatencyMs = probe.latencyMs;
+    } catch {
+      rpcLatencyMs = -1;
+    }
+
+    const metrics = [
+      `# HELP pramaan_uptime_seconds Total server uptime in seconds`,
+      `# TYPE pramaan_uptime_seconds gauge`,
+      `pramaan_uptime_seconds ${uptimeSeconds}`,
+      ``,
+      `# HELP pramaan_requests_total Total number of HTTP requests handled`,
+      `# TYPE pramaan_requests_total counter`,
+      `pramaan_requests_total ${totalRequests}`,
+      ``,
+      `# HELP pramaan_database_connected 1 if connected to PostgreSQL, 0 otherwise`,
+      `# TYPE pramaan_database_connected gauge`,
+      `pramaan_database_connected ${db.isPostgres() ? 1 : 0}`,
+      ``,
+      `# HELP pramaan_indexer_last_block Highest block processed by persistent indexer`,
+      `# TYPE pramaan_indexer_last_block gauge`,
+      `pramaan_indexer_last_block{chain_id="54635"} ${lastIndexedBlock}`,
+      ``,
+      `# HELP pramaan_rpc_latency_milliseconds Latency to MST Coral RPC endpoint`,
+      `# TYPE pramaan_rpc_latency_milliseconds gauge`,
+      `pramaan_rpc_latency_milliseconds{endpoint="coral"} ${rpcLatencyMs}`,
+    ].join("\n");
+
+    reply.header("Content-Type", "text/plain; version=0.0.4; charset=utf-8");
+    return metrics;
+  });
+
+  // Legacy Health
   app.get("/health", async () => {
     return {
       status: "ok",

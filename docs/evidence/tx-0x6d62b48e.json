@@ -1,0 +1,32 @@
+{
+  "verifiedAt": "2026-10-30T20:38:49.202Z",
+  "transactionHash": "0x6d62b48ed1ed3bedfaf5839a397ad18cf00cfacbf6d31b1a6ae8d984014c1345",
+  "network": {
+    "name": "MST Coral Testnet",
+    "chainId": 54635,
+    "rpcUrl": "https://coralrpc.mstblockchain.com"
+  },
+  "receipt": {
+    "blockNumber": "406311",
+    "blockHash": "0x3be9e4a670678ed4c20696f30dad26555327f149a4ff40a65fac5825db2c5c47",
+    "gasUsed": "288882",
+    "status": "success",
+    "to": "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b",
+    "contractTarget": "ACTIVE_REGISTRY"
+  },
+  "eventDecoded": {
+    "scopeId": "1793391119",
+    "nullifier": "7894104992013243539656860504897392482497240578936591897338492219235443680110",
+    "recipient": "0xDED55a728B4ef6E91643eA947699C36e49CFfEFA"
+  },
+  "registryState": {
+    "isNullifierSpent": true
+  },
+  "indexerParity": {
+    "foundInDatabase": false
+  },
+  "explorer": {
+    "url": "https://coral.mstscan.com/tx/0x6d62b48ed1ed3bedfaf5839a397ad18cf00cfacbf6d31b1a6ae8d984014c1345",
+    "reachable": true
+  }
+}

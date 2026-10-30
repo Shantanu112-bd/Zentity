@@ -14,26 +14,15 @@ import { RegistryView } from "./components/RegistryView";
 import { AuditView } from "./components/AuditView";
 import { ExternalLink, Shield } from "lucide-react";
 import { DEFAULT_CORAL } from "./core";
-
-// Local self-hosted original video background (Zero third-party network egress)
-const VIDEO_URL = "/hero-bg.mp4";
+import { ProceduralAtmosphere } from "./components/ProceduralAtmosphere";
 
 function MainAppShell() {
   const [currentView, setCurrentView] = useState<NavView>("overview");
 
   return (
     <div className="relative min-h-screen w-screen bg-black text-white font-sans select-none flex flex-col justify-between overflow-x-hidden">
-      {/* 1. Background Video */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        disablePictureInPicture
-        controlsList="nodownload nofullscreen noremoteplayback"
-        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
-        src={VIDEO_URL}
-      />
+      {/* 1. Procedural Atmospheric Generative Background (Zero Media Assets / Zero Bandwidth Egress) */}
+      <ProceduralAtmosphere />
 
       {/* 2. Bottom Blur Overlay (No dark gradient overlay, purely backdrop-blur-24 with CSS mask) */}
       <div className="fixed inset-0 bottom-blur-mask pointer-events-none z-1" />

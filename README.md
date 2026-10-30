@@ -49,15 +49,16 @@ flowchart TD
 
 | Feature / Layer | Implementation Status | Evidence / Notes |
 |---|---|---|
-| **MST Coral Testnet Contracts** | `REAL & DEPLOYED` | `PramaanVerifier` (`0xed8fe3...`), `PramaanRegistry` (`0x8c182a...`), and `PrecompileProbe` (`0x94b9b5...`) deployed on Chain 54635. |
+| **MST Coral Testnet Contracts** | `REAL & DEPLOYED` | `PramaanVerifier` (`0x1ad0bfee...`), `PramaanRegistry` (`0x39f84204...`), and `PrecompileProbe` (`0x41219ca5...`) deployed on Chain 54635 and 100% verified on Blockscout. Old registry `0x8c182a53...` is permanently paused. |
 | **BN254 EVM Precompiles** | `REAL & MEASURED` | Measured on live Coral Testnet: `0x06` (552 gas), `0x07` (6,396 gas), `0x08` (113,447 gas). |
 | **On-Chain Gas Consumption** | `REAL & MEASURED` | `PramaanVerifier.verifyProof`: 259,208 gas; `PramaanRegistry.verifyAndRecord`: 288,906 gas on MST Coral Testnet. |
-| **Circuit & Prover** | `REAL & VERIFIED` | `AgeCredential.circom` compiles to 5,014 constraints; snarkjs generates valid Groth16 proofs client-side in ~636ms (desktop unthrottled). |
+| **Circuit & Prover** | `REAL & VERIFIED` | `AgeCredential.circom` compiles to 5,014 constraints; snarkjs generates valid Groth16 proofs client-side in ~636ms (desktop unthrottled). Artifact hashes in `circuits/hashes.json`. |
 | **On-Chain Negative Paths** | `REAL & TESTED` | 7/7 negative paths verified on Coral testnet: tampered proof, unregistered issuer, chain mismatch, recipient mismatch, nullifier spent (replay), contract paused, tampered public signal. |
-| **Fastify API & OIDC-Lite** | `REAL & TESTED` | Fastify + `jose` issuing ES256 signed ID tokens with PKCE code verification. |
-| **Credential Container** | `SYNTHETIC (DEMO)` | EdDSA-Poseidon signature over BabyJubjub curve issued by **DEMO ISSUER**. Real Aadhaar RSA-in-circuit is milestone M2. |
+| **Fastify API & OIDC-Lite** | `REAL & TESTED` | Fastify + `jose` issuing ES256 signed ID tokens with PKCE code verification, backed by PostgreSQL migrations and multi-tenant hashing. |
+| **Credential Container** | `SYNTHETIC (DEMO)` | EdDSA-Poseidon signature over BabyJubjub curve issued by persisted authority key. Real Aadhaar RSA-in-circuit is milestone M2. |
 | **Nullifier Formula** | `UNREVIEWED (DEMO)` | `nullifier = Poseidon(credentialSecret, scopeId)`. Unreviewed primitive; not formally audited. |
-| **Ceremony** | `DEV-ONLY` | Dev-only Powers of Tau (pot13) 1-contributor setup. Production multi-party ceremony required before release. |
+| **Ceremony** | `DEV-ONLY` | Regenerated with runtime 64-byte random entropy (DEV-ONLY). Production multi-party ceremony required before release. |
+| **Database & Fail-Closed Storage** | `REAL & FAIL-CLOSED` | PostgreSQL database with SQL migrations. Server strictly fails closed outside `NODE_ENV=test` if `DATABASE_URL` is missing. |
 | **Government Channel** | `SIMULATED STUB` | Signed webhook simulation stub. Not a live government integration. |
 | **Contract Source on Explorer** | `UNVERIFIED` | Bytecode deployed and live on Coral Blockscout, but source code is not yet formally verified via explorer API. |
 | **Contract Ownership** | `EOA SINGLE KEY` | Deployed and owned by single developer EOA (`0xded55a728b4ef6e91643ea947699c36e49cffefa`); multisig/timelock not yet configured. |
@@ -108,12 +109,29 @@ pnpm test
 pnpm run preflight:coral
 ```
 
+### Start Local Database (Postgres)
+Pramaan-ZK enforces a **fail-closed storage policy**: if `NODE_ENV=production` or `NETWORK` is set, or if running outside `NODE_ENV=test`, a valid `DATABASE_URL` is mandatory.
+
+```bash
+# Start local PostgreSQL via Docker Compose (maps port 5432)
+docker compose up -d
+
+# Add connection string to your .env
+echo 'DATABASE_URL="postgres://postgres:postgres@localhost:5432/pramaan"' >> .env
+```
+
 ### Start Development Server
 ```bash
 # Runs backend gateway (:3001) and Vite React app (:5173) concurrently
 pnpm run dev
 ```
 Open **http://localhost:5173** in your browser.
+
+### Verify On-Chain Transaction Evidence
+```bash
+# Audits receipt, decodes event logs, verifies nullifier state, and records evidence in docs/evidence/
+pnpm verify:tx <TRANSACTION_HASH>
+```
 
 ---
 

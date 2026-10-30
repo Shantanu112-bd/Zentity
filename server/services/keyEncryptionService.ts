@@ -98,3 +98,4 @@ export class LocalSoftwareKmsProvider implements KeyManagementProvider {
     return await newProvider.encrypt(plaintext);
   }
 }
+
