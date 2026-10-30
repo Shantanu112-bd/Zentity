@@ -76,9 +76,20 @@ export function ProverView() {
     abortControllerRef.current = controller;
 
     try {
+      let activeCred = credential;
+      if (!activeCred.credentialSecret) {
+        setProofStage("Refreshing attestation credential...");
+        activeCred = await protocolService.requestCredential(
+          address || "0x0000000000000000000000000000000000000000",
+          BigInt(scopeId || "1"),
+          dob
+        );
+        setCredential(activeCred);
+      }
+
       const recipient = (address as `0x${string}`) || "0x0000000000000000000000000000000000000001";
       const proofPayload = await protocolService.generateProof(
-        credential,
+        activeCred,
         recipient,
         targetNetwork.chainId,
         {

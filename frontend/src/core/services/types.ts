@@ -17,12 +17,22 @@ export interface AttestationCredential {
   issuer: string;
   subject: string;
   dob: string;
+  dobDays: number;
+  stateCode: number;
+  credentialSecret: string;
+  issuerPubKeyAx: string;
+  issuerPubKeyAy: string;
+  issuerPubKeyHash: string;
+  sigR8x: string;
+  sigR8y: string;
+  sigS: string;
+  label?: string;
   issuanceTimestamp: number;
-  signature: {
+  signature?: {
     R8: [string, string];
     S: string;
   };
-  issuerPublicKey: [string, string];
+  issuerPublicKey?: [string, string];
   honestNotice: string;
 }
 

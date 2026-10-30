@@ -52,19 +52,41 @@ export class ProtocolService {
     scopeId: bigint = 1n,
     dateOfBirth: string = "2000-01-01"
   ): Promise<AttestationCredential> {
-    const res = await api.issueTestnetCredential(dateOfBirth);
-    const cred = res.credential;
+    // Calculate age from dateOfBirth
+    let age = 25;
+    if (dateOfBirth) {
+      const parts = dateOfBirth.split("-");
+      if (parts.length === 3) {
+        const birthYear = parseInt(parts[0], 10);
+        const currentYear = new Date().getFullYear();
+        age = Math.max(1, currentYear - birthYear);
+      }
+    }
+    const currentDateDays = 20000;
+    const dobDays = Math.floor(currentDateDays - age * 365.25);
+
+    const res = await api.issueTestnetCredential({
+      age,
+      dobDays,
+      stateCode: 27,
+    });
+    const cred = res.credential as any;
 
     return {
-      issuer: cred.issuer || "Testnet Issuer Authority",
-      subject: address || cred.subject || "0x0000000000000000000000000000000000000000",
+      ...cred,
+      issuer: "Testnet Issuer Authority",
+      subject: address || "0x0000000000000000000000000000000000000000",
       dob: dateOfBirth,
-      issuanceTimestamp: cred.issuanceTimestamp || Math.floor(Date.now() / 1000),
-      signature: {
-        R8: cred.signature?.R8 || ["0", "0"],
-        S: cred.signature?.S || "0",
-      },
-      issuerPublicKey: cred.issuerPublicKey || ["0", "0"],
+      dobDays: cred.dobDays ?? dobDays,
+      stateCode: cred.stateCode ?? 27,
+      credentialSecret: cred.credentialSecret ? String(cred.credentialSecret) : "12345678901234567890",
+      issuerPubKeyAx: cred.issuerPubKeyAx ? String(cred.issuerPubKeyAx) : "0",
+      issuerPubKeyAy: cred.issuerPubKeyAy ? String(cred.issuerPubKeyAy) : "0",
+      issuerPubKeyHash: cred.issuerPubKeyHash ? String(cred.issuerPubKeyHash) : "0",
+      sigR8x: cred.sigR8x ? String(cred.sigR8x) : "0",
+      sigR8y: cred.sigR8y ? String(cred.sigR8y) : "0",
+      sigS: cred.sigS ? String(cred.sigS) : "0",
+      issuanceTimestamp: Math.floor(Date.now() / 1000),
       honestNotice:
         res.notice ||
         "Testnet issuer: attests the date of birth you enter; no identity verification.",
@@ -81,7 +103,7 @@ export class ProtocolService {
     options?: GenerateProofOptions
   ): Promise<Groth16ProofPayload> {
     const scopeId = options?.scopeId ?? 1n;
-    const recipientAddr = (recipient as `0x${string}`) || "0x0000000000000000000000000000000000000000";
+    const recipientAddr = (recipient as `0x${string}`) || "0x0000000000000000000000000000000000000001";
 
     const output = await coreGenerateProof(
       credential,
@@ -94,7 +116,10 @@ export class ProtocolService {
       }
     );
 
-    const calldata = formatCalldataForRegistry(output.calldata);
+    const calldata =
+      typeof output.calldata === "string"
+        ? formatCalldataForRegistry(output.calldata)
+        : output.calldata;
     const nullifierBigInt = BigInt(output.nullifier || "0");
 
     return {
