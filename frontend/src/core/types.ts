@@ -76,3 +76,4 @@ export interface ProofGenerationOutput {
   nullifier: string;
   durationMs: number;
 }
+

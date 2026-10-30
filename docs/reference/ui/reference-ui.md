@@ -213,3 +213,4 @@ Reduced motion: `@media (prefers-reduced-motion: reduce){ *{transition:none!impo
 - The pill, a two-line 55u headline, a 50%-white sub-line and two buttons are centred in the black area.
 - The animated planet illustration fills the lower half.
 - Nothing scrolls. The entrance plays once, in about 1.7s.
+

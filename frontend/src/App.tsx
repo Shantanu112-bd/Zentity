@@ -1,293 +1,226 @@
 /**
  * frontend/src/App.tsx
  * 
- * Unstyled Core Shell for Pramaan-ZK (Phase 1)
- * Exercises core services and hooks without any styling or brand presentation.
+ * Cinematic Liquid-Glass Hero & Connected Workspace
  */
 
-import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import React, { useState } from "react";
 import {
-  useWallet,
-  useNetwork,
-  useRegistry,
-  useIssuer,
-  useProver,
-  useSubmitProof,
-  useTxResult,
-  api,
-  DEFAULT_CORAL,
-} from "./core";
+  Play,
+  Info,
+  Search,
+  User,
+  Star,
+  Clock,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+} from "lucide-react";
+import { AppWorkspace } from "./components/AppWorkspace";
 
-function CoreStatusHome() {
-  const { address, isConnected, isConnecting, connect, disconnect, chainId } = useWallet();
-  const { targetNetwork, isCorrectNetwork, switchNetwork } = useNetwork(chainId);
-  const [registryInfo, setRegistryInfo] = useState<any>(null);
+const VIDEO_URL =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4";
 
-  useEffect(() => {
-    api.getRegistryInfo().then(setRegistryInfo).catch(() => {});
-  }, []);
+export default function App() {
+  const [view, setView] = useState<"landing" | "app">("landing");
 
-  return (
-    <div style={{ padding: "1.5rem" }}>
-      <h2>Pramaan-ZK — Protocol Core Status</h2>
-      <p style={{ color: "#aaa" }}>Unstyled Core Shell (Phase 1). Zero presentation code.</p>
-      <hr style={{ borderColor: "#333", margin: "1rem 0" }} />
+  if (view === "app") {
+    return <AppWorkspace onBackToLanding={() => setView("landing")} />;
+  }
 
-      <pre style={{ background: "#111", padding: "1rem", borderRadius: "4px", overflowX: "auto" }}>
-{JSON.stringify(
-  {
-    protocol: "Pramaan-ZK Attribute Gate",
-    network: {
-      name: targetNetwork.name,
-      chainId: targetNetwork.chainId,
-      activeChainId: chainId,
-      isCorrectNetwork,
-      rpc: targetNetwork.rpcUrl,
-    },
-    wallet: {
-      address: address || "Not connected",
-      isConnected,
-      isConnecting,
-    },
-    contracts: registryInfo?.contracts || "Loading...",
-    chainMode: registryInfo?.chainMode || "unknown",
-  },
-  null,
-  2
-)}
-      </pre>
-
-      <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
-        {!isConnected ? (
-          <button onClick={connect} disabled={isConnecting} style={{ padding: "0.5rem 1rem", cursor: "pointer" }}>
-            {isConnecting ? "Connecting..." : "Connect Wallet"}
-          </button>
-        ) : (
-          <button onClick={disconnect} style={{ padding: "0.5rem 1rem", cursor: "pointer" }}>
-            Disconnect
-          </button>
-        )}
-        {!isCorrectNetwork && isConnected && (
-          <button onClick={switchNetwork} style={{ padding: "0.5rem 1rem", cursor: "pointer" }}>
-            Switch to {targetNetwork.name}
-          </button>
-        )}
-      </div>
-
-      <div style={{ marginTop: "2rem" }}>
-        <h3>Functional Test Routes</h3>
-        <ul>
-          <li><Link to="/" style={{ color: "#7af" }}>/ (Core Status Home)</Link></li>
-          <li><Link to="/prove" style={{ color: "#7af" }}>/prove (Prover Core)</Link></li>
-          <li><Link to="/verify" style={{ color: "#7af" }}>/verify (Verifier Core)</Link></li>
-          <li><Link to="/registry" style={{ color: "#7af" }}>/registry (Registry Core)</Link></li>
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function CoreProver() {
-  const { address, isConnected, chainId } = useWallet();
-  const { targetNetwork } = useNetwork(chainId);
-  const { credential, requestCredential, loading: issuing } = useIssuer();
-  const { status, progress, proofOutput, error: proverError, startProving, cancelProving } = useProver();
-  const { submitProof, isSubmitting, txResult, error: submitError } = useSubmitProof();
-
-  const [dobDays, setDobDays] = useState(10950); // ~30 yrs
-  const [scopeId, setScopeId] = useState("12345");
-
-  const handleIssue = async () => {
-    await requestCredential({ dobDays, stateCode: 27 });
-  };
-
-  const handleProve = async () => {
-    if (!credential || !address) return;
-    const now = Math.floor(Date.now() / 1000);
-    await startProving(credential, scopeId, now, address);
-  };
-
-  const handleSubmit = async () => {
-    if (!proofOutput || !address) return;
-    const info = await api.getRegistryInfo();
-    const registryAddress = info.contracts.PramaanRegistry.address;
-    await submitProof(registryAddress, targetNetwork, address, proofOutput.calldata);
-  };
+  const enterApp = () => setView("app");
 
   return (
-    <div style={{ padding: "1.5rem" }}>
-      <h2>Pramaan-ZK — Prover Core</h2>
-      <p><Link to="/" style={{ color: "#7af" }}>&larr; Back to Status Home</Link></p>
-      <hr style={{ borderColor: "#333", margin: "1rem 0" }} />
-
-      <div>
-        <h4>Step 1: Testnet Credential</h4>
-        <p style={{ color: "#888" }}>Testnet issuer: attests self-provided date of birth without identity verification.</p>
-        <label>DOB Days: </label>
-        <input
-          type="number"
-          value={dobDays}
-          onChange={(e) => setDobDays(Number(e.target.value))}
-          style={{ padding: "0.25rem", marginRight: "0.5rem" }}
-        />
-        <button onClick={handleIssue} disabled={issuing} style={{ padding: "0.25rem 0.75rem" }}>
-          {issuing ? "Issuing..." : "Issue Testnet Credential"}
-        </button>
-        {credential && <pre style={{ background: "#111", padding: "0.5rem", marginTop: "0.5rem" }}>Credential Issued: Secret={credential.credentialSecret.slice(0, 10)}... KeyHash={credential.issuerKeyHash.slice(0, 10)}...</pre>}
-      </div>
-
-      <div style={{ marginTop: "1.5rem" }}>
-        <h4>Step 2: Generate ZK Proof (Client-side Groth16)</h4>
-        <label>Scope ID: </label>
-        <input
-          type="text"
-          value={scopeId}
-          onChange={(e) => setScopeId(e.target.value)}
-          style={{ padding: "0.25rem", marginRight: "0.5rem" }}
-        />
-        <button
-          onClick={handleProve}
-          disabled={!credential || !isConnected || status === "proving"}
-          style={{ padding: "0.25rem 0.75rem", marginRight: "0.5rem" }}
-        >
-          {status === "proving" ? `Proving (${progress.percentage}%)...` : "Generate Proof"}
-        </button>
-        {status === "proving" && (
-          <button onClick={cancelProving} style={{ padding: "0.25rem 0.75rem" }}>Cancel</button>
-        )}
-        {proverError && <p style={{ color: "#f77" }}>Prover Error: {proverError}</p>}
-        {proofOutput && (
-          <pre style={{ background: "#111", padding: "0.5rem", marginTop: "0.5rem" }}>
-            Proof Ready: Nullifier={proofOutput.nullifier} Duration={proofOutput.durationMs}ms
-          </pre>
-        )}
-      </div>
-
-      <div style={{ marginTop: "1.5rem" }}>
-        <h4>Step 3: Submit to MST On-Chain</h4>
-        <button
-          onClick={handleSubmit}
-          disabled={!proofOutput || isSubmitting}
-          style={{ padding: "0.5rem 1rem" }}
-        >
-          {isSubmitting ? "Submitting to MST..." : "Submit Proof On-Chain"}
-        </button>
-        {submitError && <p style={{ color: "#f77" }}>Submission Error: {submitError}</p>}
-        {txResult && (
-          <pre style={{ background: "#111", padding: "0.5rem", marginTop: "0.5rem" }}>
-            Tx Confirmed! Status={txResult.status} Block={txResult.blockNumber.toString()} Gas={txResult.gasUsed.toString()}
-            TxHash={txResult.txHash}
-          </pre>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CoreVerifier() {
-  const { lookupTx, result, loading, error } = useTxResult();
-  const [hash, setHash] = useState("");
-  const { targetNetwork } = useNetwork(null);
-
-  const handleLookup = () => {
-    if (hash) lookupTx(hash as `0x${string}`, targetNetwork);
-  };
-
-  return (
-    <div style={{ padding: "1.5rem" }}>
-      <h2>Pramaan-ZK — Verifier Core</h2>
-      <p><Link to="/" style={{ color: "#7af" }}>&larr; Back to Status Home</Link></p>
-      <hr style={{ borderColor: "#333", margin: "1rem 0" }} />
-      <input
-        type="text"
-        placeholder="Enter Tx Hash 0x..."
-        value={hash}
-        onChange={(e) => setHash(e.target.value)}
-        style={{ width: "400px", padding: "0.5rem", marginRight: "0.5rem" }}
+    <div className="relative w-screen h-screen overflow-hidden bg-black text-white font-sans select-none">
+      {/* 1. Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover z-0"
+        src={VIDEO_URL}
       />
-      <button onClick={handleLookup} disabled={loading} style={{ padding: "0.5rem 1rem" }}>
-        {loading ? "Searching..." : "Lookup Receipt"}
-      </button>
-      {error && <p style={{ color: "#f77" }}>Error: {error}</p>}
-      {result && (
-        <pre style={{ background: "#111", padding: "1rem", marginTop: "1rem" }}>
-          {JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v), 2)}
-        </pre>
-      )}
+
+      {/* 2. Bottom Blur Overlay (No black gradient, CSS mask with backdrop-blur-24) */}
+      <div className="fixed inset-0 bottom-blur-mask pointer-events-none z-1" />
+
+      {/* 3. Hero Layer & Navigation */}
+      <div className="relative z-10 w-full h-full flex flex-col justify-between p-6 md:p-10 pointer-events-auto">
+        {/* Top Navigation */}
+        <header className="w-full flex items-center justify-between">
+          {/* Logo */}
+          <div
+            className="animate-blur-fade-up flex items-center gap-2 cursor-pointer"
+            style={{ animationDelay: "0ms" }}
+            onClick={enterApp}
+          >
+            <div className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center liquid-glass">
+              <Shield size={16} className="text-white" />
+            </div>
+            <span className="font-bold tracking-widest text-sm uppercase">Pramaan-ZK</span>
+          </div>
+
+          {/* Desktop Nav Links */}
+          <nav className="hidden md:flex items-center gap-8 text-xs uppercase tracking-wider text-white/70">
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up hover:text-white transition-colors flex items-center gap-1.5"
+              style={{ animationDelay: "100ms" }}
+            >
+              <span className="text-[10px] text-white/40 font-mono">01</span>
+              <span>Movies</span>
+            </button>
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up hover:text-white transition-colors flex items-center gap-1.5"
+              style={{ animationDelay: "150ms" }}
+            >
+              <span className="text-[10px] text-white/40 font-mono">02</span>
+              <span>TV Series</span>
+            </button>
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up hover:text-white transition-colors flex items-center gap-1.5"
+              style={{ animationDelay: "200ms" }}
+            >
+              <span className="text-[10px] text-white/40 font-mono">03</span>
+              <span>Editor's Pick</span>
+            </button>
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up hover:text-white transition-colors flex items-center gap-1.5"
+              style={{ animationDelay: "250ms" }}
+            >
+              <span className="text-[10px] text-white/40 font-mono">04</span>
+              <span>Interviews</span>
+            </button>
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up hover:text-white transition-colors flex items-center gap-1.5"
+              style={{ animationDelay: "300ms" }}
+            >
+              <span className="text-[10px] text-white/40 font-mono">05</span>
+              <span>User Reviews</span>
+            </button>
+          </nav>
+
+          {/* Search & User */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up liquid-glass w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+              style={{ animationDelay: "350ms" }}
+              title="Search and Open Workspace"
+            >
+              <Search size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up liquid-glass w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+              style={{ animationDelay: "400ms" }}
+              title="Open Workspace"
+            >
+              <User size={15} />
+            </button>
+          </div>
+        </header>
+
+        {/* Bottom Hero Content */}
+        <div className="w-full flex flex-col md:flex-row items-end justify-between gap-8 pb-4">
+          <div className="max-w-2xl space-y-4">
+            {/* Metadata Row */}
+            <div
+              className="animate-blur-fade-up flex items-center gap-3 text-xs text-white/80 font-medium"
+              style={{ animationDelay: "300ms" }}
+            >
+              <div className="flex items-center gap-1">
+                <Star size={14} className="fill-white text-white" />
+                <span>8.7/10 IMDB</span>
+              </div>
+              <span className="text-white/40">•</span>
+              <div className="flex items-center gap-1">
+                <Clock size={14} />
+                <span>132 min</span>
+              </div>
+              <span className="text-white/40">•</span>
+              <div className="flex items-center gap-1">
+                <Calendar size={14} />
+                <span>April, 2025</span>
+              </div>
+            </div>
+
+            {/* Headline */}
+            <h1
+              className="animate-blur-fade-up text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-none text-white"
+              style={{ animationDelay: "400ms" }}
+            >
+              Step Through. Work Smarter.
+            </h1>
+
+            {/* Subhead */}
+            <p
+              className="animate-blur-fade-up text-sm sm:text-base text-white/70 max-w-xl font-normal leading-relaxed"
+              style={{ animationDelay: "500ms" }}
+            >
+              A voyage through forgotten realms, where past and future intertwine.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex items-center gap-4 pt-2">
+              <button
+                type="button"
+                onClick={enterApp}
+                className="animate-blur-fade-up liquid-glass px-6 py-3 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                style={{ animationDelay: "600ms" }}
+              >
+                <Play size={14} className="fill-white" />
+                <span>Watch Now</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={enterApp}
+                className="animate-blur-fade-up liquid-glass px-6 py-3 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                style={{ animationDelay: "700ms" }}
+              >
+                <Info size={14} />
+                <span>Learn More</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Prev / Next Navigation Pills */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up liquid-glass w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+              style={{ animationDelay: "800ms" }}
+              title="Previous"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={enterApp}
+              className="animate-blur-fade-up liquid-glass w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+              style={{ animationDelay: "900ms" }}
+              title="Next"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
-
-function CoreRegistry() {
-  const { checkNullifier, checkIssuer, checkPaused, loading, error } = useRegistry();
-  const [registryAddress, setRegistryAddress] = useState<`0x${string}` | null>(null);
-  const [scopeId, setScopeId] = useState("12345");
-  const [nullifier, setNullifier] = useState("");
-  const [nullifierSpent, setNullifierSpent] = useState<boolean | null>(null);
-  const { targetNetwork } = useNetwork(null);
-
-  useEffect(() => {
-    api.getRegistryInfo().then((info) => {
-      setRegistryAddress(info.contracts.PramaanRegistry.address);
-    });
-  }, []);
-
-  const handleCheck = async () => {
-    if (!registryAddress || !nullifier) return;
-    const spent = await checkNullifier(
-      registryAddress,
-      targetNetwork,
-      BigInt(scopeId),
-      BigInt(nullifier)
-    );
-    setNullifierSpent(spent);
-  };
-
-  return (
-    <div style={{ padding: "1.5rem" }}>
-      <h2>Pramaan-ZK — Registry Core</h2>
-      <p><Link to="/" style={{ color: "#7af" }}>&larr; Back to Status Home</Link></p>
-      <hr style={{ borderColor: "#333", margin: "1rem 0" }} />
-      <p>Contract: {registryAddress || "Loading..."}</p>
-      <label>Scope ID: </label>
-      <input
-        type="text"
-        value={scopeId}
-        onChange={(e) => setScopeId(e.target.value)}
-        style={{ padding: "0.25rem", marginRight: "0.5rem" }}
-      />
-      <label>Nullifier: </label>
-      <input
-        type="text"
-        value={nullifier}
-        onChange={(e) => setNullifier(e.target.value)}
-        style={{ padding: "0.25rem", marginRight: "0.5rem" }}
-      />
-      <button onClick={handleCheck} disabled={loading} style={{ padding: "0.25rem 0.75rem" }}>
-        {loading ? "Checking..." : "Check isNullifierSpent"}
-      </button>
-      {error && <p style={{ color: "#f77" }}>Error: {error}</p>}
-      {nullifierSpent !== null && (
-        <p style={{ marginTop: "1rem" }}>
-          Nullifier Status: <strong>{nullifierSpent ? "SPENT (Replay Blocked)" : "UNSPENT (Available)"}</strong>
-        </p>
-      )}
-    </div>
-  );
-}
-
-export function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<CoreStatusHome />} />
-        <Route path="/prove" element={<CoreProver />} />
-        <Route path="/verify" element={<CoreVerifier />} />
-        <Route path="/registry" element={<CoreRegistry />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
-
-export default App;

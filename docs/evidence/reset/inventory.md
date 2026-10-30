@@ -43,3 +43,4 @@
 - **Zero-Egress Assertion:** `tests/client-zero-egress.test.ts` (3/3 passing) confirms no PII leaves client during proof generation.
 - **Frontend Build Baseline:** `pnpm run build:frontend` succeeds in 1.48s.
 - **Git Checkpoint:** Tag `pre-ui-reset` pushed to `origin`.
+

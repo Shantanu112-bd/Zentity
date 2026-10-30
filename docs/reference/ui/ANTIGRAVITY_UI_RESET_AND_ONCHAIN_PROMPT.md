@@ -62,3 +62,4 @@ Create `docs/MAINNET_READINESS.md` and make the code ready for a later, human-ru
 - After each phase: `pnpm test`, `pnpm build`, secret scan, `git status` clean, docs updated (ACTIVITY_LOG, VERIFICATION_AUDIT, CHANGELOG, SESSION_HANDOFF, GATE0_TEST_REPORT).
 - `grep -riE "demo|mock|simulat|synthetic|hardcod" frontend/src backend config scripts` reviewed: every remaining hit is either test-only or an accurate label (e.g. "Testnet issuer").
 - Final report each phase (≤12 lines): what was removed/added, what is real vs still blocked, test counts, tx hashes and explorer links, commits, open blockers.
+
