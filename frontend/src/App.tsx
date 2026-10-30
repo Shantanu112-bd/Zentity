@@ -15,8 +15,8 @@ import { AuditView } from "./components/AuditView";
 import { ExternalLink, Shield } from "lucide-react";
 import { DEFAULT_CORAL } from "./core";
 
-const VIDEO_URL =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4";
+// Local self-hosted original video background (Zero third-party network egress)
+const VIDEO_URL = "/hero-bg.mp4";
 
 function MainAppShell() {
   const [currentView, setCurrentView] = useState<NavView>("overview");
@@ -29,7 +29,9 @@ function MainAppShell() {
         loop
         muted
         playsInline
-        className="fixed inset-0 w-full h-full object-cover z-0"
+        disablePictureInPicture
+        controlsList="nodownload nofullscreen noremoteplayback"
+        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
         src={VIDEO_URL}
       />
 

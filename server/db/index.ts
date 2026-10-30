@@ -96,8 +96,8 @@ export class DatabaseService {
   private memoryWebhooks = new Map<string, WebhookRecord>();
   private memoryIssuerKeys = new Map<string, IssuerKeyRecord>();
 
-  constructor() {
-    const dbUrl = process.env.DATABASE_URL;
+  constructor(customUrl?: string) {
+    const dbUrl = customUrl || process.env.DATABASE_URL;
     if (dbUrl) {
       this.pool = new Pool({
         connectionString: dbUrl,
@@ -114,7 +114,34 @@ export class DatabaseService {
   }
 
   public async init(): Promise<void> {
+    const isProduction = process.env.NODE_ENV === "production";
+    const hasNetwork = !!process.env.NETWORK;
+    const isTest = process.env.NODE_ENV === "test";
+
+    // Fail closed 1: Production or NETWORK set without DATABASE_URL
+    if ((isProduction || hasNetwork) && !process.env.DATABASE_URL) {
+      throw new Error(
+        "[STORAGE_FAIL_CLOSED] Refusing to start: DATABASE_URL is required when NODE_ENV=production or NETWORK is set. In-memory adapter is forbidden."
+      );
+    }
+
+    // Fail closed 2: In-memory adapter is ONLY permitted when NODE_ENV=test
+    if (!this.isPg && !isTest) {
+      throw new Error(
+        "[STORAGE_FAIL_CLOSED] Refusing to start: In-memory storage adapter is permitted only when NODE_ENV=test. Provide a valid DATABASE_URL."
+      );
+    }
+
+    // Fail closed 3: If DATABASE_URL is configured, test connection and fail closed if unreachable
     if (this.isPg && this.pool) {
+      try {
+        await this.pool.query("SELECT 1");
+      } catch (connErr: any) {
+        throw new Error(
+          `[STORAGE_FAIL_CLOSED] Refusing to start: Database connection failed: ${connErr.message}`
+        );
+      }
+
       const migrationFile = path.resolve(__dirname, "migrations/001_initial_schema.sql");
       if (fs.existsSync(migrationFile)) {
         const sql = fs.readFileSync(migrationFile, "utf-8");
@@ -482,6 +509,20 @@ export class DatabaseService {
       );
     } else {
       this.memoryIssuerKeys.set(k.keyId, k);
+    }
+  }
+
+  public async updateIssuerKeyCiphertext(keyId: string, encryptedPrivateKey: string): Promise<void> {
+    if (this.isPg && this.pool) {
+      await this.pool.query(
+        "UPDATE issuer_keys SET encrypted_private_key = $1 WHERE key_id = $2",
+        [encryptedPrivateKey, keyId]
+      );
+    } else {
+      const k = this.memoryIssuerKeys.get(keyId);
+      if (k) {
+        k.encryptedPrivateKey = encryptedPrivateKey;
+      }
     }
   }
 }

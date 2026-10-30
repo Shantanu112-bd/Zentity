@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-10-30T20:23:51.206Z",
+  "network": "MST Coral Testnet (54635)",
+  "registryAddress": "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b",
+  "blockRange": {
+    "fromBlock": "406200",
+    "toBlock": "406710"
+  },
+  "rawRpcLogsCount": 2,
+  "storedEventsCount": 2,
+  "parity": true,
+  "events": [
+    {
+      "txHash": "0xa1851b443b6490e8a21384e83c1c649616f6679010bce72a196575407f88582d",
+      "blockNumber": "406287",
+      "scopeId": "1793390540",
+      "nullifier": "1417493804299771246896385564717808963677667778633292061745923950207019823102",
+      "recipient": "0xDED55a728B4ef6E91643eA947699C36e49CFfEFA",
+      "indexedMatch": true,
+      "storedScopeId": "1793390540",
+      "storedNullifier": "1417493804299771246896385564717808963677667778633292061745923950207019823102",
+      "storedRecipient": "0xded55a728b4ef6e91643ea947699c36e49cffefa"
+    },
+    {
+      "txHash": "0x6d62b48ed1ed3bedfaf5839a397ad18cf00cfacbf6d31b1a6ae8d984014c1345",
+      "blockNumber": "406311",
+      "scopeId": "1793391119",
+      "nullifier": "7894104992013243539656860504897392482497240578936591897338492219235443680110",
+      "recipient": "0xDED55a728B4ef6E91643eA947699C36e49CFfEFA",
+      "indexedMatch": true,
+      "storedScopeId": "1793391119",
+      "storedNullifier": "7894104992013243539656860504897392482497240578936591897338492219235443680110",
+      "storedRecipient": "0xded55a728b4ef6e91643ea947699c36e49cffefa"
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import { getCrypto } from "../../scripts/pramaan/crypto-utils.ts";
 import type { SyntheticCredential } from "../../scripts/pramaan/crypto-utils.ts";
 import { db } from "../db/index.ts";
 import type { IssuerKeyRecord } from "../db/index.ts";
+import { encryptEnvelope, decryptEnvelope } from "./keyEncryptionService.ts";
 
 export interface IssuerIdentity {
   keyId: string;
@@ -22,7 +23,16 @@ export async function getOrInitIssuerKey(): Promise<IssuerIdentity> {
   // 1. Check if key is persisted in Database
   const dbRecord = await db.getActiveIssuerKey();
   if (dbRecord) {
-    const prvKey = Buffer.from(dbRecord.encryptedPrivateKey, "hex");
+    let prvKey: Buffer;
+    if (dbRecord.encryptedPrivateKey.startsWith("enc:v1:")) {
+      prvKey = decryptEnvelope(dbRecord.encryptedPrivateKey);
+    } else {
+      // Automatic migration: legacy unencrypted key -> AES-256-GCM envelope
+      prvKey = Buffer.from(dbRecord.encryptedPrivateKey, "hex");
+      const encrypted = encryptEnvelope(prvKey);
+      await db.updateIssuerKeyCiphertext(dbRecord.keyId, encrypted);
+    }
+
     activeIssuer = {
       keyId: dbRecord.keyId,
       prvKey,
@@ -45,13 +55,16 @@ export async function getOrInitIssuerKey(): Promise<IssuerIdentity> {
   const pubKeyHash = F.toString(poseidon([pubKey[0], pubKey[1]]));
   const keyId = `issuer-key-${pubKeyHash.slice(0, 10)}`;
 
+  // Store in database encrypted at rest (AES-256-GCM envelope encryption)
+  const encryptedPrivateKey = encryptEnvelope(prvKey);
+
   const record: IssuerKeyRecord = {
     keyId,
-    algorithm: "BabyJubjub-EdDSA-Poseidon",
+    algorithm: "BabyJubjub-EdDSA-Poseidon-AES256GCM",
     publicKeyAx: pubKeyAx,
     publicKeyAy: pubKeyAy,
     publicKeyHash: pubKeyHash,
-    encryptedPrivateKey: prvKey.toString("hex"),
+    encryptedPrivateKey,
     isActive: true,
   };
 

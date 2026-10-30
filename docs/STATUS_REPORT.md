@@ -11,16 +11,18 @@
 
 | Area | Status | Evidence Path / Test Command | Tests Passing | Deployed Addresses / Hashes | Explorer Links / Notes |
 |---|---|---|---|---|---|
-| **Smart Contracts** | `VERIFIED` | `docs/evidence/testnet-coral-2026-10-29/deployment.json`<br>`docs/evidence/negative-cases.json`<br>`tests/pramaan-registry.test.ts` | 8 unit tests<br>7 live on-chain negative tests | `PramaanRegistry`: `0x8c182a53fca78fe237734239bdb1256bc2658c5b`<br>`PramaanVerifier`: `0xed8fe30962b3df64accdf867a355c68addedbf28`<br>`PrecompileProbe`: `0x94b9b520b975e20e82ce5862c523bfe389c12ed3` | [Registry Explorer](https://coral.mstscan.com/address/0x8c182a53fca78fe237734239bdb1256bc2658c5b)<br>[Verifier Explorer](https://coral.mstscan.com/address/0xed8fe30962b3df64accdf867a355c68addedbf28) |
-| **Circuit & Math** | `VERIFIED` | `circuits/pramaan/age_credential.circom`<br>`tests/circuit-age-credential.test.ts`<br>`scripts/gate0/vectors.json` | 5 unit tests | 5,014 R1CS constraints; Groth16 over BN254. Under-18, wrong issuer, tampered sig, and nullifier collision all fail constraints. | Built with circom 2.1.8 & snarkjs 0.7.5. |
+| **Smart Contracts** | `VERIFIED` | `docs/evidence/testnet-coral-2026-10-29/deployment.json`<br>`docs/evidence/negative-cases.json`<br>`tests/pramaan-registry.test.ts` | 8 unit tests<br>7 live on-chain negative tests<br>100% Blockscout Verified | `PramaanRegistry`: `0x39f842043b7de6421ae21d5e4c955dd6cbaa415b`<br>`PramaanVerifier`: `0x1ad0bfee242e7ecae55bc4246352329555a3f91e`<br>`PrecompileProbe`: `0x41219ca55d4ad3566ec4b85d74145be021f8455b`<br>*(Old Registry `0x8c182a...` DEPRECATED & PAUSED in tx `0x247f7ae...`)* | [Registry Explorer](https://coral.mstscan.com/address/0x39f842043b7de6421ae21d5e4c955dd6cbaa415b)<br>[Verifier Explorer](https://coral.mstscan.com/address/0x1ad0bfee242e7ecae55bc4246352329555a3f91e)<br>Source code 100% verified on Blockscout |
+| **Circuit & Math** | `VERIFIED` | `circuits/pramaan/age_credential.circom`<br>`circuits/hashes.json`<br>`tests/circuit-age-credential.test.ts` | 5 unit tests | 5,014 R1CS constraints; Groth16 over BN254. Proving key regenerated with runtime random entropy (DEV-ONLY). Artifact hashes recorded in `circuits/hashes.json`. | Built with circom 2.1.8 & snarkjs 0.7.5. |
 | **Prover (Client SDK)** | `VERIFIED` | `frontend/src/core/prover.ts`<br>`tests/client-zero-egress.test.ts` | 3 unit tests | Desktop unthrottled: 636ms proof generation; strict zero-network-egress guarantee (no private credential parameters in payload). | Local WASM witness & proving. |
-| **Backend API & OIDC** | `VERIFIED` | `server/app.ts`<br>`server/oidc.ts`<br>`tests/server.test.ts` | 6 unit tests | RFC 7636 PKCE authorization code exchange, pairwise sub `HMAC(nullifier, clientId)`, ES256 JWKS endpoint. | Fastify v5 with rate-limiting & CORS. |
-| **Issuer (Synthetic)** | `VERIFIED` | `server/app.ts`<br>`scripts/pramaan/crypto-utils.ts`<br>`tests/server.test.ts` | 1 unit test | Public key hash: `1611009605506049313254918906125506668212891036786937998993893237370979579959`. Tx: `0x2011b9a1191b865ff39443a6c200b399976bd1ec5735006c384848d675992e1c`. | [Issuer Reg Tx](https://coral.mstscan.com/tx/0x2011b9a1191b865ff39443a6c200b399976bd1ec5735006c384848d675992e1c) |
-| **Wallet Flow** | `VERIFIED` | `server/auth.ts`<br>`frontend/src/core/hooks/useWallet.ts`<br>`tests/wallet-auth.test.ts` | 7 unit tests | EIP-191 challenge/nonce authentication; replay, expiry, and address mismatch strictly rejected. EIP-1193 MetaMask integration. | Viem custom chain integration. |
-| **Core Services** | `VERIFIED` | `frontend/src/core/services/protocolService.ts`<br>`tests/core-services.test.ts` | 12 unit tests | Calldata formatting, signal abort, receipt log parsing, contract state reads, API client calls. | Decoupled client abstraction. |
+| **Backend API & OIDC** | `VERIFIED` | `server/app.ts`<br>`server/oidc.ts`<br>`tests/server.test.ts` | 6 unit tests | Multi-tenant DB session storage, timing-safe hashed client secret verification, RFC 7636 PKCE, pairwise sub, ES256 JWKS endpoint. | Fastify v5 with rate-limiting & CORS. |
+| **Issuer (Synthetic)** | `VERIFIED` | `server/services/issuerKeyService.ts`<br>`server/services/keyEncryptionService.ts`<br>`tests/storage-fail-closed-and-encryption.test.ts` | 9 unit tests | Stable persisted BabyJubjub issuer key; AES-256-GCM envelope encryption at rest (`enc:v1:...`). Registered in tx `0xd9fe8ee9587eff249dc9e753f1cf3b95c20182f758d9cc751c8dda5013f26407`. | Zero plaintext keys in DB or logs. |
+| **Wallet Flow** | `VERIFIED` | `server/auth.ts`<br>`frontend/src/core/hooks/useWallet.ts`<br>`tests/wallet-auth.test.ts` | 7 unit tests | EIP-191 challenge/nonce authentication with DB consumption; replay, expiry, and address mismatch strictly rejected. | Viem custom chain integration. |
+| **Database & Fail-Closed** | `VERIFIED` | `server/db/index.ts`<br>`tests/storage-fail-closed-and-encryption.test.ts` | 4 unit tests | Fails closed on production/network without DATABASE_URL; in-memory permitted strictly when NODE_ENV=test. Connection test on init. | Supabase / Postgres adapter. |
+| **Persistent Indexer** | `VERIFIED` | `server/services/indexerService.ts`<br>`scripts/pramaan/audit-indexer-events.ts`<br>`docs/evidence/indexer-live-comparison.json` | 1 unit test<br>Live Coral Audit (100% Parity) | Resumable cursor tracking, 6-block reorg rollback, idempotent event ingestion. Confirmed 100% match with live Coral RPC logs. | [Evidence file](file:///Users/macbook/Mst%20Project/docs/evidence/indexer-live-comparison.json) |
+| **Signed Webhooks** | `VERIFIED` | `server/services/webhookService.ts`<br>`tests/database-and-tenants.test.ts` | 1 unit test | HMAC-SHA256 signature header, replay tolerance window (300s), delivery attempts & DLQ status tracking. | Event dispatch service. |
 | **Native Precompiles** | `VERIFIED` | `docs/evidence/gas-measured.json`<br>`tests/gate0-precompile-probe.test.ts` | 7 unit tests (local)<br>3 on-chain probes | `0x06` (ecAdd): 552 gas<br>`0x07` (ecMul): 6,396 gas<br>`0x08` (ecPairing): 113,447 gas | Gate 0 passed on MST Coral Testnet. |
-| **UI Presentation Layer** | `VERIFIED` | `frontend/src/components/`<br>`frontend/src/index.css` | 1 production bundle build (1.67s) | Cinematic Liquid-Glass design system (`#000000`, `.liquid-glass`, Inter font, responsive stages: Overview, Prover, Registry, Audit). | Zero mock movie streaming links remaining. |
-| **CI / Automated Test Suite** | `VERIFIED` | `pnpm test` command | **58 passing tests** (13s execution time) | Complete headless test run across contracts, circuits, server, auth, and guards. | Zero regressions. |
+| **UI Presentation Layer** | `VERIFIED` | `frontend/src/components/`<br>`frontend/src/App.tsx` | 1 production bundle build (1.75s) | Cinematic Liquid-Glass design system (`#000000`, Inter font, Prover Studio, Registry Explorer, Audit Log). Zero third-party media egress. | Local original asset `/hero-bg.mp4`. |
+| **CI / Automated Test Suite** | `VERIFIED` | `pnpm test` command | **73 passing tests** (15s execution time) | Complete headless test run across contracts, circuits, server, auth, fail-closed storage, envelope encryption, and guards. | Zero regressions. |
 
 ### Gas Consumption: MEASURED (Coral Live) vs LOCAL (Hardhat)
 
@@ -65,17 +67,21 @@
 ## 4. What the Coral Deployment Actually Is
 
 - **Active Network:** MST Coral Testnet (Chain ID `54635`, RPC `https://coralrpc.mstblockchain.com`, Explorer `https://coral.mstscan.com`).
-- **Contract Deployments:**
-  - `PrecompileProbe`: `0x94b9b520b975e20e82ce5862c523bfe389c12ed3` (Code: 1,537 bytes)
-  - `PramaanVerifier`: `0xed8fe30962b3df64accdf867a355c68addedbf28` (Code: 1,932 bytes)
-  - `PramaanRegistry`: `0x8c182a53fca78fe237734239bdb1256bc2658c5b` (Code: 2,087 bytes)
-- **Contract Owner:** `0xded55a728b4ef6e91643ea947699c36e49cffefa` (Deployer EOA; holds owner privileges including pause and issuer registration).
-- **Contract State:** `paused = false`.
-- **Registered Issuer Key Hash:** `1611009605506049313254918906125506668212891036786937998993893237370979579959` (`registeredIssuers = true`).
-- **Key Custody:** Single developer holds the private key for `0xded5...fefa` in git-ignored `.env` (Balance: 44.99 tMSTC).
-- **Ceremony Type:** DEV-ONLY 1-party local ceremony (pot13_final.ptau with static entropy).
+- **Live Active Contract Deployments (Generated & Verified 2026-10-31):**
+  - `PrecompileProbe`: `0x41219ca55d4ad3566ec4b85d74145be021f8455b` ([Blockscout Verified](https://coral.mstscan.com/address/0x41219ca55d4ad3566ec4b85d74145be021f8455b#code))
+  - `PramaanVerifier`: `0x1ad0bfee242e7ecae55bc4246352329555a3f91e` ([Blockscout Verified](https://coral.mstscan.com/address/0x1ad0bfee242e7ecae55bc4246352329555a3f91e#code))
+  - `PramaanRegistry`: `0x39f842043b7de6421ae21d5e4c955dd6cbaa415b` ([Blockscout Verified](https://coral.mstscan.com/address/0x39f842043b7de6421ae21d5e4c955dd6cbaa415b#code))
+- **Deprecated Contract Deployments (Marked DEPRECATED & Permanently Paused):**
+  - `PramaanRegistry (OLD)`: `0x8c182a53fca78fe237734239bdb1256bc2658c5b` (Permanently paused by owner in tx `0x247f7ae1768433d87ad054f0e0e03cedec0b69faa7217e9ff9ee78d09ee0047c`, Block `406441`. Confirmed `paused() == true`).
+  - `PramaanVerifier (OLD)`: `0xed8fe30962b3df64accdf867a355c68addedbf28` (DEPRECATED).
+  - `PrecompileProbe (OLD)`: `0x94b9b520b975e20e82ce5862c523bfe389c12ed3` (DEPRECATED).
+- **Contract Owner:** `0xded55a728b4ef6e91643ea947699c36e49cffefa` (Deployer EOA; holds owner privileges).
+- **Contract State (New Registry):** `paused = false`.
+- **Registered Issuer Key Hash:** `1611009605506049313254918906125506668212891036786937998993893237370979579959` (Registered in tx `0xd9fe8ee9587eff249dc9e753f1cf3b95c20182f758d9cc751c8dda5013f26407`, Block `406249`).
+- **Key Custody:** Single developer holds the private key for `0xded5...fefa` in git-ignored `.env` (Balance: ~44.97 tMSTC).
+- **Ceremony Type:** DEV-ONLY 1-party local ceremony regenerated with runtime 64-byte random entropy; committed static seed deleted. Artifact SHA256 hashes recorded in `circuits/hashes.json`.
 - **Compiler Settings:** Solidity `0.8.20`, optimizer enabled with `200` runs.
-- **Source Verified on Explorer:** **NO** (Blockscout API returns empty source code for contract addresses).
+- **Source Verified on Explorer:** **YES (100%)** — All 3 active smart contracts are verified on Coral Blockscout (`coral.mstscan.com`).
 
 ---
 

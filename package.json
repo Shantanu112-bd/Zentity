@@ -17,7 +17,7 @@
     "dev": "concurrently -k -n \"server,client\" -c \"cyan,magenta\" \"tsx server/index.ts\" \"vite frontend --port 5173\"",
     "build:frontend": "vite build frontend",
     "server": "tsx server/index.ts",
-    "test": "hardhat test tests/*.test.ts"
+    "test": "cross-env NODE_ENV=test hardhat test tests/*.test.ts"
   },
   "devDependencies": {
     "@noble/curves": "^2.4.0",
@@ -29,6 +29,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "autoprefixer": "^10.6.2",
     "concurrently": "^10.0.6",
+    "cross-env": "^10.1.0",
     "dotenv": "^16.4.7",
     "hardhat": "^2.22.18",
     "postcss": "^8.5.32",

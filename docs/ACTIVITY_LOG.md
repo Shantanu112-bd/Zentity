@@ -330,3 +330,23 @@ All entries follow the format specified in §5 of `ANTIGRAVITY_MASTER_LOOP_PROMP
   - Client secret verification uses timing-safe equality (`crypto.timingSafeEqual`).
   - Zero PII stored in database or emitted in indexer events.
 - Next action: Report Priority 1-4 completion to user.
+
+### [2026-10-31 02:00 IST] PRE-P0 CORRECTIONS — Storage Fail-Closed, Envelope Encryption, Live Indexer Audit, Old Registry Pause
+- Agent/env: Antigravity / macOS Darwin arm64
+- Intent / acceptance criteria: Complete ordered pre-P0 requirements:
+  1. Fail-closed storage adapter: `NODE_ENV=production` or `NETWORK` set without `DATABASE_URL` strictly refuses to start; in-memory permitted ONLY when `NODE_ENV=test`.
+  2. Envelope encryption at rest: AES-256-GCM envelope format (`enc:v1:<iv>:<tag>:<ciphertext>`) for issuer private key via `server/services/keyEncryptionService.ts`, automatic database migration, zero plain keys in logs.
+  3. Supabase Postgres verification: Verified `DATABASE_URL` is pending user `.env` placement. Refuse to claim Postgres path works until provided and tested.
+  4. Live Indexer audit: Script `scripts/pramaan/audit-indexer-events.ts` queried live Coral RPC logs from block 406200 to latest on `0x39f84204...`, verified against database events, and stored evidence with 100% mathematical parity in `docs/evidence/indexer-live-comparison.json`.
+  5. Old registry paused: Permanently paused `0x8c182a53fca78fe237734239bdb1256bc2658c5b` via owner key in tx `0x247f7ae1768433d87ad054f0e0e03cedec0b69faa7217e9ff9ee78d09ee0047c` (Block `406441`). Confirmed `paused() == true`. Generated `circuits/hashes.json` matching active artifacts.
+  6. Frontend third-party media purge: Downloaded video to `frontend/public/hero-bg.mp4` (9.0MB), updated `App.tsx` with `disablePictureInPicture` and `nodownload`, confirmed 0 external media URLs in frontend code.
+- Files created/modified:
+  - Created: `server/services/keyEncryptionService.ts`, `tests/storage-fail-closed-and-encryption.test.ts`, `scripts/pramaan/audit-indexer-events.ts`, `docs/evidence/indexer-live-comparison.json`, `circuits/hashes.json`, `frontend/public/hero-bg.mp4`.
+  - Modified: `server/db/index.ts`, `server/services/issuerKeyService.ts`, `server/index.ts`, `package.json`, `frontend/src/App.tsx`, `docs/STATUS_REPORT.md`.
+- Commands actually run (exact) and result summary:
+  - `pnpm test`: 73/73 tests passing (Pass).
+  - `npx hardhat test tests/storage-fail-closed-and-encryption.test.ts`: 9/9 passing tests (Pass).
+  - `npx tsx scripts/pramaan/audit-indexer-events.ts`: 100% Parity Confirmed against Coral Testnet RPC logs (Pass).
+  - `pnpm run build:frontend`: Vite production build passed cleanly in 1.75s (Pass).
+  - Secret scan: Confirmed zero private keys or secrets committed; `.env` remains untracked (Pass).
+- Next action: Await human to supply Supabase `DATABASE_URL` in `.env` for Step 3, then proceed to P0 continuation (RPC resilience fallback, structured JSON pino logging, `/healthz` / `/readyz` / `/metrics`, GitHub Actions CI).
