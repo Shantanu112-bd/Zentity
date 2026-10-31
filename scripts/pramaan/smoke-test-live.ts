@@ -57,8 +57,8 @@ async function main() {
   results.registryInfo = { status: regRes.status, body: regJson };
 
   // 5. Synthetic Credential Issuance
-  console.log("\n[5/6] Testing POST /api/demo/issue (Synthetic Attestation)...");
-  const issueRes = await fetch(`${targetUrl}/api/demo/issue`, {
+  console.log("\n[5/6] Testing POST /api/v1/issue (Synthetic Attestation)...");
+  const issueRes = await fetch(`${targetUrl}/api/v1/issue`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ age: 25, stateCode: 27 }),
@@ -119,3 +119,4 @@ main().catch((err) => {
   console.error("\n[SMOKE TEST FAILED]:", err.message);
   process.exit(1);
 });
+

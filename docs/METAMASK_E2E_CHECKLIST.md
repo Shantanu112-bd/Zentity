@@ -52,7 +52,7 @@ This document provides a manual test protocol for verifying the **Pramaan-ZK** z
    - [ ] Subject Address: Displays your connected MetaMask address.
 2. **Attestation Request:**
    - [ ] Click **"REQUEST TESTNET CREDENTIAL"**.
-   - [ ] Open Browser DevTools Network tab &rarr; verify `POST /api/demo/issue` returns HTTP 200.
+   - [ ] Open Browser DevTools Network tab &rarr; verify `POST /api/v1/issue` returns HTTP 200.
    - [ ] Verify returned JSON contains `credentialSecret`, `issuerPubKeyHash`, `sigR8x`, `sigR8y`, `sigS`.
    - [ ] Confirm badge updates to `Attested` (green).
    - [ ] Button updates to "CREDENTIAL ATTESTED".

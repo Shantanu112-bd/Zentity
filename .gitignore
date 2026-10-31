@@ -33,6 +33,13 @@ circuits/gate0/multiplier.sym
 circuits/gate0/multiplier_*.zkey
 circuits/gate0/witness.wtns
 
+# Exceptions: Track final production browser proving artifacts & hashes
+!frontend/public/circuits/age_credential.wasm
+!frontend/public/circuits/age_credential_final.zkey
+!frontend/public/circuits/verification_key.json
+!frontend/public/circuits/hashes.json
+!circuits/hashes.json
+
 # OS & IDE
 .DS_Store
 Thumbs.db
