@@ -1,5 +1,14 @@
 {
-  "wasm": "c0d7bc2f70851b06b74b1810ecb6c082c0bb59352579d4f031db61f7c206398f",
-  "zkey": "be017aecfa07dc7898be2b91b229d8af6b4e46178c35422374240b86c19907e7",
-  "vkey": "75463d5275dd7c747bcaeae6a4aa2bed889e457ef598883706614c36e0f54663"
+  "timestamp": "2026-10-30T20:10:41.050Z",
+  "circuit": "circuits/pramaan/age_credential.circom",
+  "ceremony": "DEV-ONLY Prototype Ceremony (Runtime Random Entropy)",
+  "artifacts": {
+    "age_credential.circom": "e5ae22fc3a6052ec4f5d84a0f483271fce3ef37105171b85a68ee0c7c459ae86",
+    "age_credential.r1cs": "c598b283acef6936cc11ee5cac93b5a0612af80e3046b39af945c410ce491c40",
+    "age_credential_final.zkey": "c1f7b63d169d9ee2f51c4c88b8ae6233ee3c64784b94b173f977bebdd53761ec",
+    "verification_key.json": "bb4e9478c49bad3b90a3ad6799b1afca67521281f51dcdaaa29564976e75c597",
+    "age_credential.wasm": "c0d7bc2f70851b06b74b1810ecb6c082c0bb59352579d4f031db61f7c206398f",
+    "frontend_public_zkey": "c1f7b63d169d9ee2f51c4c88b8ae6233ee3c64784b94b173f977bebdd53761ec",
+    "frontend_public_wasm": "c0d7bc2f70851b06b74b1810ecb6c082c0bb59352579d4f031db61f7c206398f"
+  }
 }

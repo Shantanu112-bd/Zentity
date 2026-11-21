@@ -10,7 +10,7 @@ async function start() {
     console.log(`\n======================================================`);
     console.log(`[Pramaan-ZK Backend & OIDC Gateway] Listening on http://localhost:${PORT}`);
     console.log(`OpenID Configuration: http://localhost:${PORT}/.well-known/openid-configuration`);
-    console.log(`Synthetic Issuance:   http://localhost:${PORT}/api/demo/issue`);
+    console.log(`Synthetic Issuance:   http://localhost:${PORT}/api/v1/issue (legacy alias: /api/demo/issue)`);
     console.log(`Proof Verification:   http://localhost:${PORT}/api/verify`);
     console.log(`======================================================\n`);
   } catch (err) {

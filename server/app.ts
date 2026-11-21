@@ -199,8 +199,9 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
 
   // --------------------------------------------------------------------------
   // 1. Synthetic Credential Issuance (Persisted Stable Issuer Key)
+  // Canonical: /api/v1/issue (Alias: /api/demo/issue)
   // --------------------------------------------------------------------------
-  app.post("/api/demo/issue", async (req: FastifyRequest, reply: FastifyReply) => {
+  const issueHandler = async (req: FastifyRequest, reply: FastifyReply) => {
     const body = (req.body as any) || {};
 
     // Strict PII Filter: Reject any attempt to provide real personal data
@@ -225,13 +226,16 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
 
     return {
       credential,
-      label: "DEMO ISSUER (SYNTHETIC CREDENTIAL - NOT REAL AADHAAR)",
+      label: "PRAMAAN TESTNET ISSUER (SYNTHETIC CREDENTIAL - NOT REAL AADHAAR)",
       notice: "Synthetic credential. Real Aadhaar QR support is future work (milestone M2).",
       age,
       stateCode,
       currentDateDays,
     };
-  });
+  };
+
+  app.post("/api/v1/issue", issueHandler);
+  app.post("/api/demo/issue", issueHandler);
 
   // --------------------------------------------------------------------------
   // 2. Proof Verification & Off-Chain Validation
@@ -318,6 +322,7 @@ export async function buildApp(opts: ServerOptions = {}): Promise<FastifyInstanc
         PramaanVerifier: { address: "0x1ad0bfee242e7ecae55bc4246352329555a3f91e" },
         PramaanRegistry: { address: "0x39f842043b7de6421ae21d5e4c955dd6cbaa415b" },
       },
+      issuerPubKeyHash: issuer.pubKeyHash,
       demoIssuerPubKeyHash: issuer.pubKeyHash,
     };
   });

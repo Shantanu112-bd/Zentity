@@ -115,8 +115,22 @@ pnpm run build:frontend
 pnpm run preflight:coral
 ```
 
-### Start Local Database (Postgres)
-Pramaan-ZK enforces a **fail-closed storage policy**: if `NODE_ENV=production` or `NETWORK` is set, or if running outside `NODE_ENV=test`, a valid `DATABASE_URL` is mandatory.
+### Database Connection String (Supabase Connection Pooler)
+Pramaan-ZK connects to managed PostgreSQL using the Supabase **Connection Pooler** (which provides IPv4 network routing and transaction pooling):
+
+```bash
+# In your local .env (or Render / Railway / Fly secret store):
+DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-1-[REGION].pooler.supabase.com:6543/postgres"
+```
+
+> **Supabase Configuration:**
+> 1. In Supabase Dashboard &rarr; **Project Settings** &rarr; **Database** &rarr; **Connection string**.
+> 2. Select **URI** &rarr; select **Transaction** (port `6543`) or **Session** (port `5432`).
+> 3. Check **Use connection pooling**. (Do not use direct `db.[ref].supabase.co` as direct connection is IPv6-only).
+> 4. If your password contains punctuation (e.g. `%`, `#`), reset it in **Database password** &rarr; **Reset database password** to an alphanumeric passphrase so URI parsers do not alter it.
+
+### Start Local Database (Postgres Alternative)
+If developing locally without an active cloud database, you can run PostgreSQL via Docker Compose:
 
 ```bash
 # Start local PostgreSQL via Docker Compose (maps port 5432)
@@ -131,6 +145,32 @@ echo 'DATABASE_URL="postgres://postgres:postgres@localhost:5432/pramaan"' >> .en
 # Runs 001_initial_schema.sql and 002_enable_rls.sql, audits RLS status, and saves docs/evidence/
 pnpm run migrate:db
 ```
+
+### Fresh Database Setup — Exact Order of Operations
+When connecting to a brand-new PostgreSQL database (Supabase or local):
+1. **Set `DATABASE_URL`**: Add the Supabase pooler connection URI to `.env` (or cloud host secret manager).
+2. **Execute Schema & RLS Migrations**:
+   ```bash
+   pnpm run migrate:db
+   ```
+   Applies `001_initial_schema.sql` and `002_enable_rls.sql`, forces RLS on all 7 tables, and verifies zero public/anon leaks.
+3. **Start API Server (Seeds Tenants & Key)**:
+   ```bash
+   pnpm run server
+   ```
+   Auto-seeds default tenant (`pramaan-relying-party-alpha`) and initializes the encrypted BabyJubjub issuer key at rest.
+4. **Check & Register Issuer On-Chain**:
+   ```bash
+   pnpm issuer:status
+   # If unregistered:
+   pnpm issuer:register
+   ```
+   Registers the database-backed issuer key hash on `PramaanRegistry.sol` using deployer credentials in local `.env` (never on cloud hosts).
+5. **Start Blockchain Indexer Worker**:
+   ```bash
+   npx tsx scripts/pramaan/indexer-worker.ts
+   ```
+   Resumes cursor from database and syncs verified events on Coral Testnet.
 
 ### Start Development Server
 ```bash

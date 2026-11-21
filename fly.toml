@@ -25,3 +25,4 @@ primary_region = "fra"
     grace_period = "5s"
     method = "GET"
     path = "/healthz"
+

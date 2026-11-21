@@ -56,28 +56,36 @@ describe("Milestone MVP Step 4: Backend Fastify API & OIDC-Lite Gateway", functi
     assert.ok(metrics.payload.includes("pramaan_database_connected"));
   });
 
-  it("2. POST /api/demo/issue issues synthetic credential and rejects real PII", async function () {
+  it("2. POST /api/v1/issue (and /api/demo/issue) issues synthetic credential and rejects real PII", async function () {
     // Prohibited PII check
     const badRes = await app.inject({
       method: "POST",
-      url: "/api/demo/issue",
+      url: "/api/v1/issue",
       payload: { aadhaar: "123456789012" },
     });
     assert.strictEqual(badRes.statusCode, 400);
     const badBody = JSON.parse(badRes.payload);
     assert.strictEqual(badBody.error, "PII_PROHIBITED");
 
-    // Valid synthetic issue
+    // Valid synthetic issue via /api/v1/issue
     const okRes = await app.inject({
       method: "POST",
-      url: "/api/demo/issue",
+      url: "/api/v1/issue",
       payload: { age: 25, stateCode: 27 },
     });
     assert.strictEqual(okRes.statusCode, 200);
     const okBody = JSON.parse(okRes.payload);
     assert(okBody.credential.credentialSecret);
     assert(okBody.credential.sigR8x);
-    assert(okBody.label.includes("DEMO ISSUER"));
+    assert(okBody.label.includes("PRAMAAN TESTNET ISSUER"));
+
+    // Backwards compatibility alias /api/demo/issue
+    const aliasRes = await app.inject({
+      method: "POST",
+      url: "/api/demo/issue",
+      payload: { age: 25, stateCode: 27 },
+    });
+    assert.strictEqual(aliasRes.statusCode, 200);
   });
 
   it("3. POST /api/verify performs off-chain Groth16 verification", async function () {

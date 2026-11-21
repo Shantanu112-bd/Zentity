@@ -33,7 +33,7 @@ services:
     plan: starter
     region: frankfurt
     buildCommand: pnpm install
-    startCommand: npx tsx scripts/pramaan/audit-indexer-events.ts
+    startCommand: npx tsx scripts/pramaan/indexer-worker.ts
     envVars:
       - key: NODE_ENV
         value: production
@@ -43,3 +43,4 @@ services:
         value: https://coralrpc.mstblockchain.com
       - key: LOG_LEVEL
         value: info
+

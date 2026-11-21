@@ -12,6 +12,7 @@ export interface RegistryInfoResponse {
   networkSlot: string;
   network: NetworkInfo;
   contracts: ContractInfo;
+  issuerPubKeyHash?: string;
   demoIssuerPubKeyHash?: string;
 }
 
@@ -77,7 +78,7 @@ export class ApiClient {
   async issueTestnetCredential(
     req: IssueCredentialRequest
   ): Promise<IssueCredentialResponse> {
-    const res = await fetch(`${this.baseUrl}/api/demo/issue`, {
+    const res = await fetch(`${this.baseUrl}/api/v1/issue`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(req),
